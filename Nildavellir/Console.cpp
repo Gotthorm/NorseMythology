@@ -146,7 +146,7 @@ void Console::SetCacheSize(unsigned int cacheSize)
 	}
 }
 
-void Console::SetWindowSize(unsigned int width, unsigned int height)
+void Console::SetWindowSize(unsigned short width, unsigned short height)
 {
 	buffer_width = width / m_FontWidth;
 	buffer_height = ((unsigned int)(height * m_HeightPercent) / m_FontHeight) - 1;

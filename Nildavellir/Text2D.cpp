@@ -25,11 +25,17 @@ void Text2D::init(int width, int height, const char* font)
 	OpenGLInterface::BindVertexArray(vao);
 
 	// glCreateTextures(GL_TEXTURE_2D, 1, &text_buffer);
+	OpenGLInterface::ActiveTexture( GL_TEXTURE0 ); // Fix from tesselation?
 	glGenTextures(1, &text_buffer);
 	glBindTexture(GL_TEXTURE_2D, text_buffer);
 	OpenGLInterface::TexStorage2D(GL_TEXTURE_2D, 1, GL_R8UI, width, height);
 
+	glPixelStorei( GL_UNPACK_ALIGNMENT, 4 ); // Fix from tesselation?
 	font_texture = KTX::load(font ? font : "Media/Textures/cp437_9x16.ktx");
+
+	// Extract the font width and height
+	glGetTexLevelParameteriv( GL_TEXTURE_2D_ARRAY, 0, GL_TEXTURE_WIDTH, &m_FontWidth );
+	glGetTexLevelParameteriv( GL_TEXTURE_2D_ARRAY, 0, GL_TEXTURE_HEIGHT, &m_FontHeight );
 
 	screen_buffer = new char[width * height];
 	memset(screen_buffer, 0, width * height);
@@ -50,7 +56,8 @@ void Text2D::draw()
 
 	const GLfloat color[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-	OpenGLInterface::VertexAttrib1f(1, -1.0f);
+	//OpenGLInterface::VertexAttrib1f( 1, -1.0f );
+	OpenGLInterface::VertexAttrib1f( 1, 0.0f );
 	OpenGLInterface::VertexAttrib4fv(2, color);
 
 	OpenGLInterface::ActiveTexture(GL_TEXTURE0);

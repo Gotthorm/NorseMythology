@@ -25,6 +25,9 @@ private:
 	GLuint      font_texture;
 	GLuint      vao;
 
+	GLint		m_FontWidth;
+	GLint		m_FontHeight;
+
 	GLuint      text_program;
 	char *      screen_buffer;
 	int         buffer_width;

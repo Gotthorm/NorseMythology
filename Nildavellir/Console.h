@@ -30,7 +30,7 @@ public:
 	void SetCacheSize(unsigned int cacheSize);
 
 	// Set the current window dimensions
-	void SetWindowSize(unsigned int width, unsigned int height);
+	void SetWindowSize( unsigned short width, unsigned short height);
 
 	//bool Init(unsigned int width, unsigned int height, unsigned int cacheSize);
 	void Render();

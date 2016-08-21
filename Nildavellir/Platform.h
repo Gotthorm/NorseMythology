@@ -44,9 +44,8 @@ namespace Platform
 	//
 	const unsigned int kMaxStringLength = 256;
 
-	/*! \struct LaunchInfo
-	* OS specific parameters that are used to initialize the framework.
-	*/
+	/// \struct LaunchInfo
+	/// \brief OS specific parameters that are used to initialize the framework.
 	struct LaunchInfo
 	{
 		/*! The application title */

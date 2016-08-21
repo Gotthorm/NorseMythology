@@ -33,7 +33,7 @@ public:
 	void Shutdown();
 
 	//
-	void Update(LPARAM lParam);
+	void ProcessEvent(LPARAM lParam);
 
 	// Indicates that one frame has elapsed
 	void AdvanceFrame();

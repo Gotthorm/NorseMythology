@@ -135,7 +135,7 @@ void Graphics::SetupMatrices()
 	glLoadIdentity();
 }
 
-void Graphics::SetWindowSize(int width, int height)
+void Graphics::SetWindowSize( unsigned short width, unsigned short height )
 {
 	m_Width = width;
 	m_Height = height;
@@ -273,17 +273,17 @@ void Graphics::InitShaders()
 	OpenGLInterface::LinkProgram(m_Program);
 }
 
-bool Graphics::GetVersionInformation(std::wstring& VersionString)
+std::wstring Graphics::GetVersionInformation()
 {
 	// Determine what version of OpenGL is initialized
 	const char* glVersion = (const char*)glGetString(GL_VERSION);
-	CHAR versionString[256];
-	sprintf_s(versionString, 256, "OpenGL information: %s\n", glVersion);
+	CHAR tempString[256];
+	sprintf_s( tempString, 256, "OpenGL information: %s", glVersion);
 
 	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-	VersionString = converter.from_bytes(versionString);
+	std::wstring versionString = converter.from_bytes( tempString );
 
-	return true;
+	return versionString;
 }
 
 void Graphics::ToggleConsole()

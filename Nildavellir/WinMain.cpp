@@ -201,11 +201,11 @@ LRESULT CALLBACK WindowProcedure( HWND window, UINT message, WPARAM wParam, LPAR
 		//g_Framework.EnableMouseCapture( true );
 		break;
 	case WM_INPUT:
-		g_Framework.UpdateInput(lParam);
+		g_Framework.ProcessInputEvent( lParam );
 		break;
 	//case WM_SIZING:
 	case WM_SIZE:
-		g_Framework.ResizeWindow(LOWORD(lParam), HIWORD(lParam));
+		g_Framework.ResizeWindow( LOWORD( lParam ), HIWORD( lParam ) );
 		break;
 	default:
 		// Pass the message to the default handlers

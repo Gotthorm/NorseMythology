@@ -32,7 +32,7 @@ public:
 	void Render(double timeElapsed);
 
 	//
-	void SetWindowSize(int width, int height);
+	void SetWindowSize( unsigned short width, unsigned short height);
 
 	//
 	bool DisplayText( const wchar_t* pText, int posX, int posY );
@@ -41,7 +41,7 @@ public:
 	void SetCamera( Camera* pCamera );
 
 	//
-	bool GetVersionInformation(std::wstring& VersionString);
+	std::wstring GetVersionInformation();
 
 	//
 	void ToggleConsole();
@@ -55,8 +55,8 @@ private:
 
 	GLuint m_Program;
 	GLuint m_VertexArrayObject;
-	GLint m_Width;
-	GLint m_Height;
+	GLushort m_Width;
+	GLushort m_Height;
 
 	Text2D m_Text2D;
 

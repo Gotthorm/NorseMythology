@@ -1,10 +1,11 @@
 // INPUT.CPP
 
-#include <assert.h>
-#include <windows.h>
+#include "Platform.h"
+//#include <assert.h>
+//#include <windows.h>
 #include <stdio.h>
 #include "Input.h"
-#include "TCHAR.H"
+//#include "TCHAR.H"
 #include <map>
 #include <string>
 #include "MessageManager.h"
@@ -143,17 +144,24 @@ void Input::Shutdown()
 {
 }
 
-void Input::Update(LPARAM lParam)
+void Input::ProcessEvent(LPARAM lParam)
 {
 	UINT dwSize;
 
-	GetRawInputData((HRAWINPUT)lParam, RID_INPUT, NULL, &dwSize, sizeof(RAWINPUTHEADER));
-	LPBYTE lpb = new BYTE[dwSize];
-	if (lpb == NULL)
+	if( GetRawInputData( (HRAWINPUT)lParam, RID_INPUT, NULL, &dwSize, sizeof( RAWINPUTHEADER ) ) != 0 )
 	{
-		// TODO: Log a console error
+		MessageManager::GetInstance()->Post( Message::LOG_ERROR, std::wstring( L"Size query to GetRawInputData failed!" ) );
 		return;
 	}
+
+	if( dwSize == 0 )
+	{
+		MessageManager::GetInstance()->Post( Message::LOG_ERROR, std::wstring( L"Size query to GetRawInputData returned 0 size!" ) );
+		return;
+	}
+
+	LPBYTE lpb = new BYTE[dwSize];
+	PLATFORM_ASSERT( lpb != nullptr );
 
 	if (GetRawInputData((HRAWINPUT)lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER)) != dwSize)
 	{
