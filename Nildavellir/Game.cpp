@@ -1,10 +1,10 @@
 // GAME.CPP
 
 #include <assert.h>
-#include <windows.h>
+//#include <windows.h>
 #include <stdio.h>
 #include "Game.h"
-#include "TCHAR.H"
+//#include "TCHAR.H"
 #include "Camera.h"
 //#include "Input.h"
 
@@ -19,7 +19,7 @@ Game::~Game()
 	assert( m_pCurrentCamera == NULL );
 }
 
-bool Game::Init( HINSTANCE hInstance, HWND hWindow )
+bool Game::Init()
 {
 	//assert( m_pInput == NULL );
 	//m_pInput = new Input();

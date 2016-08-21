@@ -1,7 +1,6 @@
 #pragma once
 
-#include <Windows.h>
-#include <TCHAR.H>
+#include "Platform.h"
 #include "OpenGLInterface.h"
 
 class Text2D
@@ -13,13 +12,15 @@ public:
 	void Shutdown();
 	void draw();
 
-	void drawText(const char* str, int x, int y);
+	void drawText( const wchar_t* str, int x, int y);
 	void print(const char* str);
 	void scroll(int lines);
 	void moveCursor(int x, int y);
 	void clear();
 
 private:
+	void CopyWideCharBufferToCharBuffer( const wchar_t*, char* );
+
 	GLuint      text_buffer;
 	GLuint      font_texture;
 	GLuint      vao;

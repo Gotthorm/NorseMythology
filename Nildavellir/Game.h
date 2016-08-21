@@ -18,7 +18,7 @@ public:
 	~Game();
 
 	//
-	bool Init( HINSTANCE hInstance, HWND hWindow );
+	bool Init();
 
 	//
 	void Shutdown();

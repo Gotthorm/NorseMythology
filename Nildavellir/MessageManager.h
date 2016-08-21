@@ -34,7 +34,7 @@ public:
 private:
 	enum
 	{
-		// This system will reject more than 256 messages for update
+		// This system will reject more than 256 messages per update
 		MAX_MESSAGES = 256,
 	};
 

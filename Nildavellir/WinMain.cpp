@@ -4,6 +4,7 @@
 #include <TCHAR.H>
 #include <assert.h>
 #include <stdio.h>
+#include "Platform.h"
 #include "Framework.h"
 
 // Constants
@@ -17,7 +18,8 @@ LPCTSTR GetApplicationTitle();
 void ProcessCommandLineArguments();
 
 // Globals
-Framework::LaunchInfo g_LaunchInfo;	// Startup information that will be passed to the main application
+LPCTSTR g_LaunchTitle;				// A cached pointer to the application title
+Platform::LaunchInfo g_LaunchInfo;	// Startup information that will be passed to the main application
 Framework g_Framework;				// The instance of the application framework
 
 // The main entry point
@@ -33,7 +35,8 @@ int APIENTRY _tWinMain( HINSTANCE instance, HINSTANCE prevInstance, LPTSTR cmdLi
 	ProcessCommandLineArguments();
 
 	// Build and get a pointer to our application title
-	g_LaunchInfo.applicationTitle = GetApplicationTitle();
+	g_LaunchTitle = GetApplicationTitle();
+	g_LaunchInfo.applicationTitle = std::wstring( g_LaunchTitle );
 
 	// Register our main window
 	ATOM nWindowClassID = RegisterWindowClass( instance );
@@ -52,7 +55,7 @@ int APIENTRY _tWinMain( HINSTANCE instance, HINSTANCE prevInstance, LPTSTR cmdLi
 		if( hWindow != NULL )
 		{
 			// Initialize the game and shutdown if failure
-			if( g_Framework.Init( instance, hWindow, g_LaunchInfo ) )
+			if( g_Framework.Init( hWindow, g_LaunchInfo ) )
 			{
 				MSG theMessage;
 				BOOL bGotMessage;
@@ -133,7 +136,7 @@ ATOM RegisterWindowClass( HINSTANCE instance )
 	WindowClassDescriptor.hCursor		= NULL /*LoadCursor( NULL, IDC_ARROW )*/;
 	WindowClassDescriptor.hbrBackground	= (HBRUSH)(COLOR_BACKGROUND);
 	WindowClassDescriptor.lpszMenuName	= NULL;
-	WindowClassDescriptor.lpszClassName	= g_LaunchInfo.applicationTitle;
+	WindowClassDescriptor.lpszClassName	= g_LaunchTitle;
 	WindowClassDescriptor.hIconSm		= NULL;
 
 	return RegisterClassEx( &WindowClassDescriptor );
@@ -146,7 +149,7 @@ HWND CreateAndInitializeWindow( HINSTANCE instance, LPCTSTR className, int cmdSh
 	// When width is set to CW_USEDEFAULT, height is ignored
 	// Returns NULL if unsuccessful
 	HWND window = CreateWindow(	className,						// Window Class name or ID
-								g_LaunchInfo.applicationTitle,	// Window name
+								g_LaunchTitle,					// Window name
 								WS_OVERLAPPEDWINDOW,			// Window styles
 								CW_USEDEFAULT,					// Horizontal position
 								0,								// Verical position (ignored)

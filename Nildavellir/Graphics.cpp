@@ -1,5 +1,6 @@
 // GRAPHICS.CPP
 
+#include "Platform.h"
 #include <windows.h>
 #include <TCHAR.H>
 #include <assert.h>
@@ -28,7 +29,7 @@ Graphics::~Graphics()
 {
 }
 
-bool Graphics::InitializeRenderingContext(HWND hWindow)
+bool Graphics::InitializeRenderingContext(Platform::WindowHandle hWindow)
 {
 	PIXELFORMATDESCRIPTOR pfd =
 	{
@@ -181,7 +182,7 @@ void Graphics::Shutdown()
 	m_Text2D.Shutdown();
 }
 
-bool Graphics::DisplayText( LPCSTR pText, int posX, int posY )
+bool Graphics::DisplayText( const wchar_t* pText, int posX, int posY )
 {
 	//return m_Text2D.Display( pText, posX, posY, 1.0f, 1.0f );
 	m_Text2D.drawText(pText, posX, posY);

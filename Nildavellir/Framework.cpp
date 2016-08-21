@@ -1,77 +1,117 @@
 // FRAMEWORK.CPP
 
 #include "Framework.h"
-#include <assert.h>
-#include <stdio.h>
-#include <TCHAR.H>
+#include "Platform.h"
+#include "Graphics.h"
+#include "Game.h"
+#include "Input.h"
+#include "Logger.h"
 #include <sstream>
+#include <cwchar>
 #include "MessageManager.h"
 
-// Used for the call to timeGetTime
-#pragma comment(lib, "winmm.lib")
+const unsigned int kOneSecond = 1000;
 
-const DWORD kOneSecond = 1000;
-const DWORD kMaxStringLength = 256;
-
-Framework::Framework() : m_OldFrameTime(0), m_OneSecondIntervalAccumulator(0), m_UpdateAccumulator(0), m_CurrentFPS(0), m_Initialized(false)
+Framework::Framework() 
+	: m_OldFrameTime( 0 )
+	, m_OneSecondIntervalAccumulator( 0 )
+	, m_UpdateAccumulator( 0 )
+	, m_CurrentFPS( 0 )
+	, m_Initialized( false )
+	, m_pGraphics( nullptr )
+	, m_pGame( nullptr )
+	, m_pInput( nullptr )
+	, m_pLogger( nullptr )
 {
 }
 
-bool Framework::Init( HINSTANCE instance, HWND window, const LaunchInfo& launchInfo )
+bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo& launchInfo )
 {
-	// Initialize the log system
-	if( m_Logger.Initialize( L"LogFile.txt" ) == false )
+	if( m_Initialized == false )
 	{
-		OutputDebugString( _T("Cannot initialize the logger system\n") );
-		return false;
+		// Initialize the log system
+		m_pLogger = new Logger();
+		PLATFORM_ASSERT( m_pLogger != nullptr );
+		if( m_pLogger == nullptr || m_pLogger->Initialize( L"LogFile.txt" ) == false )
+		{
+			PLATFORM_DEBUG_MESSAGE( L"Cannot initialize the logger system\n" );
+			return false;
+		}
+
+		MessageManager::GetInstance()->Post( Message::LOG_INFO, launchInfo.applicationTitle );
+
+		// Initialize the graphics system
+		m_pGraphics = new Graphics();
+		PLATFORM_ASSERT( m_pGraphics != nullptr );
+		if( m_pGraphics == nullptr || m_pGraphics->InitializeRenderingContext( hWindow ) == false )
+		{
+			MessageManager::GetInstance()->Post( Message::LOG_ERROR, std::wstring( L"Failed to initialize the graphics rendering context" ) );
+			return false;
+		}
+		if( m_pGraphics->InitializeSubSystems() == false )
+		{
+			MessageManager::GetInstance()->Post( Message::LOG_ERROR, std::wstring( L"Failed to initialize the graphics subsystems" ) );
+			return false;
+		}
+
+		// Initialize the input system
+		m_pInput = new Input();
+		PLATFORM_ASSERT( m_pInput != nullptr );
+		if( m_pInput == nullptr || m_pInput->Init() == false )
+		{
+			MessageManager::GetInstance()->Post( Message::LOG_ERROR, std::wstring( L"Cannot initialize the input system" ) );
+			return false;
+		}
+
+		// Initialize the game
+		m_pGame = new Game();
+		PLATFORM_ASSERT( m_pGame != nullptr );
+		if( m_pGame == nullptr || m_pGame->Init() == false )
+		{
+			MessageManager::GetInstance()->Post( Message::LOG_ERROR, std::wstring( L"Cannot initialize the game system" ) );
+			return false;
+		}
+
+		m_pGame->EnableMouseCapture( false );
+
+		// Initialize the stats related variables
+		m_OldFrameTime = timeGetTime();
+		m_OneSecondIntervalAccumulator = 0;
+		m_UpdateAccumulator = 0;
+		m_CurrentFPS = 0;
 	}
 
-	std::wstring launchInfoString( launchInfo.applicationTitle );
-
-	MessageManager::GetInstance()->Post( Message::LOG_INFO, launchInfoString );
-
-    if( m_Graphics.InitializeRenderingContext( window ) == false )
-	{
-		MessageManager::GetInstance()->Post( Message::LOG_ERROR, std::wstring(L"Failed to initialize the graphics rendering context") );
-        return false;
-	}
-
-	if( m_Graphics.InitializeSubSystems() == false )
-	{
-		MessageManager::GetInstance()->Post( Message::LOG_ERROR, std::wstring( L"Failed to initialize the graphics subsystems") );
-		return false;
-	}
-
-	if( m_Input.Init() == false )
-	{
-		MessageManager::GetInstance()->Post( Message::LOG_ERROR, std::wstring( L"Cannot initialize the input system") );
-		return false;
-	}
-
-    if( m_Game.Init( instance, window ) == false )
-	{
-		MessageManager::GetInstance()->Post( Message::LOG_ERROR, std::wstring( L"Cannot initialize the game system") );
-        return false;
-	}
-
-	m_Game.EnableMouseCapture( false );
-
-	// Initialize the stats related variables
-	m_OldFrameTime = timeGetTime();
-	m_OneSecondIntervalAccumulator = 0;
-	m_UpdateAccumulator = 0;
-	m_CurrentFPS = 0;
-
+	// Set the initialized flag as true and return it as the results
     return m_Initialized = true;
 }
 
 void Framework::Shutdown()
 {
-	m_Graphics.Shutdown();
-	m_Input.Shutdown();
-	m_Game.Shutdown();
-
-	m_Logger.Shutdown();
+	if( m_pGraphics != nullptr )
+	{
+		m_pGraphics->Shutdown();
+		delete m_pGraphics;
+		m_pGraphics = nullptr;
+	}
+	if( m_pInput != nullptr )
+	{
+		m_pInput->Shutdown();
+		delete m_pInput;
+		m_pInput = nullptr;
+	}
+	if( m_pGame != nullptr )
+	{
+		m_pGame->Shutdown();
+		delete m_pGame;
+		m_pGame = nullptr;
+	}
+	// Try to always shutdown the logger last if possible
+	if( m_pLogger != nullptr )
+	{
+		m_pLogger->Shutdown();
+		delete m_pLogger;
+		m_pLogger = nullptr;
+	}
 }
 
 void Framework::Update()
@@ -79,15 +119,15 @@ void Framework::Update()
 	if( m_Initialized )
 	{
 		// Get the current time in milliseconds since the computer was turned on
-		DWORD newFrameTime = timeGetTime();
+		unsigned int newFrameTime = Platform::GetTime();
 
 		// Calculate the amount of milliseconds since the last update
-		DWORD timeElapsed = newFrameTime - m_OldFrameTime;
+		unsigned int timeElapsed = newFrameTime - m_OldFrameTime;
 
 		// If someone's computer has been running for 49 days, the counter may wrap over
 		if( newFrameTime < m_OldFrameTime )
 		{
-			timeElapsed = newFrameTime + ( MAXDWORD - m_OldFrameTime );
+			timeElapsed = newFrameTime + ( UINT_MAX - m_OldFrameTime );
 		}
 
 		// Update the 1 second accumulator
@@ -98,7 +138,7 @@ void Framework::Update()
 
 		if( m_OneSecondIntervalAccumulator >= kOneSecond )
 		{
-			DWORD secondElapsed = 0;
+			unsigned int secondElapsed = 0;
 
 			while( m_OneSecondIntervalAccumulator >= kOneSecond )
 			{
@@ -110,63 +150,66 @@ void Framework::Update()
 
 			m_UpdateAccumulator = 0;
 
-			// For debugging
+#ifdef _DEBUG
+			// TEMP: For debugging
 			static int counter = 0;
 			std::wstringstream s;
 			s << L"One frame has elapsed : " << counter++;
 			MessageManager::GetInstance()->Post( Message::LOG_INFO, s.str() );
+#endif
 		}
 
 		// Update the old time for the next update
 		m_OldFrameTime = newFrameTime;
 
 		// Check for the console activation/deactivation
-		if( m_Input.GetKeyUp( Input::KEY_TILDA ) && m_Input.GetKeyDown( Input::KEY_SHIFT ) )
+		PLATFORM_ASSERT( m_pInput != nullptr );
+		if( m_pInput->GetKeyUp( Input::KEY_TILDA ) && m_pInput->GetKeyDown( Input::KEY_SHIFT ) )
 		{
 			// Toggle the console
-			m_Graphics.ToggleConsole();
+			PLATFORM_ASSERT( m_pGraphics  != nullptr );
+			m_pGraphics->ToggleConsole();
 		}
 
-		m_Game.Update();
+		// Update the game
+		PLATFORM_ASSERT( m_pGame != nullptr );
+		m_pGame->Update();
 
-		char stringBuffer[ kMaxStringLength ];
+		wchar_t stringBuffer[ Platform::kMaxStringLength ];
+		std::swprintf( stringBuffer, Platform::kMaxStringLength, L"%4u FPS", m_CurrentFPS );
 
-		sprintf_s( stringBuffer, kMaxStringLength, "%4u FPS", m_CurrentFPS );
+		PLATFORM_ASSERT( m_pGraphics != nullptr );
+		m_pGraphics->DisplayText( stringBuffer, 110, 0 );
 
-		m_Graphics.DisplayText( stringBuffer, 110, 0 );
+		m_pGraphics->SetCamera( m_pGame->GetCurrentCamera() );
 
-		m_Graphics.SetCamera( m_Game.GetCurrentCamera() );
-
-		m_Graphics.Render( timeElapsed );
+		m_pGraphics->Render( timeElapsed );
 
 		//	ValidateRect( hWindow, NULL );
 
 		// Clear input key releases
 		// TODO : Can I get rid of this call?
-		m_Input.AdvanceFrame();
+		m_pInput->AdvanceFrame();
 
 		MessageManager::GetInstance()->Update();
 	}
 }
 
-void Framework::UpdateInput(LPARAM lParam)
+void Framework::UpdateInput( Platform::LongParam lParam)
 {
 	if( m_Initialized )
 	{
-		m_Input.Update( lParam );
+		PLATFORM_ASSERT( m_pInput != nullptr );
+		m_pInput->Update( lParam );
 	}
 }
-
-//void Framework::Render()
-//{
-//
-//}
 
 void Framework::EnableMouseCapture( bool bEnable ) 
 { 
 	if( m_Initialized )
 	{
-		m_Game.EnableMouseCapture( bEnable );
+		PLATFORM_ASSERT( m_pGame != nullptr );
+		m_pGame->EnableMouseCapture( bEnable );
 	}
 }
 
@@ -174,6 +217,7 @@ void Framework::ResizeWindow(int width, int height)
 {
 	if( m_Initialized )
 	{
-		m_Graphics.SetWindowSize( width, height );
+		PLATFORM_ASSERT( m_pGraphics != nullptr );
+		m_pGraphics->SetWindowSize( width, height );
 	}
 }

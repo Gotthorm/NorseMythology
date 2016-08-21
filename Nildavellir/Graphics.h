@@ -20,7 +20,7 @@ public:
 	~Graphics();
 
 	//
-    bool InitializeRenderingContext( HWND hWindow );
+    bool InitializeRenderingContext( Platform::WindowHandle hWindow );
 
 	//
 	bool InitializeSubSystems();
@@ -35,7 +35,7 @@ public:
 	void SetWindowSize(int width, int height);
 
 	//
-	bool DisplayText( LPCSTR pText, int posX, int posY );
+	bool DisplayText( const wchar_t* pText, int posX, int posY );
 
 	//
 	void SetCamera( Camera* pCamera );

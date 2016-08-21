@@ -67,10 +67,46 @@ void Text2D::draw()
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
-void Text2D::drawText(const char* str, int x, int y)
+// TODO: This is meant to be temporary
+void Text2D::CopyWideCharBufferToCharBuffer( const wchar_t* source, char* target )
+{
+	if( source && target )
+	{
+		for( unsigned int index = 0; index < Platform::kMaxStringLength; ++index )
+		{
+			wchar_t code = source[ index ];
+
+			if( code == '\0' )
+				break;
+
+			if( code < 128 )
+			{
+				*target = char( code );
+			}
+			else
+			{
+				*target = '?';
+				if( code >= 0xD800 && code <= 0xD8FF )
+				{
+					// lead surrogate, skip the next code unit, which is the trail
+					++index;
+				}
+			}
+			++target;
+		}
+
+		*target = '\0';
+	}
+}
+
+void Text2D::drawText(const wchar_t* str, int x, int y)
 {
 	char* dst = screen_buffer + y * buffer_width + x;
-	strcpy(dst, str);
+	
+	// Temporary until this class properly handles wide characters
+	//strcpy(dst, str);
+	CopyWideCharBufferToCharBuffer( str, dst );
+
 	dirty = true;
 }
 
