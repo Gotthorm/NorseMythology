@@ -9,19 +9,6 @@
 #include <cwchar>
 #include "MessageManager.h"
 
-Framework::Framework() 
-	: m_OldFrameTime( 0 )
-	, m_OneSecondIntervalAccumulator( 0 )
-	, m_UpdateAccumulator( 0 )
-	, m_CurrentFPS( 0 )
-	, m_Initialized( false )
-	, m_pGraphics( nullptr )
-	, m_pGame( nullptr )
-	, m_pInput( nullptr )
-	, m_pLogger( nullptr )
-{
-}
-
 bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo& launchInfo )
 {
 	if( m_Initialized == false )

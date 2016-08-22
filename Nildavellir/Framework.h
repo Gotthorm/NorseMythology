@@ -19,10 +19,10 @@ class Logger;
 class Framework
 {
 public:
-	//
-	Framework();
+	// Use the default implementation
+	Framework() = default;
 
-	// Use the default destructor implementation
+	// Use the default implementation
 	virtual ~Framework() = default;
 
 	/// \brief The main initialization of the framework.
@@ -63,18 +63,18 @@ private:
 	Framework( const Framework & ) = delete;
 
 	// Subsystems
-	Graphics* m_pGraphics;
-	Game* m_pGame;
-	Input* m_pInput;
-	Logger* m_pLogger;
+	Graphics* m_pGraphics = nullptr;
+	Game* m_pGame = nullptr;
+	Input* m_pInput = nullptr;
+	Logger* m_pLogger = nullptr;
 
-	bool m_Initialized;
+	bool m_Initialized = false;
 
 	// State variables for FPS tracking
-	unsigned int m_OldFrameTime;
-	unsigned int m_CurrentFPS;
-	unsigned int m_OneSecondIntervalAccumulator;
-	unsigned int m_UpdateAccumulator;
+	unsigned int m_OldFrameTime = 0;
+	unsigned int m_CurrentFPS = 0;
+	unsigned int m_OneSecondIntervalAccumulator = 0;
+	unsigned int m_UpdateAccumulator = 0;
 };
 
 #endif // _FRAMEWORK_H_
