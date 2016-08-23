@@ -26,11 +26,13 @@ PFNGLCOMPRESSEDTEXIMAGE2DPROC OpenGLInterface::CompressedTexImage2D = NULL;
 PFNGLTEXSUBIMAGE2DEXTPROC OpenGLInterface::TexSubImage2D = NULL;
 PFNGLTEXSUBIMAGE3DPROC OpenGLInterface::TexSubImage3D = NULL;
 PFNGLGENERATEMIPMAPPROC OpenGLInterface::GenerateMipmap = NULL;
+PFNGLVERTEXATTRIB2FVPROC OpenGLInterface::VertexAttrib2fv = NULL;
 PFNGLVERTEXATTRIB4FVPROC OpenGLInterface::VertexAttrib4fv = NULL;
 PFNGLVERTEXATTRIB1FPROC OpenGLInterface::VertexAttrib1f = NULL;
 PFNGLGETOBJECTPARAMETERIVARBPROC OpenGLInterface::GetObjectParameterivARB = NULL;
 PFNGLGETSHADERINFOLOGPROC OpenGLInterface::GetShaderInfoLog = NULL;
-
+PFNGLGETUNIFORMLOCATIONPROC OpenGLInterface::GetUniformLocation = NULL;
+PFNGLUNIFORM2FVPROC OpenGLInterface::Uniform2fv = NULL;
 
 PFNGLCLEARBUFFERFVPROC OpenGLInterface::ClearBufferfv = NULL;
 PFNGLCREATEBUFFERSPROC OpenGLInterface::CreateBuffers = NULL;
@@ -85,10 +87,13 @@ bool OpenGLInterface::Initialize()
 	TexSubImage2D = (PFNGLTEXSUBIMAGE2DEXTPROC)(GetOpenGLFunctionAddress("glTexSubImage2D"));
 	TexSubImage3D = (PFNGLTEXSUBIMAGE3DPROC)(GetOpenGLFunctionAddress("glTexSubImage3D"));
 	GenerateMipmap = (PFNGLGENERATEMIPMAPPROC)(GetOpenGLFunctionAddress("glGenerateMipmap"));
-	VertexAttrib4fv = (PFNGLVERTEXATTRIB4FVPROC)(GetOpenGLFunctionAddress("glVertexAttrib4fv"));
+	VertexAttrib2fv = (PFNGLVERTEXATTRIB4FVPROC)( GetOpenGLFunctionAddress( "glVertexAttrib2fv" ) );
+	VertexAttrib4fv = (PFNGLVERTEXATTRIB4FVPROC)( GetOpenGLFunctionAddress( "glVertexAttrib4fv" ) );
 	VertexAttrib1f = (PFNGLVERTEXATTRIB1FPROC)(GetOpenGLFunctionAddress("glVertexAttrib1f"));
 	GetObjectParameterivARB = (PFNGLGETOBJECTPARAMETERIVARBPROC)(GetOpenGLFunctionAddress("glGetObjectParameterivARB"));
 	GetShaderInfoLog = (PFNGLGETSHADERINFOLOGPROC)(GetOpenGLFunctionAddress("glGetShaderInfoLog"));
+	GetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)(GetOpenGLFunctionAddress("glGetUniformLocation"));
+	Uniform2fv = (PFNGLUNIFORM2FVPROC)(GetOpenGLFunctionAddress("glUniform2fv"));
 
 	ClearBufferfv = (PFNGLCLEARBUFFERFVPROC)(GetOpenGLFunctionAddress("glClearBufferfv"));
 	CreateBuffers = (PFNGLCREATEBUFFERSPROC)(GetOpenGLFunctionAddress("glCreateBuffers"));
@@ -148,6 +153,7 @@ GLuint OpenGLInterface::LoadShader(const char* filename, GLenum shader_type, boo
 					OutputDebugStringA("\n");
 
 					DeleteShader(result);
+					result = 0;
 				}
 			}
 		}

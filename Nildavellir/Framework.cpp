@@ -147,7 +147,7 @@ void Framework::Update()
 				std::wstringstream s;
 				s << L"One frame has elapsed : " << counter++ << "#";
 				size_t length = s.str().length();
-				for( size_t index = length; length < 128; ++length )
+				for( size_t index = length; length < 150; ++length )
 				{
 					s << length % 10;
 				}

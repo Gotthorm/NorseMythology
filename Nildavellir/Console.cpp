@@ -34,6 +34,10 @@ bool Console::Initialize( unsigned int width, unsigned int height, float heightP
 	glGetTexLevelParameteriv( GL_TEXTURE_2D_ARRAY, 0, GL_TEXTURE_WIDTH, &m_FontWidth );
 	glGetTexLevelParameteriv( GL_TEXTURE_2D_ARRAY, 0, GL_TEXTURE_HEIGHT, &m_FontHeight );
 
+	//
+	SetBufferSize( m_BufferWidth, m_BufferHeight );
+
+	// Start the buffer at the default values
 	SetWindowSize( width, height );
 
 	m_OverlayProgram = OpenGLInterface::CreateProgram();
@@ -48,8 +52,8 @@ bool Console::Initialize( unsigned int width, unsigned int height, float heightP
 	OpenGLInterface::GenVertexArrays(1, &vao);
 	OpenGLInterface::BindVertexArray(vao);
 
-	vertexShader = OpenGLInterface::LoadShader("Media/Shaders/text2d.vs.glsl", GL_VERTEX_SHADER, true);
-	fragmentShader = OpenGLInterface::LoadShader("Media/Shaders/text2d.fs.glsl", GL_FRAGMENT_SHADER, true);
+	vertexShader = OpenGLInterface::LoadShader("Media/Shaders/new.text2d.vs.glsl", GL_VERTEX_SHADER, true);
+	fragmentShader = OpenGLInterface::LoadShader("Media/Shaders/new.text2d.fs.glsl", GL_FRAGMENT_SHADER, true);
 
 	m_RenderTextProgram = OpenGLInterface::CreateProgram();
 	OpenGLInterface::AttachShader(m_RenderTextProgram, vertexShader);
@@ -114,10 +118,10 @@ void Console::SetCacheSize(unsigned int cacheSize)
 	unsigned int oldIndex = m_CacheIndex;
 	unsigned int oldSize = m_CacheSize;
 
-	// The new cache cannot be smaller than the buffer height so clamp it here
-	if (cacheSize < buffer_height)
+	// The new cache size cannot be smaller than the buffer height so clamp it here
+	if (cacheSize < m_BufferHeight)
 	{
-		cacheSize = buffer_height;
+		cacheSize = m_BufferHeight;
 	}
 
 	// Reinitialize the cache
@@ -144,22 +148,34 @@ void Console::SetCacheSize(unsigned int cacheSize)
 	}
 }
 
-void Console::SetWindowSize(unsigned short width, unsigned short height)
+void Console::UpdateFontScale()
 {
-	// TEMP
-	buffer_width = 128;
-	buffer_height = 32;
-	//buffer_width = width / m_FontWidth;
-	//buffer_height = ((unsigned int)(height * m_HeightPercent) / m_FontHeight) - 1;
+	m_TextScale[ 0 ] = m_WindowWidth / float(m_BufferWidth * m_FontWidth);
+	m_TextScale[ 1 ] = (m_WindowHeight * m_HeightPercent) / (m_BufferHeight * m_FontHeight);
+}
 
-	// It seems that the buffer needs to be 16 byte aligned ???
-	buffer_width &= ~0x0F;
+void Console::SetWindowSize( unsigned int width, unsigned int height )
+{
+	m_WindowWidth = width;
+	m_WindowHeight = height;
 
-	delete [] screen_buffer;
-	screen_buffer = new char[buffer_width * buffer_height];
+	// Update the font scalars
+	UpdateFontScale();
+}
 
-	// Default to buffer size
-	SetCacheSize( buffer_height );
+void Console::SetBufferSize( unsigned int width, unsigned int height )
+{
+	m_BufferWidth = width;
+	m_BufferHeight = height;
+
+	// It seems that the buffer width needs to be 16 byte aligned ???
+	m_BufferWidth &= ~0x0F;
+
+	delete[] screen_buffer;
+	screen_buffer = new char[ width * height ];
+
+	// Update the font scalars
+	UpdateFontScale();
 }
 
 void Console::Render()
@@ -181,6 +197,12 @@ void Console::Render()
 
 		OpenGLInterface::VertexAttrib1f( 1, m_ClipSize );
 		OpenGLInterface::VertexAttrib4fv( 2, color );
+		OpenGLInterface::VertexAttrib4fv( 3, m_TextScale );
+
+		//glUniform1i();
+
+		//glVertexA
+		//glVertexAttrib2i( 3, m_TextScale );
 
 		OpenGLInterface::ActiveTexture( GL_TEXTURE0 );
 
@@ -194,8 +216,8 @@ void Console::Render()
 			0,					// Level of detail number, 0 is base
 			0,					// Specifies a texel offset in the x direction within the texture array
 			0,					// Specifies a texel offset in the y direction within the texture array
-			buffer_width,		// Specifies the width of the texture subimage
-			buffer_height,		// Specifies the height of the texture subimage
+			m_BufferWidth,		// Specifies the width of the texture subimage
+			m_BufferHeight,		// Specifies the height of the texture subimage
 			GL_RED_INTEGER,		// Specifies the format of the pixel data.  GL_RED_INTEGER tells GL to keep the exact integer value rather than normalizing
 			GL_UNSIGNED_BYTE,	// Specifies the data type of the pixel data
 			screen_buffer		// Specifies a pointer to the image data in memory
@@ -219,7 +241,7 @@ void Console::CopyCacheToRenderBuffer()
 		// Fill the render buffer with the latest version of the cache
 
 		// Clear the buffer
-		memset(screen_buffer, 0, buffer_width * buffer_height);
+		memset(screen_buffer, 0, m_BufferWidth * m_BufferHeight);
 
 		// Setup converter
 		// For now we convert each line from wchar to char
@@ -230,7 +252,7 @@ void Console::CopyCacheToRenderBuffer()
 		//
 		unsigned int cacheIndex = m_CacheIndex;
 
-		for (int index = (buffer_height - 1); index >= 0; --index)
+		for (int index = ( m_BufferHeight - 1); index >= 0; --index)
 		{
 			// Determine cache line index
 			if (cacheIndex == 0)
@@ -244,15 +266,15 @@ void Console::CopyCacheToRenderBuffer()
 
 			// Handle wrapped lines
 			const char* rawString = converted_str.c_str();
-			int stringLength = strlen( rawString );
-			char* dst = screen_buffer + index * buffer_width;
-			while( stringLength > buffer_width )
+			unsigned int stringLength = strlen( rawString );
+			char* dst = screen_buffer + index * m_BufferWidth;
+			while( stringLength > m_BufferWidth )
 			{
-				int subIndex = ((stringLength - 1) / buffer_width) * buffer_width;
-				int subLength = stringLength % buffer_width;
+				int subIndex = ((stringLength - 1) / m_BufferWidth ) * m_BufferWidth;
+				int subLength = stringLength % m_BufferWidth;
 				if( subLength == 0 )
 				{
-					subLength = buffer_width;
+					subLength = m_BufferWidth;
 				}
 				memcpy( dst, &(rawString[subIndex]), subLength );
 				stringLength -= subLength;
@@ -260,7 +282,7 @@ void Console::CopyCacheToRenderBuffer()
 				{
 					return;
 				}
-				dst = screen_buffer + index * buffer_width;
+				dst = screen_buffer + index * m_BufferWidth;
 			}
 			
 			memcpy( dst, rawString, stringLength );

@@ -58,7 +58,7 @@ void Text2D::draw()
 
 	//OpenGLInterface::VertexAttrib1f( 1, -1.0f );
 	OpenGLInterface::VertexAttrib1f( 1, 0.0f );
-	OpenGLInterface::VertexAttrib4fv(2, color);
+	OpenGLInterface::VertexAttrib4fv( 2, color );
 
 	OpenGLInterface::ActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, text_buffer);

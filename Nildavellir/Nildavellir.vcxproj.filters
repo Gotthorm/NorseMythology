@@ -118,5 +118,11 @@
     <None Include="Media\Shaders\text2d.vs.glsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Media\Shaders\new.text2d.fs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Media\Shaders\new.text2d.vs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

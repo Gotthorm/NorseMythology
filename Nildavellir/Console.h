@@ -35,7 +35,10 @@ public:
 	void SetCacheSize(unsigned int cacheSize);
 
 	// Set the current window dimensions
-	void SetWindowSize( unsigned short width, unsigned short height);
+	void SetWindowSize( unsigned int width, unsigned int height);
+
+	// Set the text buffer size
+	void SetBufferSize( unsigned int width, unsigned int height );
 
 	//bool Init(unsigned int width, unsigned int height, unsigned int cacheSize);
 	void Render();
@@ -57,12 +60,22 @@ private:
 
 	void CopyCacheToRenderBuffer();
 
+	void UpdateFontScale();
+
 	bool m_IsVisible = false;
 
 	std::vector<std::wstring> m_Cache;
 
 	unsigned int m_CacheIndex = 0;
 	unsigned int m_CacheSize = 0;
+
+	unsigned int m_BufferWidth = 128;
+	unsigned int m_BufferHeight = 32;
+
+	unsigned int m_WindowWidth = 0;
+	unsigned int m_WindowHeight = 0;
+
+	GLfloat m_TextScale[ 2 ];
 
 	bool m_Dirty;
 	GLfloat m_ClipSize;
@@ -79,8 +92,8 @@ private:
 	GLuint      text_vao;
 
 	char* screen_buffer = nullptr;
-	int         buffer_width;
-	int         buffer_height;
+	//int         buffer_width;
+	//int         buffer_height;
 
 	int cursor_x = 0;
 	int cursor_y = 0;
