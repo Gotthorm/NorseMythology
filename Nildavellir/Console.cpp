@@ -16,18 +16,9 @@
 // Static
 //const unsigned int kDefaultCacheSize = 10;
 
-Console::Console() : cursor_x(0), cursor_y(0), m_IsVisible(false), m_CacheSize(0), m_CacheIndex(0), screen_buffer(NULL)
-{
-}
-
-Console::~Console()
-{
-	Shutdown();
-}
-
 // TODO: Change this to accept %width and %height instead
 // TODO: Make this handle init errors
-bool Console::Initialize(unsigned int width, unsigned int height, float heightPercent)
+bool Console::Initialize( unsigned int width, unsigned int height, float heightPercent )
 {
 	GLuint vertexShader = OpenGLInterface::LoadShader("Media/Shaders/console.vs.glsl", GL_VERTEX_SHADER, true);
 	GLuint fragmentShader = OpenGLInterface::LoadShader("Media/Shaders/console.fs.glsl", GL_FRAGMENT_SHADER, true);
@@ -37,12 +28,13 @@ bool Console::Initialize(unsigned int width, unsigned int height, float heightPe
 	// Calculate the overlay size in clip space where height(0) => 1.0 && height(1.0) => -1.0
 	m_ClipSize = 1.0f - m_HeightPercent * 2.0f;
 
-	// We are using a 9x16 pixel bitmap font
-	m_FontHeight = 16;
-	m_FontWidth = 9;
 	font_texture = KTX::load("Media/Textures/cp437_9x16.ktx");
 
-	SetWindowSize(width, height);
+	// Extract the font width and height
+	glGetTexLevelParameteriv( GL_TEXTURE_2D_ARRAY, 0, GL_TEXTURE_WIDTH, &m_FontWidth );
+	glGetTexLevelParameteriv( GL_TEXTURE_2D_ARRAY, 0, GL_TEXTURE_HEIGHT, &m_FontHeight );
+
+	SetWindowSize( width, height );
 
 	m_OverlayProgram = OpenGLInterface::CreateProgram();
 	OpenGLInterface::AttachShader(m_OverlayProgram, vertexShader);
@@ -71,11 +63,17 @@ bool Console::Initialize(unsigned int width, unsigned int height, float heightPe
 	OpenGLInterface::GenVertexArrays(1, &text_vao);
 	OpenGLInterface::BindVertexArray(text_vao);
 
-	// glCreateTextures(GL_TEXTURE_2D, 1, &text_buffer);
-	glGenTextures(1, &text_buffer);
-	glBindTexture(GL_TEXTURE_2D, text_buffer);
+	OpenGLInterface::ActiveTexture( GL_TEXTURE0 );
+	glGenTextures( 1, &text_buffer );
+	glBindTexture( GL_TEXTURE_2D, text_buffer );
+	glPixelStorei( GL_UNPACK_ALIGNMENT, 4 );
+
 	//OpenGLInterface::TexStorage2D(GL_TEXTURE_2D, 1, GL_R8UI, width, height);
-	OpenGLInterface::TexStorage2D(GL_TEXTURE_2D, 1, GL_R8UI, 512, 512);
+
+	// This call is supposedly the equivalent of calling something like this:
+	//glTexImage2D( GL_TEXTURE_2D, 0, GL_R8UI, 1024, 1024, 0, GL_RED, GL_UNSIGNED_BYTE, NULL );
+	// but I never got it working.  Some of the parameters are guess work.
+	OpenGLInterface::TexStorage2D( GL_TEXTURE_2D, 1, GL_R8UI, 1024, 1024 );
 
 	// Register for the correct messages
 	MessageManager::GetInstance()->Register( this, Message::LOG_INFO );
@@ -93,8 +91,8 @@ void Console::Shutdown()
 
 	m_Cache.clear();
 
-	delete [] screen_buffer;
-	screen_buffer = NULL;
+	delete[] screen_buffer;
+	screen_buffer = nullptr;
 
 	OpenGLInterface::DeleteVertexArrays(1, &vao);
 	OpenGLInterface::DeleteVertexArrays(1, &text_vao);
@@ -148,50 +146,45 @@ void Console::SetCacheSize(unsigned int cacheSize)
 
 void Console::SetWindowSize(unsigned short width, unsigned short height)
 {
-	buffer_width = width / m_FontWidth;
-	buffer_height = ((unsigned int)(height * m_HeightPercent) / m_FontHeight) - 1;
+	// TEMP
+	buffer_width = 128;
+	buffer_height = 32;
+	//buffer_width = width / m_FontWidth;
+	//buffer_height = ((unsigned int)(height * m_HeightPercent) / m_FontHeight) - 1;
 
-	// Temp hack for testing, we clear the last 4 bits
-	buffer_width = buffer_width >> 4;
-	buffer_width = buffer_width << 4;
-	//buffer_height = buffer_height >> 4;
-	//buffer_height = buffer_height << 4;
+	// It seems that the buffer needs to be 16 byte aligned ???
+	buffer_width &= ~0x0F;
 
 	delete [] screen_buffer;
 	screen_buffer = new char[buffer_width * buffer_height];
 
-	SetCacheSize(buffer_height);
+	// Default to buffer size
+	SetCacheSize( buffer_height );
 }
 
 void Console::Render()
 {
 	if (m_IsVisible)
 	{
-		// Render overlay
+		// Render the semi transparent overlay
+		OpenGLInterface::UseProgram( m_OverlayProgram );
+ 		OpenGLInterface::VertexAttrib1f( 1, m_ClipSize );
+ 		glEnable( GL_BLEND );
+ 		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+ 		glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+ 		glDisable( GL_BLEND );
 
-		OpenGLInterface::UseProgram(m_OverlayProgram);
+		// Render the text
+		const GLfloat color[] = {1.0f, 0.0f, 1.0f, 1.0f}; // Pink
 
-		OpenGLInterface::VertexAttrib1f(1, m_ClipSize);
+		OpenGLInterface::UseProgram( m_RenderTextProgram );
 
-		glEnable(GL_BLEND);
+		OpenGLInterface::VertexAttrib1f( 1, m_ClipSize );
+		OpenGLInterface::VertexAttrib4fv( 2, color );
 
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		OpenGLInterface::ActiveTexture( GL_TEXTURE0 );
 
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-		glDisable(GL_BLEND);
-
-		// Render text
-		const GLfloat color[] = {1.0f, 0.0f, 1.0f, 1.0f};
-
-		OpenGLInterface::UseProgram(m_RenderTextProgram);
-
-		OpenGLInterface::VertexAttrib1f(1, m_ClipSize);
-		OpenGLInterface::VertexAttrib4fv(2, color);
-
-		OpenGLInterface::ActiveTexture(GL_TEXTURE0);
-
-		glBindTexture(GL_TEXTURE_2D, text_buffer);
+		glBindTexture( GL_TEXTURE_2D, text_buffer );
 
 		// Update the screen buffer with latest version of the cache data
 		CopyCacheToRenderBuffer();
@@ -230,15 +223,14 @@ void Console::CopyCacheToRenderBuffer()
 
 		// Setup converter
 		// For now we convert each line from wchar to char
-		// TODO: Create a render buffer that supports unicode
+		// TODO: Create a render buffer that supports unicode?
 		typedef std::codecvt_utf8<wchar_t> convert_type;
 		std::wstring_convert<convert_type, wchar_t> converter;
 
 		//
 		unsigned int cacheIndex = m_CacheIndex;
-		unsigned int cacheEntriesLeft = m_CacheSize;
 
-		for (int index = (buffer_height - 1); index >= 0, cacheEntriesLeft > 0; --index)
+		for (int index = (buffer_height - 1); index >= 0; --index)
 		{
 			// Determine cache line index
 			if (cacheIndex == 0)
@@ -246,12 +238,32 @@ void Console::CopyCacheToRenderBuffer()
 				cacheIndex = m_CacheSize;
 			}
 			--cacheIndex;
-			--cacheEntriesLeft;
 
 			// Convert cached line from wchar to char text and copy into the render buffer
 			std::string converted_str = converter.to_bytes(m_Cache[cacheIndex]);
+
+			// Handle wrapped lines
+			const char* rawString = converted_str.c_str();
+			int stringLength = strlen( rawString );
 			char* dst = screen_buffer + index * buffer_width;
-			strcpy(dst, converted_str.c_str());
+			while( stringLength > buffer_width )
+			{
+				int subIndex = ((stringLength - 1) / buffer_width) * buffer_width;
+				int subLength = stringLength % buffer_width;
+				if( subLength == 0 )
+				{
+					subLength = buffer_width;
+				}
+				memcpy( dst, &(rawString[subIndex]), subLength );
+				stringLength -= subLength;
+				if( --index < 0 )
+				{
+					return;
+				}
+				dst = screen_buffer + index * buffer_width;
+			}
+			
+			memcpy( dst, rawString, stringLength );
 		}
 	}
 }

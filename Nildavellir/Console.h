@@ -1,4 +1,7 @@
-#pragma once
+// CONSOLE.H
+
+#ifndef _CONSOLE_H_
+#define _CONSOLE_H_
 
 #include <Windows.h>
 #include <TCHAR.H>
@@ -12,9 +15,11 @@
 class Console : public MessageClient
 {
 public:
-	Console();
+	// Use the default implementation
+	Console() = default;
 
-	virtual ~Console();
+	// Use the default implementation
+	virtual ~Console() = default;
 
 	// Create the console using the given height percent of the window [0.0 > heightPercent <= 1.0]%
 	bool Initialize(unsigned int width, unsigned int height, float heightPercent);
@@ -44,20 +49,26 @@ public:
 	//void clear();
 
 private:
+	// Remove the default assignment operator
+	Console & operator =( const Console & ) = delete;
+
+	// Remove the copy constructor
+	Console( const Console & ) = delete;
+
 	void CopyCacheToRenderBuffer();
 
-	bool m_IsVisible;
+	bool m_IsVisible = false;
 
 	std::vector<std::wstring> m_Cache;
 
-	unsigned int m_CacheIndex;
+	unsigned int m_CacheIndex = 0;
+	unsigned int m_CacheSize = 0;
 
 	bool m_Dirty;
 	GLfloat m_ClipSize;
 	float m_HeightPercent;
-	unsigned int m_CacheSize;
-	unsigned int m_FontHeight;
-	unsigned int m_FontWidth;
+	GLint m_FontHeight;
+	GLint m_FontWidth;
 
 	GLuint m_OverlayProgram;
 	GLuint m_RenderTextProgram;
@@ -67,10 +78,12 @@ private:
 	GLuint      vao;
 	GLuint      text_vao;
 
-	char *      screen_buffer;
+	char* screen_buffer = nullptr;
 	int         buffer_width;
 	int         buffer_height;
 
-	int         cursor_x;
-	int         cursor_y;
+	int cursor_x = 0;
+	int cursor_y = 0;
 };
+
+#endif // _CONSOLE_H_
