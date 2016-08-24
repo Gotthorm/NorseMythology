@@ -152,7 +152,8 @@ void Framework::Update()
 					s << counter;
 					length = s.str().length();
 				}
-				MessageManager::GetInstance()->Post( Message::LOG_INFO, s.str() );
+				MessageManager::GetInstance()->Post( Message::LOG_WARN, s.str() );
+				MessageManager::GetInstance()->Post( Message::LOG_ERROR, s.str() );
 #endif
 			}
 		}

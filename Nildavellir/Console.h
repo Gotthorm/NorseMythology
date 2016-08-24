@@ -57,7 +57,12 @@ private:
 
 	bool m_IsVisible = false;
 
-	std::vector<std::wstring> m_Cache;
+	struct CacheEntry
+	{
+		std::wstring messageString;
+		unsigned int colorValue;
+	};
+	std::vector<CacheEntry> m_Cache;
 
 	unsigned int m_CacheIndex = 0;
 	unsigned int m_CacheSize = 0;
@@ -71,6 +76,7 @@ private:
 	unsigned int m_WindowHeight = 0;
 
 	GLfloat m_TextScale[ 2 ] = { 1.0f, 1.0f };
+	GLint m_FontScalarLocationId;
 
 	bool m_Dirty = false;
 	GLfloat m_ClipSize = 0.0f;
@@ -82,14 +88,19 @@ private:
 	GLuint m_RenderTextProgram;
 
 	GLuint      text_buffer;
+	GLuint      text_color_buffer;
 	GLuint      font_texture;
 	GLuint      vao;
 	GLuint      text_vao;
 
 	char* screen_buffer = nullptr;
+	unsigned int* screen_color_buffer = nullptr;
 
 	int cursor_x = 0;
 	int cursor_y = 0;
+
+	// White, Yellow, Red, Blue
+	unsigned int m_ColorTable[4] = { 0xFFFFFFFF, 0xFFFF00FF, 0xFF0000FF, 0x0000FFFF };
 };
 
 #endif // _CONSOLE_H_

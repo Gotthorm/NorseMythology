@@ -59,6 +59,8 @@ bool Console::Initialize( unsigned int width, unsigned int height, float heightP
 	OpenGLInterface::DeleteShader(fragmentShader);
 	OpenGLInterface::DeleteShader(vertexShader);
 
+	m_FontScalarLocationId = OpenGLInterface::GetUniformLocation( m_RenderTextProgram, "fontScalar" );
+
 	// glCreateVertexArrays(1, &vao);
 	OpenGLInterface::GenVertexArrays(1, &text_vao);
 	OpenGLInterface::BindVertexArray(text_vao);
@@ -72,6 +74,14 @@ bool Console::Initialize( unsigned int width, unsigned int height, float heightP
 	//glTexImage2D( GL_TEXTURE_2D, 0, GL_R8UI, 1024, 1024, 0, GL_RED, GL_UNSIGNED_BYTE, NULL );
 	// but I never got it working.  Some of the parameters are guess work.
 	OpenGLInterface::TexStorage2D( GL_TEXTURE_2D, 1, GL_R8UI, 1024, 1024 );
+
+	OpenGLInterface::ActiveTexture( GL_TEXTURE2 );
+	glGenTextures( 1, &text_color_buffer );
+	glBindTexture( GL_TEXTURE_1D, text_color_buffer );
+	glPixelStorei( GL_UNPACK_ALIGNMENT, 4 );
+
+	// See above comments
+	OpenGLInterface::TexStorage1D( GL_TEXTURE_1D, 1, GL_R32UI, 1024 );
 
 	// Register for the correct messages
 	MessageManager::GetInstance()->Register( this, Message::LOG_INFO );
@@ -92,6 +102,9 @@ void Console::Shutdown()
 	delete[] screen_buffer;
 	screen_buffer = nullptr;
 
+	delete[] screen_color_buffer;
+	screen_color_buffer = nullptr;
+
 	OpenGLInterface::DeleteVertexArrays(1, &vao);
 	OpenGLInterface::DeleteVertexArrays(1, &text_vao);
 	OpenGLInterface::DeleteProgram(m_OverlayProgram);
@@ -100,7 +113,7 @@ void Console::Shutdown()
 
 void Console::SetCacheSize(unsigned int cacheSize)
 {
-	std::vector<std::wstring> tempCache;
+	std::vector<CacheEntry> tempCache;
 
 	// Make a copy of the current cache
 	if (m_Cache.size() > 0)
@@ -128,13 +141,14 @@ void Console::SetCacheSize(unsigned int cacheSize)
 	{
 		// I am not sure if this is needed on the entries that will be swapped, but just in case
 		// we will call this on all entries in the new cache
-		m_Cache[index].reserve(Message::MAX_STRING_LENGTH);
+		m_Cache[index].messageString.reserve(Message::MAX_STRING_LENGTH);
 
 		// Copy the existing string from the old cache
 		if (index < oldSize)
 		{
 			// We will be reset the cache index so the index we copy from will be the oldest entry in the old cache
-			m_Cache[index].swap(tempCache[oldIndex]);
+			m_Cache[ index ].messageString.swap( tempCache[ oldIndex ].messageString );
+			m_Cache[ index ].colorValue = tempCache[ oldIndex ].colorValue;
 
 			// Move to the next oldest entry in the old cache
 			oldIndex = (oldIndex + 1) % oldSize;
@@ -182,6 +196,9 @@ void Console::UpdateBufferSize()
 		delete[] screen_buffer;
 		screen_buffer = new char[ m_BufferWidth * m_BufferHeight ];
 
+		delete[] screen_color_buffer;
+		screen_color_buffer = new unsigned int[ m_BufferHeight ];
+
 		stringStream << L"Console physical buffer size changed to (" << m_BufferWidth << ", " << m_BufferHeight << ")";
 		MessageManager::GetInstance()->Post( Message::LOG_INFO, stringStream.str() );
 	}
@@ -199,35 +216,48 @@ void Console::Render( float timeElapsed )
  		glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
  		glDisable( GL_BLEND );
 
-		// Render the text (pink)
-		const GLfloat color[] = { 1.0f, 0.0f, 1.0f, 1.0f };
-
+		// Render the text
 		OpenGLInterface::UseProgram( m_RenderTextProgram );
-
 		OpenGLInterface::VertexAttrib1f( 1, m_ClipSize );
-		OpenGLInterface::VertexAttrib4fv( 2, color );
-		OpenGLInterface::VertexAttrib4fv( 3, m_TextScale );
+		//OpenGLInterface::VertexAttrib4fv( 2, m_TextScale );
+
+		OpenGLInterface::Uniform2fv( m_FontScalarLocationId, 1, m_TextScale );
+		GLenum error = glGetError();
+
+		// Update the screen buffer with latest version of the cache data
+		CopyCacheToRenderBuffer();
 
 		OpenGLInterface::ActiveTexture( GL_TEXTURE0 );
 
 		glBindTexture( GL_TEXTURE_2D, text_buffer );
-
-		// Update the screen buffer with latest version of the cache data
-		CopyCacheToRenderBuffer();
 
 		glTexSubImage2D(
 			GL_TEXTURE_2D,			// Target to which the texture is bound
 			0,						// Level of detail number, 0 is base
 			0,						// Specifies a texel offset in the x direction within the texture array
 			0,						// Specifies a texel offset in the y direction within the texture array
-			m_BufferWidth,	// Specifies the width of the texture subimage
-			m_BufferHeight,	// Specifies the height of the texture subimage
+			m_BufferWidth,			// Specifies the width of the texture subimage
+			m_BufferHeight,			// Specifies the height of the texture subimage
 			GL_RED_INTEGER,			// Specifies the format of the pixel data.  GL_RED_INTEGER tells GL to keep the exact integer value rather than normalizing
 			GL_UNSIGNED_BYTE,		// Specifies the data type of the pixel data
 			screen_buffer			// Specifies a pointer to the image data in memory
 		);
 
-		OpenGLInterface::ActiveTexture(GL_TEXTURE1);
+		OpenGLInterface::ActiveTexture( GL_TEXTURE2 );
+
+		glBindTexture( GL_TEXTURE_1D, text_color_buffer );
+
+		glTexSubImage1D(
+			GL_TEXTURE_1D,			// Target to which the texture is bound
+			0,						// Level of detail number, 0 is base
+			0,						// Specifies a texel offset in the x direction within the texture array
+			m_BufferHeight,			// Specifies the width of the texture subimage
+			GL_RED_INTEGER,			// Specifies the format of the pixel data.  GL_RED_INTEGER tells GL to keep the exact integer value rather than normalizing
+			GL_UNSIGNED_INT,		// Specifies the data type of the pixel data
+			screen_color_buffer		// Specifies a pointer to the image data in memory
+		);
+
+		OpenGLInterface::ActiveTexture( GL_TEXTURE1 );
 
 		OpenGLInterface::BindTexture(GL_TEXTURE_2D_ARRAY, font_texture);
 
@@ -276,8 +306,9 @@ void Console::CopyCacheToRenderBuffer()
 	{
 		// Fill the render buffer with the latest version of the cache
 
-		// Clear the buffer
-		memset(screen_buffer, 0, m_BufferWidth * m_BufferHeight);
+		// Clear the buffers
+		memset( screen_buffer, 0, m_BufferWidth * m_BufferHeight * sizeof( char ) );
+		memset( screen_color_buffer, 0xFF, m_BufferHeight * sizeof( unsigned int ) );
 
 		//
 		unsigned int cacheIndex = m_CacheIndex;
@@ -292,7 +323,7 @@ void Console::CopyCacheToRenderBuffer()
 			--cacheIndex;
 
 			// Convert cached line from wchar to char text and copy into the render buffer
-			std::string convertedString = ConvertWideCharToChar( m_Cache[ cacheIndex ] );
+			std::string convertedString = ConvertWideCharToChar( m_Cache[ cacheIndex ].messageString );
 
 			// For debugging the console window dimensions, etc
 			// This will pad non empty lines to a minimum length
@@ -323,6 +354,7 @@ void Console::CopyCacheToRenderBuffer()
 					subLength = m_VirtualBufferWidth;
 				}
 				memcpy( dst, convertedString.substr( subIndex ).c_str(), subLength );
+				screen_color_buffer[ index ] = m_Cache[ cacheIndex ].colorValue;
 				stringLength -= subLength;
 				if( --index < 0 )
 				{
@@ -332,24 +364,25 @@ void Console::CopyCacheToRenderBuffer()
 			}
 
 			memcpy( dst, convertedString.c_str(), stringLength );
+			screen_color_buffer[ index ] = m_Cache[ cacheIndex ].colorValue;
 		}
 	}
 }
 
 void Console::ReceiveMessage( const Message& message )
 {
-	unsigned int colorIndex;
+	unsigned int colorValue;
 
 	switch( message.Type )
 	{
 	case Message::LOG_INFO:
-		colorIndex = 0;
+		colorValue = m_ColorTable[ 0 ]; // White
 		break;
 	case Message::LOG_WARN:
-		colorIndex = 1;
+		colorValue = m_ColorTable[ 1 ]; // Yellow
 		break;
 	case Message::LOG_ERROR:
-		colorIndex = 2;
+		colorValue = m_ColorTable[ 2 ]; // Red
 		break;
 	default:
 		// Invalid message type
@@ -357,9 +390,10 @@ void Console::ReceiveMessage( const Message& message )
 	}
 
 	// Write to the cache string entry
-	m_Cache[ m_CacheIndex ].assign( *message.stringData, 0, Message::MAX_STRING_LENGTH );
+	m_Cache[ m_CacheIndex ].messageString.assign( *message.stringData, 0, Message::MAX_STRING_LENGTH );
 
 	// Set cache entry color?
+	m_Cache[ m_CacheIndex ].colorValue = colorValue;
 
 	// Update the index to the next available line in the cache
 	m_CacheIndex = ( m_CacheIndex + 1 ) % m_CacheSize;
