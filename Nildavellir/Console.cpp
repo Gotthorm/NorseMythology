@@ -7,14 +7,13 @@
 // 3) Change color support to be able to color each line individually
 
 #include "Console.h"
-#include <math.h>
 #include "KTX.h"
 #include "Logger.h"
-#include <codecvt>
 #include "MessageManager.h"
+#include <sstream>
 
-// Static
-//const unsigned int kDefaultCacheSize = 10;
+// TODO: This will become a console variable
+unsigned int cv_MinimumConsoleMessageLength = 0;
 
 // TODO: Change this to accept %width and %height instead
 // TODO: Make this handle init errors
@@ -34,10 +33,7 @@ bool Console::Initialize( unsigned int width, unsigned int height, float heightP
 	glGetTexLevelParameteriv( GL_TEXTURE_2D_ARRAY, 0, GL_TEXTURE_WIDTH, &m_FontWidth );
 	glGetTexLevelParameteriv( GL_TEXTURE_2D_ARRAY, 0, GL_TEXTURE_HEIGHT, &m_FontHeight );
 
-	//
-	SetBufferSize( m_BufferWidth, m_BufferHeight );
-
-	// Start the buffer at the default values
+	// Set up the window dimensions.  This call may also update the buffer size.
 	SetWindowSize( width, height );
 
 	m_OverlayProgram = OpenGLInterface::CreateProgram();
@@ -71,8 +67,6 @@ bool Console::Initialize( unsigned int width, unsigned int height, float heightP
 	glGenTextures( 1, &text_buffer );
 	glBindTexture( GL_TEXTURE_2D, text_buffer );
 	glPixelStorei( GL_UNPACK_ALIGNMENT, 4 );
-
-	//OpenGLInterface::TexStorage2D(GL_TEXTURE_2D, 1, GL_R8UI, width, height);
 
 	// This call is supposedly the equivalent of calling something like this:
 	//glTexImage2D( GL_TEXTURE_2D, 0, GL_R8UI, 1024, 1024, 0, GL_RED, GL_UNSIGNED_BYTE, NULL );
@@ -148,10 +142,12 @@ void Console::SetCacheSize(unsigned int cacheSize)
 	}
 }
 
-void Console::UpdateFontScale()
+void Console::SetTextScale( float widthScale, float heightScale )
 {
-	m_TextScale[ 0 ] = m_WindowWidth / float(m_BufferWidth * m_FontWidth);
-	m_TextScale[ 1 ] = (m_WindowHeight * m_HeightPercent) / (m_BufferHeight * m_FontHeight);
+	m_TextScale[ 0 ] = widthScale;
+	m_TextScale[ 1 ] = heightScale;
+
+	UpdateBufferSize();
 }
 
 void Console::SetWindowSize( unsigned int width, unsigned int height )
@@ -159,26 +155,39 @@ void Console::SetWindowSize( unsigned int width, unsigned int height )
 	m_WindowWidth = width;
 	m_WindowHeight = height;
 
-	// Update the font scalars
-	UpdateFontScale();
+	UpdateBufferSize();
 }
 
-void Console::SetBufferSize( unsigned int width, unsigned int height )
+void Console::UpdateBufferSize()
 {
-	m_BufferWidth = width;
-	m_BufferHeight = height;
+	unsigned int newBufferWidth = m_WindowWidth / unsigned int( m_TextScale[ 0 ] * m_FontWidth );
+	unsigned int newBufferHeight = unsigned int( m_WindowHeight * m_HeightPercent ) / unsigned int( m_TextScale[ 1 ] * m_FontHeight );
 
-	// It seems that the buffer width needs to be 16 byte aligned ???
-	m_BufferWidth &= ~0x0F;
+	if( newBufferWidth != m_VirtualBufferWidth || newBufferHeight != m_VirtualBufferHeight )
+	{
+		std::wstringstream stringStream;
+		stringStream << L"Console virtual buffer size changed from (" << m_VirtualBufferWidth << ", " << m_VirtualBufferHeight << ") to (" << newBufferWidth << ", " << newBufferHeight << ")";
+		MessageManager::GetInstance()->Post( Message::LOG_INFO, stringStream.str() );
+		
+		// Clear the string stream
+		std::wstringstream().swap( stringStream );
 
-	delete[] screen_buffer;
-	screen_buffer = new char[ width * height ];
+		m_VirtualBufferWidth = newBufferWidth;
+		m_VirtualBufferHeight = newBufferHeight;
 
-	// Update the font scalars
-	UpdateFontScale();
+		// The physical buffer width must be 16 byte aligned, so we round up the buffer size to the next multiple of 16
+		m_BufferWidth = ( m_VirtualBufferWidth + 0x0F ) & ~0x0F;
+		m_BufferHeight = m_VirtualBufferHeight;
+
+		delete[] screen_buffer;
+		screen_buffer = new char[ m_BufferWidth * m_BufferHeight ];
+
+		stringStream << L"Console physical buffer size changed to (" << m_BufferWidth << ", " << m_BufferHeight << ")";
+		MessageManager::GetInstance()->Post( Message::LOG_INFO, stringStream.str() );
+	}
 }
 
-void Console::Render()
+void Console::Render( float timeElapsed )
 {
 	if (m_IsVisible)
 	{
@@ -190,19 +199,14 @@ void Console::Render()
  		glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
  		glDisable( GL_BLEND );
 
-		// Render the text
-		const GLfloat color[] = {1.0f, 0.0f, 1.0f, 1.0f}; // Pink
+		// Render the text (pink)
+		const GLfloat color[] = { 1.0f, 0.0f, 1.0f, 1.0f };
 
 		OpenGLInterface::UseProgram( m_RenderTextProgram );
 
 		OpenGLInterface::VertexAttrib1f( 1, m_ClipSize );
 		OpenGLInterface::VertexAttrib4fv( 2, color );
 		OpenGLInterface::VertexAttrib4fv( 3, m_TextScale );
-
-		//glUniform1i();
-
-		//glVertexA
-		//glVertexAttrib2i( 3, m_TextScale );
 
 		OpenGLInterface::ActiveTexture( GL_TEXTURE0 );
 
@@ -212,15 +216,15 @@ void Console::Render()
 		CopyCacheToRenderBuffer();
 
 		glTexSubImage2D(
-			GL_TEXTURE_2D,		// Target to which the texture is bound
-			0,					// Level of detail number, 0 is base
-			0,					// Specifies a texel offset in the x direction within the texture array
-			0,					// Specifies a texel offset in the y direction within the texture array
-			m_BufferWidth,		// Specifies the width of the texture subimage
-			m_BufferHeight,		// Specifies the height of the texture subimage
-			GL_RED_INTEGER,		// Specifies the format of the pixel data.  GL_RED_INTEGER tells GL to keep the exact integer value rather than normalizing
-			GL_UNSIGNED_BYTE,	// Specifies the data type of the pixel data
-			screen_buffer		// Specifies a pointer to the image data in memory
+			GL_TEXTURE_2D,			// Target to which the texture is bound
+			0,						// Level of detail number, 0 is base
+			0,						// Specifies a texel offset in the x direction within the texture array
+			0,						// Specifies a texel offset in the y direction within the texture array
+			m_BufferWidth,	// Specifies the width of the texture subimage
+			m_BufferHeight,	// Specifies the height of the texture subimage
+			GL_RED_INTEGER,			// Specifies the format of the pixel data.  GL_RED_INTEGER tells GL to keep the exact integer value rather than normalizing
+			GL_UNSIGNED_BYTE,		// Specifies the data type of the pixel data
+			screen_buffer			// Specifies a pointer to the image data in memory
 		);
 
 		OpenGLInterface::ActiveTexture(GL_TEXTURE1);
@@ -234,6 +238,38 @@ void Console::Render()
 	}
 }
 
+std::string ConvertWideCharToChar( const std::wstring& source )
+{
+	size_t sourceLength = source.length();
+
+	std::string results;
+	results.reserve( sourceLength );
+
+	for( unsigned int index = 0; index < source.length(); ++index )
+	{
+		wchar_t code = source[ index ];
+
+		if( code == '\0' )
+			break;
+
+		if( code < 128 )
+		{
+			results += char( code );
+		}
+		else
+		{
+			results += '?';
+			if( code >= 0xD800 && code <= 0xD8FF )
+			{
+				// lead surrogate, skip the next code unit, which is the trail
+				++index;
+			}
+		}
+	}
+
+	return results;
+}
+
 void Console::CopyCacheToRenderBuffer()
 {
 	if (m_Dirty)
@@ -243,40 +279,50 @@ void Console::CopyCacheToRenderBuffer()
 		// Clear the buffer
 		memset(screen_buffer, 0, m_BufferWidth * m_BufferHeight);
 
-		// Setup converter
-		// For now we convert each line from wchar to char
-		// TODO: Create a render buffer that supports unicode?
-		typedef std::codecvt_utf8<wchar_t> convert_type;
-		std::wstring_convert<convert_type, wchar_t> converter;
-
 		//
 		unsigned int cacheIndex = m_CacheIndex;
 
-		for (int index = ( m_BufferHeight - 1); index >= 0; --index)
+		for( int index = ( m_BufferHeight - 1 ); index >= 0; --index )
 		{
 			// Determine cache line index
-			if (cacheIndex == 0)
+			if( cacheIndex == 0 )
 			{
 				cacheIndex = m_CacheSize;
 			}
 			--cacheIndex;
 
 			// Convert cached line from wchar to char text and copy into the render buffer
-			std::string converted_str = converter.to_bytes(m_Cache[cacheIndex]);
+			std::string convertedString = ConvertWideCharToChar( m_Cache[ cacheIndex ] );
+
+			// For debugging the console window dimensions, etc
+			// This will pad non empty lines to a minimum length
+			if( cv_MinimumConsoleMessageLength > 0 )
+			{
+				size_t currentLength = convertedString.length();
+
+				// We do not want to pad empty entries in the buffer
+				if( currentLength > 0 )
+				{
+					while( currentLength < cv_MinimumConsoleMessageLength )
+					{
+						convertedString += ('0' + currentLength  % 10);
+						++currentLength;
+					}
+				}
+			}
 
 			// Handle wrapped lines
-			const char* rawString = converted_str.c_str();
-			unsigned int stringLength = strlen( rawString );
+			size_t stringLength = convertedString.length();
 			char* dst = screen_buffer + index * m_BufferWidth;
-			while( stringLength > m_BufferWidth )
+			while( stringLength > m_VirtualBufferWidth )
 			{
-				int subIndex = ((stringLength - 1) / m_BufferWidth ) * m_BufferWidth;
-				int subLength = stringLength % m_BufferWidth;
+				size_t subIndex = ( ( stringLength - 1 ) / m_VirtualBufferWidth ) * m_VirtualBufferWidth;
+				int subLength = stringLength % m_VirtualBufferWidth;
 				if( subLength == 0 )
 				{
-					subLength = m_BufferWidth;
+					subLength = m_VirtualBufferWidth;
 				}
-				memcpy( dst, &(rawString[subIndex]), subLength );
+				memcpy( dst, convertedString.substr( subIndex ).c_str(), subLength );
 				stringLength -= subLength;
 				if( --index < 0 )
 				{
@@ -284,8 +330,8 @@ void Console::CopyCacheToRenderBuffer()
 				}
 				dst = screen_buffer + index * m_BufferWidth;
 			}
-			
-			memcpy( dst, rawString, stringLength );
+
+			memcpy( dst, convertedString.c_str(), stringLength );
 		}
 	}
 }
@@ -321,86 +367,3 @@ void Console::ReceiveMessage( const Message& message )
 	m_Dirty = true;
 }
 
-//void Console::DrawText(std::wstring& str, int x, int y)
-//{
-//	//std::wstring str = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes("some string");
-//
-//	//setup converter
-//	typedef std::codecvt_utf8<wchar_t> convert_type;
-//	std::wstring_convert<convert_type, wchar_t> converter;
-//
-//	//use converter (.to_bytes: wstr->str, .from_bytes: str->wstr)
-//	std::string converted_str = converter.to_bytes(str);
-//
-//	//std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-//	//VersionString = converter.from_bytes(versionString);
-//
-//	char* dst = screen_buffer + y * buffer_width + x;
-//	strcpy(dst, converted_str.c_str());
-//	dirty = true;
-//}
-//
-//void Console::scroll(int lines)
-//{
-//	const char* src = screen_buffer + lines * buffer_width;
-//	char * dst = screen_buffer;
-//
-//	memmove(dst, src, (buffer_height - lines) * buffer_width);
-//
-//	dirty = true;
-//}
-//
-//void Console::print(const char* str)
-//{
-//	const char* p = str;
-//	char c;
-//	char* dst = screen_buffer + cursor_y * buffer_width + cursor_x;
-//
-//	while (*p != 0)
-//	{
-//		c = *p++;
-//		if (c == '\n')
-//		{
-//			cursor_y++;
-//			cursor_x = 0;
-//			if (cursor_y >= buffer_height)
-//			{
-//				cursor_y--;
-//				scroll(1);
-//			}
-//			dst = screen_buffer + cursor_y * buffer_width + cursor_x;
-//		}
-//		else
-//		{
-//			*dst++ = c;
-//			cursor_x++;
-//			if (cursor_x >= buffer_width)
-//			{
-//				cursor_y++;
-//				cursor_x = 0;
-//				if (cursor_y >= buffer_height)
-//				{
-//					cursor_y--;
-//					scroll(1);
-//				}
-//				dst = screen_buffer + cursor_y * buffer_width + cursor_x;
-//			}
-//		}
-//	}
-//
-//	dirty = true;
-//}
-//
-//void Console::moveCursor(int x, int y)
-//{
-//	cursor_x = x;
-//	cursor_y = y;
-//}
-//
-//void Console::clear()
-//{
-//	memset(screen_buffer, 0, buffer_width * buffer_height);
-//	dirty = true;
-//	cursor_x = 0;
-//	cursor_y = 0;
-//}

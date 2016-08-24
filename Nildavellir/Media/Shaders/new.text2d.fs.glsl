@@ -28,7 +28,7 @@ void main(void)
 	ivec2 char_location = frag_coord / char_size;
 
 	// Find texel within character.  The pixel offsets within the text buffer entry.
-	ivec2 texel_coord = frag_coord % char_size;
+	ivec2 texel_coord = ivec2((frag_coord % char_size) / vs_fontScalar);
 
 	// Fetch character index
 	int character = texelFetch(text_buffer, char_location, 0).x;

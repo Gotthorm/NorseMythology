@@ -12,6 +12,8 @@ layout (location = 3) in vec2 fontScalar;
 out vec4 vs_color;
 out vec2 vs_fontScalar;
 
+int frameCounter = 0;
+
 void main(void)
 {
 	const vec4 vertices[] = vec4[](	vec4(-1.0, height, 0.0, 1.0),
@@ -21,8 +23,6 @@ void main(void)
 
     gl_Position = vertices[gl_VertexID];
 	
-	//gl_Position = vec4(float((gl_VertexID >> 1) & 1) * 2.0 - 1.0, float((gl_VertexID & 1)) * 2.0 - 1.0, 0.0, 1.0);
-
 	vs_color = color;
 	vs_fontScalar = fontScalar;
 }

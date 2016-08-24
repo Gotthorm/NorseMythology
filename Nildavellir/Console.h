@@ -37,19 +37,12 @@ public:
 	// Set the current window dimensions
 	void SetWindowSize( unsigned int width, unsigned int height);
 
-	// Set the text buffer size
-	void SetBufferSize( unsigned int width, unsigned int height );
+	// Set the text scale
+	void SetTextScale( float widthScale, float heightScale );
 
-	//bool Init(unsigned int width, unsigned int height, unsigned int cacheSize);
-	void Render();
+	void Render( float timeElapsed );
 	void SetVisible(bool visible) { m_IsVisible = visible; }
 	bool IsVisible() { return m_IsVisible; }
-
-	//void DrawText(std::wstring& str, int x, int y);
-	//void print(const char* str);
-	//void scroll(int lines);
-	//void moveCursor(int x, int y);
-	//void clear();
 
 private:
 	// Remove the default assignment operator
@@ -60,7 +53,7 @@ private:
 
 	void CopyCacheToRenderBuffer();
 
-	void UpdateFontScale();
+	void UpdateBufferSize();
 
 	bool m_IsVisible = false;
 
@@ -69,19 +62,21 @@ private:
 	unsigned int m_CacheIndex = 0;
 	unsigned int m_CacheSize = 0;
 
-	unsigned int m_BufferWidth = 128;
-	unsigned int m_BufferHeight = 32;
+	unsigned int m_BufferWidth = 0;
+	unsigned int m_BufferHeight = 0;
+	unsigned int m_VirtualBufferWidth = 0;
+	unsigned int m_VirtualBufferHeight = 0;
 
 	unsigned int m_WindowWidth = 0;
 	unsigned int m_WindowHeight = 0;
 
-	GLfloat m_TextScale[ 2 ];
+	GLfloat m_TextScale[ 2 ] = { 1.0f, 1.0f };
 
-	bool m_Dirty;
-	GLfloat m_ClipSize;
-	float m_HeightPercent;
-	GLint m_FontHeight;
-	GLint m_FontWidth;
+	bool m_Dirty = false;
+	GLfloat m_ClipSize = 0.0f;
+	float m_HeightPercent = 0.0f;
+	GLint m_FontHeight = 0;
+	GLint m_FontWidth = 0;
 
 	GLuint m_OverlayProgram;
 	GLuint m_RenderTextProgram;
@@ -92,8 +87,6 @@ private:
 	GLuint      text_vao;
 
 	char* screen_buffer = nullptr;
-	//int         buffer_width;
-	//int         buffer_height;
 
 	int cursor_x = 0;
 	int cursor_y = 0;

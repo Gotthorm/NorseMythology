@@ -140,16 +140,16 @@ void Graphics::SetWindowSize( unsigned short width, unsigned short height )
 	m_Width = width;
 	m_Height = height;
 
-	m_Console.SetWindowSize( width, height );
-
 	std::wstringstream s;
-	s << L"SetWindowSize( " << width << L",  " << height << L" )";
+	s << L"SetWindowSize( " << width << L", " << height << L" )";
 	MessageManager::GetInstance()->Post( Message::LOG_INFO, s.str() );
+
+	m_Console.SetWindowSize( width, height );
 }
 
-void Graphics::Render(double timeElapsed)
+void Graphics::Render(float timeElapsed)
 {
-	static double currentTime = 0;
+	static float currentTime = 0;
 
 	currentTime += timeElapsed;
 
@@ -165,7 +165,7 @@ void Graphics::Render(double timeElapsed)
 	m_Text2D.draw();
 	
 	// Add test to determine if console is iitialized
-	m_Console.Render();
+	m_Console.Render( timeElapsed );
 
 	//m_Text2D.clear();
 	

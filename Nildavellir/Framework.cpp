@@ -141,15 +141,16 @@ void Framework::Update()
 
 				m_UpdateAccumulator = 0;
 
-#ifdef _DEBUG
+#if 0
 				// TEMP: For debugging
 				static int counter = 0;
 				std::wstringstream s;
 				s << L"One frame has elapsed : " << counter++ << "#";
 				size_t length = s.str().length();
-				for( size_t index = length; length < 150; ++length )
+				for( ; length < 150; ++length )
 				{
-					s << length % 10;
+					s << counter;
+					length = s.str().length();
 				}
 				MessageManager::GetInstance()->Post( Message::LOG_INFO, s.str() );
 #endif
@@ -182,7 +183,7 @@ void Framework::Update()
 		m_pGraphics->SetCamera( m_pGame->GetCurrentCamera() );
 
 		// Render the scene
-		m_pGraphics->Render( timeElapsed );
+		m_pGraphics->Render( timeElapsed / 1000.0f );
 
 		// Clear input key releases
 		m_pInput->AdvanceFrame();

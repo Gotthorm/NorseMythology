@@ -29,7 +29,7 @@ public:
 	void Shutdown();
 
 	//
-	void Render(double timeElapsed);
+	void Render(float timeElapsed);
 
 	//
 	void SetWindowSize( unsigned short width, unsigned short height);
