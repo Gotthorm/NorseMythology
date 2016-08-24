@@ -48,8 +48,8 @@ bool Console::Initialize( unsigned int width, unsigned int height, float heightP
 	OpenGLInterface::GenVertexArrays(1, &vao);
 	OpenGLInterface::BindVertexArray(vao);
 
-	vertexShader = OpenGLInterface::LoadShader("Media/Shaders/new.text2d.vs.glsl", GL_VERTEX_SHADER, true);
-	fragmentShader = OpenGLInterface::LoadShader("Media/Shaders/new.text2d.fs.glsl", GL_FRAGMENT_SHADER, true);
+	vertexShader = OpenGLInterface::LoadShader("Media/Shaders/console.text2d.vs.glsl", GL_VERTEX_SHADER, true);
+	fragmentShader = OpenGLInterface::LoadShader("Media/Shaders/console.text2d.fs.glsl", GL_FRAGMENT_SHADER, true);
 
 	m_RenderTextProgram = OpenGLInterface::CreateProgram();
 	OpenGLInterface::AttachShader(m_RenderTextProgram, vertexShader);
