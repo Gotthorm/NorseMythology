@@ -190,8 +190,8 @@
     <ClInclude Include="Text2D.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Media\Shaders\console.fs.glsl" />
-    <None Include="Media\Shaders\console.vs.glsl" />
+    <None Include="Media\Shaders\console.overlay.fs.glsl" />
+    <None Include="Media\Shaders\console.overlay.vs.glsl" />
     <None Include="Media\Shaders\new.text2d.fs.glsl" />
     <None Include="Media\Shaders\new.text2d.vs.glsl" />
     <None Include="Media\Shaders\text2d.fs.glsl" />

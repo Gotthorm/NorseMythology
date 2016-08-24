@@ -19,8 +19,8 @@ unsigned int cv_MinimumConsoleMessageLength = 0;
 // TODO: Make this handle init errors
 bool Console::Initialize( unsigned int width, unsigned int height, float heightPercent )
 {
-	GLuint vertexShader = OpenGLInterface::LoadShader("Media/Shaders/console.vs.glsl", GL_VERTEX_SHADER, true);
-	GLuint fragmentShader = OpenGLInterface::LoadShader("Media/Shaders/console.fs.glsl", GL_FRAGMENT_SHADER, true);
+	GLuint vertexShader = OpenGLInterface::LoadShader("Media/Shaders/console.overlay.vs.glsl", GL_VERTEX_SHADER, true);
+	GLuint fragmentShader = OpenGLInterface::LoadShader("Media/Shaders/console.overlay.fs.glsl", GL_FRAGMENT_SHADER, true);
 
 	m_HeightPercent = heightPercent;
 
