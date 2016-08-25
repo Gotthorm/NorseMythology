@@ -1,11 +1,5 @@
 // CONSOLE.CPP
 
-// TODO List
-// 
-// 1) Make the initialize method handle errors correctly
-// 2) Figure out how to make the overlay height and the buffer height match
-// 3) Change color support to be able to color each line individually
-
 #include "Console.h"
 #include "KTX.h"
 #include "Logger.h"
@@ -15,7 +9,6 @@
 // TODO: This will become a console variable
 unsigned int cv_MinimumConsoleMessageLength = 0;
 
-// TODO: Change this to accept %width and %height instead
 // TODO: Make this handle init errors
 bool Console::Initialize( unsigned int width, unsigned int height, float heightPercent )
 {
@@ -27,7 +20,7 @@ bool Console::Initialize( unsigned int width, unsigned int height, float heightP
 	// Calculate the overlay size in clip space where height(0) => 1.0 && height(1.0) => -1.0
 	m_ClipSize = 1.0f - m_HeightPercent * 2.0f;
 
-	font_texture = KTX::load("Media/Textures/cp437_9x16.ktx");
+	m_FontTextureId = KTX::load("Media/Textures/cp437_9x16.ktx");
 
 	// Extract the font width and height
 	glGetTexLevelParameteriv( GL_TEXTURE_2D_ARRAY, 0, GL_TEXTURE_WIDTH, &m_FontWidth );
@@ -45,8 +38,8 @@ bool Console::Initialize( unsigned int width, unsigned int height, float heightP
 	OpenGLInterface::DeleteShader(vertexShader);
 
 	// glCreateVertexArrays(1, &vao);
-	OpenGLInterface::GenVertexArrays(1, &vao);
-	OpenGLInterface::BindVertexArray(vao);
+	OpenGLInterface::GenVertexArrays(1, &m_OverlayVertexArrayObjectId);
+	OpenGLInterface::BindVertexArray(m_OverlayVertexArrayObjectId);
 
 	vertexShader = OpenGLInterface::LoadShader("Media/Shaders/console.text2d.vs.glsl", GL_VERTEX_SHADER, true);
 	fragmentShader = OpenGLInterface::LoadShader("Media/Shaders/console.text2d.fs.glsl", GL_FRAGMENT_SHADER, true);
@@ -62,12 +55,12 @@ bool Console::Initialize( unsigned int width, unsigned int height, float heightP
 	m_FontScalarLocationId = OpenGLInterface::GetUniformLocation( m_RenderTextProgram, "fontScalar" );
 
 	// glCreateVertexArrays(1, &vao);
-	OpenGLInterface::GenVertexArrays(1, &text_vao);
-	OpenGLInterface::BindVertexArray(text_vao);
+	OpenGLInterface::GenVertexArrays(1, &m_TextVertexArrayObjectId);
+	OpenGLInterface::BindVertexArray(m_TextVertexArrayObjectId);
 
 	OpenGLInterface::ActiveTexture( GL_TEXTURE0 );
-	glGenTextures( 1, &text_buffer );
-	glBindTexture( GL_TEXTURE_2D, text_buffer );
+	glGenTextures( 1, &m_TextBufferTextureId );
+	glBindTexture( GL_TEXTURE_2D, m_TextBufferTextureId );
 	glPixelStorei( GL_UNPACK_ALIGNMENT, 4 );
 
 	// This call is supposedly the equivalent of calling something like this:
@@ -76,8 +69,8 @@ bool Console::Initialize( unsigned int width, unsigned int height, float heightP
 	OpenGLInterface::TexStorage2D( GL_TEXTURE_2D, 1, GL_R8UI, 1024, 1024 );
 
 	OpenGLInterface::ActiveTexture( GL_TEXTURE2 );
-	glGenTextures( 1, &text_color_buffer );
-	glBindTexture( GL_TEXTURE_1D, text_color_buffer );
+	glGenTextures( 1, &m_TextColorBufferTextureId );
+	glBindTexture( GL_TEXTURE_1D, m_TextColorBufferTextureId );
 	glPixelStorei( GL_UNPACK_ALIGNMENT, 4 );
 
 	// See above comments
@@ -99,14 +92,14 @@ void Console::Shutdown()
 
 	m_Cache.clear();
 
-	delete[] screen_buffer;
-	screen_buffer = nullptr;
+	delete[] m_ScreenTextBuffer;
+	m_ScreenTextBuffer = nullptr;
 
-	delete[] screen_color_buffer;
-	screen_color_buffer = nullptr;
+	delete[] m_ScreenTextColorBuffer;
+	m_ScreenTextColorBuffer = nullptr;
 
-	OpenGLInterface::DeleteVertexArrays(1, &vao);
-	OpenGLInterface::DeleteVertexArrays(1, &text_vao);
+	OpenGLInterface::DeleteVertexArrays(1, &m_OverlayVertexArrayObjectId);
+	OpenGLInterface::DeleteVertexArrays(1, &m_TextVertexArrayObjectId);
 	OpenGLInterface::DeleteProgram(m_OverlayProgram);
 	OpenGLInterface::DeleteProgram(m_RenderTextProgram);
 }
@@ -193,18 +186,18 @@ void Console::UpdateBufferSize()
 		m_BufferWidth = ( m_VirtualBufferWidth + 0x0F ) & ~0x0F;
 		m_BufferHeight = m_VirtualBufferHeight;
 
-		delete[] screen_buffer;
-		screen_buffer = new char[ m_BufferWidth * m_BufferHeight ];
+		delete[] m_ScreenTextBuffer;
+		m_ScreenTextBuffer = new char[ m_BufferWidth * m_BufferHeight ];
 
-		delete[] screen_color_buffer;
-		screen_color_buffer = new unsigned int[ m_BufferHeight ];
+		delete[] m_ScreenTextColorBuffer;
+		m_ScreenTextColorBuffer = new unsigned int[ m_BufferHeight ];
 
 		stringStream << L"Console physical buffer size changed to (" << m_BufferWidth << ", " << m_BufferHeight << ")";
 		MessageManager::GetInstance()->Post( Message::LOG_INFO, stringStream.str() );
 	}
 }
 
-void Console::Render( float timeElapsed )
+void Console::Render()
 {
 	if (m_IsVisible)
 	{
@@ -229,7 +222,7 @@ void Console::Render( float timeElapsed )
 
 		OpenGLInterface::ActiveTexture( GL_TEXTURE0 );
 
-		glBindTexture( GL_TEXTURE_2D, text_buffer );
+		glBindTexture( GL_TEXTURE_2D, m_TextBufferTextureId );
 
 		glTexSubImage2D(
 			GL_TEXTURE_2D,			// Target to which the texture is bound
@@ -240,12 +233,12 @@ void Console::Render( float timeElapsed )
 			m_BufferHeight,			// Specifies the height of the texture subimage
 			GL_RED_INTEGER,			// Specifies the format of the pixel data.  GL_RED_INTEGER tells GL to keep the exact integer value rather than normalizing
 			GL_UNSIGNED_BYTE,		// Specifies the data type of the pixel data
-			screen_buffer			// Specifies a pointer to the image data in memory
+			m_ScreenTextBuffer		// Specifies a pointer to the image data in memory
 		);
 
 		OpenGLInterface::ActiveTexture( GL_TEXTURE2 );
 
-		glBindTexture( GL_TEXTURE_1D, text_color_buffer );
+		glBindTexture( GL_TEXTURE_1D, m_TextColorBufferTextureId );
 
 		glTexSubImage1D(
 			GL_TEXTURE_1D,			// Target to which the texture is bound
@@ -254,14 +247,14 @@ void Console::Render( float timeElapsed )
 			m_BufferHeight,			// Specifies the width of the texture subimage
 			GL_RED_INTEGER,			// Specifies the format of the pixel data.  GL_RED_INTEGER tells GL to keep the exact integer value rather than normalizing
 			GL_UNSIGNED_INT,		// Specifies the data type of the pixel data
-			screen_color_buffer		// Specifies a pointer to the image data in memory
+			m_ScreenTextColorBuffer	// Specifies a pointer to the image data in memory
 		);
 
 		OpenGLInterface::ActiveTexture( GL_TEXTURE1 );
 
-		OpenGLInterface::BindTexture(GL_TEXTURE_2D_ARRAY, font_texture);
+		OpenGLInterface::BindTexture(GL_TEXTURE_2D_ARRAY, m_FontTextureId);
 
-		OpenGLInterface::BindVertexArray(text_vao);
+		OpenGLInterface::BindVertexArray(m_TextVertexArrayObjectId);
 
 		// Render four vertices in a triangle strip format, which equates to a square composed of two triangles
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -307,8 +300,8 @@ void Console::CopyCacheToRenderBuffer()
 		// Fill the render buffer with the latest version of the cache
 
 		// Clear the buffers
-		memset( screen_buffer, 0, m_BufferWidth * m_BufferHeight * sizeof( char ) );
-		memset( screen_color_buffer, 0xFF, m_BufferHeight * sizeof( unsigned int ) );
+		memset( m_ScreenTextBuffer, 0, m_BufferWidth * m_BufferHeight * sizeof( char ) );
+		memset( m_ScreenTextColorBuffer, 0xFF, m_BufferHeight * sizeof( unsigned int ) );
 
 		//
 		unsigned int cacheIndex = m_CacheIndex;
@@ -344,7 +337,7 @@ void Console::CopyCacheToRenderBuffer()
 
 			// Handle wrapped lines
 			size_t stringLength = convertedString.length();
-			char* dst = screen_buffer + index * m_BufferWidth;
+			char* dst = m_ScreenTextBuffer + index * m_BufferWidth;
 			while( stringLength > m_VirtualBufferWidth )
 			{
 				size_t subIndex = ( ( stringLength - 1 ) / m_VirtualBufferWidth ) * m_VirtualBufferWidth;
@@ -354,17 +347,17 @@ void Console::CopyCacheToRenderBuffer()
 					subLength = m_VirtualBufferWidth;
 				}
 				memcpy( dst, convertedString.substr( subIndex ).c_str(), subLength );
-				screen_color_buffer[ index ] = m_Cache[ cacheIndex ].colorValue;
+				m_ScreenTextColorBuffer[ index ] = m_Cache[ cacheIndex ].colorValue;
 				stringLength -= subLength;
 				if( --index < 0 )
 				{
 					return;
 				}
-				dst = screen_buffer + index * m_BufferWidth;
+				dst = m_ScreenTextBuffer + index * m_BufferWidth;
 			}
 
 			memcpy( dst, convertedString.c_str(), stringLength );
-			screen_color_buffer[ index ] = m_Cache[ cacheIndex ].colorValue;
+			m_ScreenTextColorBuffer[ index ] = m_Cache[ cacheIndex ].colorValue;
 		}
 	}
 }
@@ -401,3 +394,7 @@ void Console::ReceiveMessage( const Message& message )
 	m_Dirty = true;
 }
 
+void Console::Update( float timeElapsed )
+{
+
+}

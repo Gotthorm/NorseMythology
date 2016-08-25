@@ -147,12 +147,8 @@ void Graphics::SetWindowSize( unsigned short width, unsigned short height )
 	m_Console.SetWindowSize( width, height );
 }
 
-void Graphics::Render(float timeElapsed)
+void Graphics::Render()
 {
-	static float currentTime = 0;
-
-	currentTime += timeElapsed;
-
 	static const GLfloat green[] = { 0.0f, 0.25f, 0.0f, 1.0f };
 	OpenGLInterface::ClearBufferfv(GL_COLOR, 0, green);
 
@@ -165,7 +161,7 @@ void Graphics::Render(float timeElapsed)
 	m_Text2D.draw();
 	
 	// Add test to determine if console is iitialized
-	m_Console.Render( timeElapsed );
+	m_Console.Render();
 
 	//m_Text2D.clear();
 	
@@ -289,4 +285,9 @@ std::wstring Graphics::GetVersionInformation()
 void Graphics::ToggleConsole()
 {
 	m_Console.SetVisible( m_Console.IsVisible() == false );
+}
+
+void Graphics::UpdateConsole( float timeElapsed )
+{
+	m_Console.Update( timeElapsed );
 }

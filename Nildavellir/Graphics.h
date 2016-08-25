@@ -29,7 +29,7 @@ public:
 	void Shutdown();
 
 	//
-	void Render(float timeElapsed);
+	void Render();
 
 	//
 	void SetWindowSize( unsigned short width, unsigned short height);
@@ -45,6 +45,9 @@ public:
 
 	//
 	void ToggleConsole();
+
+	//
+	void UpdateConsole( float timeElapsed );
 
 private:
 	//bool InitGeometry();

@@ -48,10 +48,10 @@ namespace Platform
 	/// \brief OS specific parameters that are used to initialize the framework.
 	struct LaunchInfo
 	{
-		/*! The application title */
+		/// The application title
 		std::wstring applicationTitle;
 
-		/*! The maximum number of threads that can be utilized by the application */
+		/// The maximum number of threads that can be utilized by the application
 		int numberOfThreads;
 	};
 

@@ -174,6 +174,9 @@ void Framework::Update()
 		PLATFORM_ASSERT( m_pGame != nullptr );
 		m_pGame->Update();
 
+		PLATFORM_ASSERT( m_pGraphics != nullptr );
+		m_pGraphics->UpdateConsole( timeElapsed / 1000.0f );
+
 		// Render the current FPS
 		wchar_t stringBuffer[ Platform::kMaxStringLength ];
 		std::swprintf( stringBuffer, Platform::kMaxStringLength, L"%4u FPS", m_CurrentFPS );
@@ -184,7 +187,7 @@ void Framework::Update()
 		m_pGraphics->SetCamera( m_pGame->GetCurrentCamera() );
 
 		// Render the scene
-		m_pGraphics->Render( timeElapsed / 1000.0f );
+		m_pGraphics->Render();
 
 		// Clear input key releases
 		m_pInput->AdvanceFrame();
