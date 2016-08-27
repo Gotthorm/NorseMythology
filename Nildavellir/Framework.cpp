@@ -13,6 +13,9 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 {
 	if( m_Initialized == false )
 	{
+		// Initialize the message manager
+		MessageManager::Create();
+
 		// Initialize the log system
 		m_pLogger = new Logger();
 		PLATFORM_ASSERT( m_pLogger != nullptr );
@@ -42,9 +45,8 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		}
 
 		// Initialize the input system
-		m_pInput = new Input();
-		PLATFORM_ASSERT( m_pInput != nullptr );
-		if( m_pInput == nullptr || m_pInput->Init() == false )
+		Input::Create();
+		if( Input::GetInstance()->Init() == false )
 		{
 			MessageManager::GetInstance()->Post( Message::LOG_ERROR, std::wstring( L"Cannot initialize the input system" ) );
 			return false;
@@ -80,25 +82,22 @@ void Framework::Shutdown()
 		delete m_pGraphics;
 		m_pGraphics = nullptr;
 	}
-	if( m_pInput != nullptr )
-	{
-		m_pInput->Shutdown();
-		delete m_pInput;
-		m_pInput = nullptr;
-	}
+	Input::Destroy();
 	if( m_pGame != nullptr )
 	{
 		m_pGame->Shutdown();
 		delete m_pGame;
 		m_pGame = nullptr;
 	}
-	// Try to always shutdown the logger last if possible
+	// Try to always shutdown the logger 2nd last if possible
 	if( m_pLogger != nullptr )
 	{
 		m_pLogger->Shutdown();
 		delete m_pLogger;
 		m_pLogger = nullptr;
 	}
+	// Try to always shutdown the message manager last if possible
+	MessageManager::Destroy();
 }
 
 void Framework::Update()
@@ -162,8 +161,7 @@ void Framework::Update()
 		m_OldFrameTime = newFrameTime;
 
 		// Check for the console activation/deactivation
-		PLATFORM_ASSERT( m_pInput != nullptr );
-		if( m_pInput->GetKeyUp( Input::KEY_TILDA ) )
+		if( Input::GetInstance()->GetKeyUp( Input::KEY_TILDA ) )
 		{
 			// Toggle the console
 			PLATFORM_ASSERT( m_pGraphics  != nullptr );
@@ -190,7 +188,7 @@ void Framework::Update()
 		m_pGraphics->Render();
 
 		// Clear input key releases
-		m_pInput->AdvanceFrame();
+		Input::GetInstance()->AdvanceFrame();
 
 		// Pump the message manager to broadcast all cached messages
 		MessageManager::GetInstance()->Update();
@@ -201,9 +199,8 @@ void Framework::ProcessInputEvent( Platform::LongParam lParam )
 {
 	if( m_Initialized )
 	{
-		PLATFORM_ASSERT( m_pInput != nullptr );
 		// TODO: Convert the data to something platform agnostic before sending to the input manager?
-		m_pInput->ProcessEvent( lParam );
+		Input::GetInstance()->ProcessEvent( lParam );
 	}
 }
 

@@ -3,7 +3,9 @@
 #ifndef _INPUT_HPP_
 #define _INPUT_HPP_
 
-class Input
+#include "Singleton.h"
+
+class Input : public Singleton<Input>
 {
 public:
 	enum KeyCode 
@@ -24,13 +26,10 @@ public:
 	Input();
 
 	//
-	~Input();
+	virtual ~Input();
 
 	//
 	bool Init();
-
-	//
-	void Shutdown();
 
 	//
 	void ProcessEvent(LPARAM lParam);
@@ -52,6 +51,9 @@ public:
 	//void EnableMouseCapture( bool bEnable );
 
 private:
+	//
+	void Shutdown();
+
 	//void ClearKeyboard();
 	//void ClearMouse();
 
@@ -64,6 +66,9 @@ private:
 	char m_OldKeyStateBuffer[256];
 	//DIMOUSESTATE2 m_MouseState;
 	//bool m_bMouseCaptureEnabled;
+
+	// Provide friend access to Singleton<Input> specialization
+	friend Singleton<Input>;
 };
 
 #endif // _INPUT_HPP_

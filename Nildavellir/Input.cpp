@@ -97,6 +97,7 @@ Input::Input()
 
 Input::~Input()
 {
+	Shutdown();
 }
 
 bool Input::Init()

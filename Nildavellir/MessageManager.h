@@ -3,12 +3,11 @@
 #ifndef _MESSAGEMANAGER_H_
 #define _MESSAGEMANAGER_H_
 
-#include <windows.h>
 #include "Singleton.h"
 #include <string>
 #include <vector>
-#include "Message.h"
 #include <array>
+#include "Message.h"
 
 // Forward declarations
 class MessageClient;
@@ -27,9 +26,6 @@ public:
 
 	void Register( MessageClient* client, Message::MessageType type );
 	void Deregister( MessageClient* client, Message::MessageType type );
-
-	// Provide friend access to Singleton<MessageManager> specialization
-	friend Singleton<MessageManager>; 
 
 private:
 	enum
@@ -51,6 +47,9 @@ private:
 
 	// The table of registered message clients
 	std::array<std::vector<MessageClient*>, Message::MESSAGETYPE_COUNT> m_RegisteredClients;
+
+	// Provide friend access to Singleton<MessageManager> specialization
+	friend Singleton<MessageManager>;
 };
 
 #endif // _MESSAGEMANAGER_H_
