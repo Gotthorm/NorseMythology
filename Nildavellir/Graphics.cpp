@@ -101,7 +101,8 @@ bool Graphics::InitializeSubSystems()
 	else
 	{
 		// Set the console cache size to the number of lines needed in the log history
-		m_Console.SetCacheSize( 20 );
+		// TODO: Make this a console variable
+		m_Console.SetCacheSize( 128 );
 	}
 
 	SetWindowSize( width, height );

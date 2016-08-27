@@ -5,6 +5,7 @@
 #include "Logger.h"
 #include "MessageManager.h"
 #include <sstream>
+#include "Input.h"
 
 // TODO: This will become a console variable
 unsigned int cv_MinimumConsoleMessageLength = 0;
@@ -106,45 +107,51 @@ void Console::Shutdown()
 
 void Console::SetCacheSize(unsigned int cacheSize)
 {
-	std::vector<CacheEntry> tempCache;
-
-	// Make a copy of the current cache
-	if (m_Cache.size() > 0)
+	if( cacheSize != m_CacheSize )
 	{
-		tempCache.swap(m_Cache);
-	}
+		std::vector<CacheEntry> tempCache;
 
-	// Store the old cache attributes for the copying of existing data
-	unsigned int oldIndex = m_CacheIndex;
-	unsigned int oldSize = m_CacheSize;
-
-	// The new cache size cannot be smaller than the buffer height so clamp it here
-	if (cacheSize < m_BufferHeight)
-	{
-		cacheSize = m_BufferHeight;
-	}
-
-	// Reinitialize the cache
-	m_Cache.resize(cacheSize);
-	m_CacheSize = cacheSize;
-	m_CacheIndex = 0;
-
-	// Copy the contents of the old cache into the new cache
-	for (unsigned int index = 0; index < cacheSize; ++index)
-	{
-		// I am not sure if this is needed on the entries that will be swapped, but just in case
-		// we will call this on all entries in the new cache
-		m_Cache[index].messageString.reserve(Message::MAX_STRING_LENGTH);
-
-		// Copy the existing string from the old cache
-		if (index < oldSize)
+		// Make a copy of the current cache
+		if( m_Cache.size() > 0 )
 		{
-			// We will be reset the cache index so the index we copy from will be the oldest entry in the old cache
-			m_Cache[ index ].messageString.swap( tempCache[ oldIndex ].messageString );
-			m_Cache[ index ].colorValue = tempCache[ oldIndex ].colorValue;
+			tempCache.swap( m_Cache );
+		}
 
-			// Move to the next oldest entry in the old cache
-			oldIndex = (oldIndex + 1) % oldSize;
+		// Store the old cache attributes for the copying of existing data
+		unsigned int oldIndex = m_CacheIndex;
+		unsigned int oldSize = m_CacheSize;
+
+		// The new cache size cannot be smaller than the buffer height so clamp it here
+		if( cacheSize < m_VirtualBufferHeight )
+		{
+			cacheSize = m_VirtualBufferHeight;
+		}
+
+		// Reinitialize the cache
+		m_Cache.resize( cacheSize );
+		m_CacheSize = cacheSize;
+		m_CacheIndex = 0;
+
+		m_ScrollIndex = 0;
+		m_MaxScrollIndex = cacheSize - m_VirtualBufferHeight;
+
+		// Copy the contents of the old cache into the new cache
+		for( unsigned int index = 0; index < cacheSize; ++index )
+		{
+			// I am not sure if this is needed on the entries that will be swapped, but just in case
+			// we will call this on all entries in the new cache
+			m_Cache[ index ].messageString.reserve( Message::MAX_STRING_LENGTH );
+
+			// Copy the existing string from the old cache
+			if( index < oldSize )
+			{
+				// We will be reset the cache index so the index we copy from will be the oldest entry in the old cache
+				m_Cache[ index ].messageString.swap( tempCache[ oldIndex ].messageString );
+				m_Cache[ index ].colorValue = tempCache[ oldIndex ].colorValue;
+
+				// Move to the next oldest entry in the old cache
+				oldIndex = ( oldIndex + 1 ) % oldSize;
+			}
 		}
 	}
 }
@@ -194,6 +201,12 @@ void Console::UpdateBufferSize()
 
 		stringStream << L"Console physical buffer size changed to (" << m_BufferWidth << ", " << m_BufferHeight << ")";
 		MessageManager::GetInstance()->Post( Message::LOG_INFO, stringStream.str() );
+
+		// To enforce our rule that the cache size is at least as large as the screen
+		if( m_CacheSize < m_VirtualBufferHeight )
+		{
+			SetCacheSize( m_VirtualBufferHeight );
+		}
 	}
 }
 
@@ -303,8 +316,18 @@ void Console::CopyCacheToRenderBuffer()
 		memset( m_ScreenTextBuffer, 0, m_BufferWidth * m_BufferHeight * sizeof( char ) );
 		memset( m_ScreenTextColorBuffer, 0xFF, m_BufferHeight * sizeof( unsigned int ) );
 
-		//
 		unsigned int cacheIndex = m_CacheIndex;
+
+		//
+		unsigned int startIndex = m_ScrollIndex;
+		if( m_ScrollIndex > cacheIndex )
+		{
+			cacheIndex = m_CacheSize - ( m_ScrollIndex - cacheIndex );
+		}
+		else
+		{
+			cacheIndex -= m_ScrollIndex;
+		}
 
 		for( int index = ( m_BufferHeight - 1 ); index >= 0; --index )
 		{
@@ -391,10 +414,47 @@ void Console::ReceiveMessage( const Message& message )
 	// Update the index to the next available line in the cache
 	m_CacheIndex = ( m_CacheIndex + 1 ) % m_CacheSize;
 
+	// If a scroll is in progress, we adjust it so that the text doesnt appear to scroll
+	if( m_ScrollIndex > 0 )
+	{
+		m_ScrollIndex = ( m_ScrollIndex + 1 ) % m_CacheSize;
+	}
+
 	m_Dirty = true;
 }
 
 void Console::Update( float timeElapsed )
 {
+	// When active we will process user input for the window
+	if( m_IsVisible )
+	{
+		if( m_ScrollIndex < m_MaxScrollIndex && Input::GetInstance()->GetKeyUp( Input::KEY_ARROW_UP ) )
+		{
+			if( ++m_ScrollIndex > m_MaxScrollIndex )
+			{
+				m_ScrollIndex = m_MaxScrollIndex;
+			}
+		}
+		if( m_ScrollIndex > 0 && Input::GetInstance()->GetKeyUp( Input::KEY_ARROW_DOWN ) )
+		{
+			--m_ScrollIndex;
+		}
+		if( m_ScrollIndex > 0 && Input::GetInstance()->GetKeyUp( Input::KEY_END ) )
+		{
+			m_ScrollIndex = 0;
+		}
+		// TODO: Broken
+		//if( Input::GetInstance()->GetKeyUp( Input::KEY_HOME ) )
+		//{
+		//	m_ScrollIndex = m_MaxScrollIndex;
+		//}
+	}
+}
 
+void Console::SetVisible( bool visible ) 
+{ 
+	if( m_IsVisible = visible )
+	{
+		m_ScrollIndex = 0;
+	}
 }

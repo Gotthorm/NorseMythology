@@ -76,7 +76,7 @@ public:
 	///
 	/// Set the console visible or non visible. 
 	/// \param visible
-	void SetVisible( bool visible ) { m_IsVisible = visible; }
+	void SetVisible( bool visible );
 
 	/// \brief Get the visibility status of the console window.
 	///
@@ -157,6 +157,7 @@ private:
 	// When this value is non-zero the window will not auto-scroll when new text lines are posted,
 	// unless the currently viewed lines have reached the limit of the cache and are being removed.
 	unsigned int m_ScrollIndex = 0;
+	unsigned int m_MaxScrollIndex = 0;
 };
 
 #endif // _CONSOLE_H_

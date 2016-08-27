@@ -144,7 +144,7 @@ void Framework::Update()
 				// TEMP: For debugging
 				static int counter = 0;
 				std::wstringstream s;
-				s << L"One frame has elapsed : " << counter++ << "#";
+				s << L"One second has elapsed : " << counter++ << "#";
 				size_t length = s.str().length();
 				for( ; length < 150; ++length )
 				{

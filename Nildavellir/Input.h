@@ -11,6 +11,10 @@ public:
 	enum KeyCode 
 	{
 		KEY_SHIFT		= 0x10,
+		KEY_PAGE_UP		= 0x21,
+		KEY_PAGE_DOWN	= 0x22,
+		KEY_END			= 0x23,
+		KEY_HOME		= 0x24,
 		KEY_ARROW_LEFT	= 0x25,
 		KEY_ARROW_UP	= 0x26,
 		KEY_ARROW_RIGHT = 0x27,
