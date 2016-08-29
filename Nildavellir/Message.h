@@ -24,6 +24,7 @@ public:
 		LOG_INFO,
 		LOG_WARN,
 		LOG_ERROR,
+		KEY_STROKES,
 
 		// Must be the last entry
 		MESSAGETYPE_COUNT
@@ -42,7 +43,7 @@ public:
 	union
 	{
 		float floatData;			///< A generic float value
-		int intData;				///< A generic integer value
+		int uintData;				///< A generic unsigned integer value
 		std::wstring* stringData;	///< The storage for this string is handled inside of the MessageManager
 	};
 

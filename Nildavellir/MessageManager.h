@@ -15,7 +15,7 @@ class MessageClient;
 class MessageManager : public Singleton<MessageManager>
 {
 public:
-	void Post( Message::MessageType type, int message );
+	void Post( Message::MessageType type, unsigned int message );
 	void Post( Message::MessageType type, float message );
 	void Post( Message::MessageType type, const std::wstring& message );
 
@@ -34,8 +34,19 @@ private:
 		MAX_MESSAGES = 256,
 	};
 
+	//
 	MessageManager();
 
+	// Use the default implementation
+	virtual ~MessageManager() = default;
+
+	// Remove the default assignment operator
+	MessageManager & operator =( const MessageManager & ) = delete;
+
+	// Remove the copy constructor
+	MessageManager( const MessageManager & ) = delete;
+
+	//
 	void BroadcastWarning(const wchar_t* message);
 
 	// A message table

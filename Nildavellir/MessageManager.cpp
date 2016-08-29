@@ -13,12 +13,12 @@ MessageManager::MessageManager() : m_MessageCount(0)
 	}
 }
 
-void MessageManager::Post( Message::MessageType type, int message )
+void MessageManager::Post( Message::MessageType type, unsigned int message )
 {
 	if( m_MessageCount < MAX_MESSAGES )
 	{
 		m_MessageTable[ m_MessageCount ].Type = type;
-		m_MessageTable[ m_MessageCount ].intData = message;
+		m_MessageTable[ m_MessageCount ].uintData = message;
 
 		++m_MessageCount;
 	}
@@ -52,7 +52,7 @@ void MessageManager::Post( Message::MessageType type, const std::wstring& messag
 		m_MessageTable[ m_MessageCount ].Type = type;
 
 		// Check the length of the string and broadcast a warning if we will be truncating it
-		unsigned int stringLength = message.size();
+		size_t stringLength = message.size();
 		if( stringLength > Message::MAX_STRING_LENGTH )
 		{
 			// Broadcast warning

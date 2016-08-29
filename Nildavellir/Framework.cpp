@@ -148,11 +148,11 @@ void Framework::Update()
 				size_t length = s.str().length();
 				for( ; length < 150; ++length )
 				{
-					s << counter;
-					length = s.str().length();
+					s << ( length  % 10 );
+					//length = s.str().length();
 				}
-				MessageManager::GetInstance()->Post( Message::LOG_WARN, s.str() );
-				MessageManager::GetInstance()->Post( Message::LOG_ERROR, s.str() );
+				MessageManager::GetInstance()->Post( Message::LOG_INFO, s.str() );
+				//MessageManager::GetInstance()->Post( Message::LOG_ERROR, s.str() );
 #endif
 			}
 		}
@@ -164,7 +164,7 @@ void Framework::Update()
 		if( Input::GetInstance()->GetKeyUp( Input::KEY_TILDA ) )
 		{
 			// Toggle the console
-			PLATFORM_ASSERT( m_pGraphics  != nullptr );
+			PLATFORM_ASSERT( m_pGraphics != nullptr );
 			m_pGraphics->ToggleConsole();
 		}
 
@@ -187,7 +187,7 @@ void Framework::Update()
 		// Render the scene
 		m_pGraphics->Render();
 
-		// Clear input key releases
+		// Clear input key releases and post message buffer
 		Input::GetInstance()->AdvanceFrame();
 
 		// Pump the message manager to broadcast all cached messages
@@ -195,12 +195,76 @@ void Framework::Update()
 	}
 }
 
+// This method is responsible for removing the platform dependence from the input data
 void Framework::ProcessInputEvent( Platform::LongParam lParam )
 {
 	if( m_Initialized )
 	{
-		// TODO: Convert the data to something platform agnostic before sending to the input manager?
-		Input::GetInstance()->ProcessEvent( lParam );
+		UINT dwSize;
+
+		if( GetRawInputData( (HRAWINPUT)lParam, RID_INPUT, NULL, &dwSize, sizeof( RAWINPUTHEADER ) ) != 0 )
+		{
+			MessageManager::GetInstance()->Post( Message::LOG_ERROR, std::wstring( L"Size query to GetRawInputData failed!" ) );
+			return;
+		}
+
+		if( dwSize == 0 )
+		{
+			MessageManager::GetInstance()->Post( Message::LOG_ERROR, std::wstring( L"Size query to GetRawInputData returned 0 size!" ) );
+			return;
+		}
+
+		LPBYTE lpb = new BYTE[ dwSize ];
+		PLATFORM_ASSERT( lpb != nullptr );
+
+		if( GetRawInputData( (HRAWINPUT)lParam, RID_INPUT, lpb, &dwSize, sizeof( RAWINPUTHEADER ) ) != dwSize )
+		{
+			MessageManager::GetInstance()->Post( Message::LOG_ERROR, std::wstring( L"GetRawInputData does not return correct size!" ) );
+		}
+
+		RAWINPUT* raw = (RAWINPUT*)lpb;
+		unsigned int data = 0;
+
+		if( raw->header.dwType == RIM_TYPEKEYBOARD )
+		{
+			data = raw->data.keyboard.VKey;
+			if( ( raw->data.keyboard.Flags & RI_KEY_BREAK ) == 0 )
+			{
+				data |= Input::MASK_KEY_PRESS;
+			}
+
+#if 0
+			wchar_t stringBuffer[ 256 ];
+			wsprintf( stringBuffer, L" Kbd: make=%04x Flags:%04x Reserved:%04x ExtraInformation:%08x, msg=%04x VK=%04x\n",
+				raw->data.keyboard.MakeCode,
+				raw->data.keyboard.Flags,
+				raw->data.keyboard.Reserved,
+				raw->data.keyboard.ExtraInformation,
+				raw->data.keyboard.Message,
+				raw->data.keyboard.VKey );
+
+			OutputDebugString( stringBuffer );
+#endif
+		}
+		//else if (raw->header.dwType == RIM_TYPEMOUSE)
+		//{
+		//	TCHAR stringBuffer[256];
+		//	_stprintf_s(stringBuffer, 256, _T("Mouse: usFlags=%04x ulButtons=%04x usButtonFlags=%04x usButtonData=%04x ulRawButtons=%04x lLastX=%04x lLastY=%04x ulExtraInformation=%04x\r\n"),
+		//		raw->data.mouse.usFlags,
+		//		raw->data.mouse.ulButtons,
+		//		raw->data.mouse.usButtonFlags,
+		//		raw->data.mouse.usButtonData,
+		//		raw->data.mouse.ulRawButtons,
+		//		raw->data.mouse.lLastX,
+		//		raw->data.mouse.lLastY,
+		//		raw->data.mouse.ulExtraInformation);
+
+		//	OutputDebugString(stringBuffer);
+		//}
+
+		delete[] lpb;
+
+		Input::GetInstance()->ProcessEvent( data );
 	}
 }
 

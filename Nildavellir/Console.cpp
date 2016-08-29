@@ -82,14 +82,19 @@ bool Console::Initialize( unsigned int width, unsigned int height, float heightP
 	MessageManager::GetInstance()->Register( this, Message::LOG_WARN );
 	MessageManager::GetInstance()->Register( this, Message::LOG_ERROR );
 
+	m_ConsoleTextBuffer.reserve( Message::MAX_STRING_LENGTH );
+
 	return true;
 }
  
 void Console::Shutdown()
 {
+	// Deregister the message handlers
 	MessageManager::GetInstance()->Deregister( this, Message::LOG_INFO );
 	MessageManager::GetInstance()->Deregister( this, Message::LOG_WARN );
 	MessageManager::GetInstance()->Deregister( this, Message::LOG_ERROR );
+
+	SetVisible( false );
 
 	m_Cache.clear();
 
@@ -177,6 +182,9 @@ void Console::UpdateBufferSize()
 	unsigned int newBufferWidth = m_WindowWidth / unsigned int( m_TextScale[ 0 ] * m_FontWidth );
 	unsigned int newBufferHeight = unsigned int( m_WindowHeight * m_HeightPercent ) / unsigned int( m_TextScale[ 1 ] * m_FontHeight );
 
+	// Leave one line for the console input
+	--newBufferHeight;
+
 	if( newBufferWidth != m_VirtualBufferWidth || newBufferHeight != m_VirtualBufferHeight )
 	{
 		std::wstringstream stringStream;
@@ -191,7 +199,7 @@ void Console::UpdateBufferSize()
 
 		// The physical buffer width must be 16 byte aligned, so we round up the buffer size to the next multiple of 16
 		m_BufferWidth = ( m_VirtualBufferWidth + 0x0F ) & ~0x0F;
-		m_BufferHeight = m_VirtualBufferHeight;
+		m_BufferHeight = m_VirtualBufferHeight + 1;	// Add the console input line 
 
 		delete[] m_ScreenTextBuffer;
 		m_ScreenTextBuffer = new char[ m_BufferWidth * m_BufferHeight ];
@@ -329,7 +337,7 @@ void Console::CopyCacheToRenderBuffer()
 			cacheIndex -= m_ScrollIndex;
 		}
 
-		for( int index = ( m_BufferHeight - 1 ); index >= 0; --index )
+		for( int index = ( m_VirtualBufferHeight - 1 ); index >= 0; --index )
 		{
 			// Determine cache line index
 			if( cacheIndex == 0 )
@@ -382,45 +390,23 @@ void Console::CopyCacheToRenderBuffer()
 			memcpy( dst, convertedString.c_str(), stringLength );
 			m_ScreenTextColorBuffer[ index ] = m_Cache[ cacheIndex ].colorValue;
 		}
+
+		std::string convertedString = ConvertWideCharToChar( m_ConsoleTextBuffer );
+		memcpy( m_ScreenTextBuffer + m_VirtualBufferHeight * m_BufferWidth, convertedString.c_str(), convertedString.length() );
+		m_ScreenTextColorBuffer[ m_VirtualBufferHeight ] = m_ColorTable[ 3 ];
 	}
 }
 
 void Console::ReceiveMessage( const Message& message )
 {
-	unsigned int colorValue;
-
-	switch( message.Type )
+	if( message.Type == Message::KEY_STROKES )
 	{
-	case Message::LOG_INFO:
-		colorValue = m_ColorTable[ 0 ]; // White
-		break;
-	case Message::LOG_WARN:
-		colorValue = m_ColorTable[ 1 ]; // Yellow
-		break;
-	case Message::LOG_ERROR:
-		colorValue = m_ColorTable[ 2 ]; // Red
-		break;
-	default:
-		// Invalid message type
-		return;
+		ProcessKeystroke( message.uintData );
 	}
-
-	// Write to the cache string entry
-	m_Cache[ m_CacheIndex ].messageString.assign( *message.stringData, 0, Message::MAX_STRING_LENGTH );
-
-	// Set cache entry color?
-	m_Cache[ m_CacheIndex ].colorValue = colorValue;
-
-	// Update the index to the next available line in the cache
-	m_CacheIndex = ( m_CacheIndex + 1 ) % m_CacheSize;
-
-	// If a scroll is in progress, we adjust it so that the text doesnt appear to scroll
-	if( m_ScrollIndex > 0 )
+	else
 	{
-		m_ScrollIndex = ( m_ScrollIndex + 1 ) % m_CacheSize;
+		ProcessLogMessage( message.Type, message.stringData );
 	}
-
-	m_Dirty = true;
 }
 
 void Console::Update( float timeElapsed )
@@ -453,8 +439,136 @@ void Console::Update( float timeElapsed )
 
 void Console::SetVisible( bool visible ) 
 { 
-	if( m_IsVisible = visible )
+	if( m_IsVisible != visible )
 	{
-		m_ScrollIndex = 0;
+		m_IsVisible = visible;
+
+		if( visible )
+		{
+			m_ScrollIndex = 0;
+
+			MessageManager::GetInstance()->Register( this, Message::KEY_STROKES );
+		}
+		else
+		{
+			MessageManager::GetInstance()->Deregister( this, Message::KEY_STROKES );
+		}
 	}
+}
+
+void Console::ProcessKeystroke( unsigned int keyStroke )
+{
+	unsigned short keyValue = ( Input::MASK_KEY_VALUE & keyStroke );
+
+	bool shifted = ( Input::MASK_KEY_SHIFT & keyStroke ) > 0;
+
+	wchar_t character = 0;
+	if( keyValue >= Input::KEY_A && keyValue <= Input::KEY_Z )
+	{
+		character = ( shifted ? L'A' : L'a' ) + ( keyValue - Input::KEY_A );
+	}
+	else if( keyValue >= Input::KEY_0 && keyValue <= Input::KEY_9 )
+	{
+		if( shifted )
+		{
+			switch( keyValue )
+			{
+			case Input::KEY_1:
+				character = L'!';
+				break;
+			case Input::KEY_2:
+				character = L'@';
+				break;
+			case Input::KEY_3:
+				character = L'#';
+				break;
+			case Input::KEY_4:
+				character = L'$';
+				break;
+			case Input::KEY_5:
+				character = L'%';
+				break;
+			case Input::KEY_6:
+				character = L'^';
+				break;
+			case Input::KEY_7:
+				character = L'&';
+				break;
+			case Input::KEY_8:
+				character = L'*';
+				break;
+			case Input::KEY_9:
+				character = L'(';
+				break;
+			case Input::KEY_0:
+				character = L')';
+				break;
+			}
+		}
+		else
+		{
+			character = L'0' + ( keyValue - Input::KEY_0 );
+		}
+	}
+	else if( keyValue >= Input::KEY_NUMPAD_0 && keyValue <= Input::KEY_NUMPAD_9 )
+	{
+		character = L'0' + ( keyValue - Input::KEY_NUMPAD_0 );
+	}
+	else if( keyValue == Input::KEY_SPACE )
+	{
+		character = L' ';
+	}
+
+	if( character != 0 )
+	{
+		m_ConsoleTextBuffer += character;
+	}
+	else if( keyValue == Input::KEY_RETURN )
+	{
+		// Send the command line string to the parser
+		MessageManager::GetInstance()->Post(Message::LOG_WARN, m_ConsoleTextBuffer.c_str() );
+
+		// Clear the string
+		m_ConsoleTextBuffer.clear();
+	}
+}
+
+void Console::ProcessLogMessage( Message::MessageType type, std::wstring* logMessage )
+{
+	unsigned int colorValue;
+
+	switch( type )
+	{
+	case Message::LOG_INFO:
+		colorValue = m_ColorTable[ 0 ]; // White
+		break;
+	case Message::LOG_WARN:
+		colorValue = m_ColorTable[ 1 ]; // Yellow
+		break;
+	case Message::LOG_ERROR:
+		colorValue = m_ColorTable[ 2 ]; // Red
+		break;
+	default:
+		// Invalid message type?
+		return;
+	}
+
+	PLATFORM_ASSERT( logMessage );
+
+	// Write to the cache string entry
+	m_Cache[ m_CacheIndex ].messageString.assign( *logMessage, 0, Message::MAX_STRING_LENGTH );
+
+	// Set cache entry color?
+	m_Cache[ m_CacheIndex ].colorValue = colorValue;
+
+	// Update the index to the next available line in the cache
+	m_CacheIndex = ( m_CacheIndex + 1 ) % m_CacheSize;
+
+	// If a scroll is in progress, we adjust it so that the text doesnt appear to scroll
+	if( m_ScrollIndex > 0 )
+	{
+		m_ScrollIndex = ( m_ScrollIndex + 1 ) % m_CacheSize;
+	}
+
+	m_Dirty = true;
 }

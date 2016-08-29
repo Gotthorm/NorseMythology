@@ -101,6 +101,10 @@ private:
 
 	void UpdateBufferSize();
 
+	void ProcessKeystroke( unsigned int keyStroke );
+
+	void ProcessLogMessage( Message::MessageType type, std::wstring* logMessage );
+
 	bool m_IsVisible = false;
 
 	struct CacheEntry
@@ -151,13 +155,15 @@ private:
 
 	// TODO: This could be moved to an XML file and loaded dynamically?
 	// Color constants: White, Yellow, Red, Blue
-	unsigned int m_ColorTable[4] = { 0xFFFFFFFF, 0xFFFF00FF, 0xFF0000FF, 0x0000FFFF };
+	unsigned int m_ColorTable[4] = { 0xFFFFFFFF, 0xFFFF00FF, 0xFF0000FF, 0x01BCFFFF };
 
 	// A dynamic index that tracks how many lines above the base position the current view is set to
 	// When this value is non-zero the window will not auto-scroll when new text lines are posted,
 	// unless the currently viewed lines have reached the limit of the cache and are being removed.
 	unsigned int m_ScrollIndex = 0;
 	unsigned int m_MaxScrollIndex = 0;
+
+	std::wstring m_ConsoleTextBuffer;
 };
 
 #endif // _CONSOLE_H_
