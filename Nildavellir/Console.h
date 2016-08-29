@@ -3,13 +3,12 @@
 #ifndef _CONSOLE_H_
 #define _CONSOLE_H_
 
-#include <Windows.h>
-//#include <TCHAR.H>
 #include "OpenGLInterface.h"
-//#include <assert.h>
 #include <string>
 #include <vector>
 #include "MessageClient.h"
+
+class ConsoleParser;
 
 /// \brief A window for logging and run time variable tweaking
 ///
@@ -152,6 +151,9 @@ private:
 	// This 1D buffer holds a list of the colors of each line in the m_ScreenTextBuffer buffer.
 	// Each render frame it is copied to a texture to be processed by a shader.
 	unsigned int* m_ScreenTextColorBuffer = nullptr;
+
+	//
+	ConsoleParser* m_Parser = nullptr;
 
 	// TODO: This could be moved to an XML file and loaded dynamically?
 	// Color constants: White, Yellow, Red, Blue

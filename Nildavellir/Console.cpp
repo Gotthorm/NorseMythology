@@ -6,6 +6,7 @@
 #include "MessageManager.h"
 #include <sstream>
 #include "Input.h"
+#include "ConsoleParser.h"
 
 // TODO: This will become a console variable
 unsigned int cv_MinimumConsoleMessageLength = 0;
@@ -84,6 +85,9 @@ bool Console::Initialize( unsigned int width, unsigned int height, float heightP
 
 	m_ConsoleTextBuffer.reserve( Message::MAX_STRING_LENGTH );
 
+	m_Parser = new ConsoleParser();
+	PLATFORM_ASSERT( m_Parser );
+
 	return true;
 }
  
@@ -95,6 +99,9 @@ void Console::Shutdown()
 	MessageManager::GetInstance()->Deregister( this, Message::LOG_ERROR );
 
 	SetVisible( false );
+
+	delete m_Parser;
+	m_Parser = nullptr;
 
 	m_Cache.clear();
 
@@ -526,7 +533,7 @@ void Console::ProcessKeystroke( unsigned int keyStroke )
 	else if( keyValue == Input::KEY_RETURN )
 	{
 		// Send the command line string to the parser
-		MessageManager::GetInstance()->Post(Message::LOG_WARN, m_ConsoleTextBuffer.c_str() );
+		m_Parser->Execute( m_ConsoleTextBuffer );
 
 		// Clear the string
 		m_ConsoleTextBuffer.clear();
