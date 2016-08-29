@@ -51,6 +51,22 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 			MessageManager::GetInstance()->Post( Message::LOG_ERROR, std::wstring( L"Cannot initialize the input system" ) );
 			return false;
 		}
+		else
+		{
+			RAWINPUTDEVICE Rid;
+
+			Rid.usUsagePage = 0x01;
+			Rid.usUsage = 0x06;
+			Rid.dwFlags = RIDEV_NOLEGACY;   // adds HID keyboard and also ignores legacy keyboard messages
+			Rid.hwndTarget = 0;
+
+			if( RegisterRawInputDevices( &Rid, 1, sizeof( Rid ) ) == FALSE )
+			{
+				//registration failed. Call GetLastError for the cause of the error
+				MessageManager::GetInstance()->Post( Message::LOG_ERROR, std::wstring( L"Cannot initialize the keyboard for the input system" ) );
+				return false;
+			}
+		}
 
 		// Initialize the game
 		m_pGame = new Game();
@@ -68,6 +84,8 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		m_OneSecondIntervalAccumulator = 0;
 		m_UpdateAccumulator = 0;
 		m_CurrentFPS = 0;
+
+		m_hWindow = hWindow;
 	}
 
 	// Set the initialized flag as true and return it as the results
@@ -232,7 +250,15 @@ void Framework::ProcessInputEvent( Platform::LongParam lParam )
 			{
 				data |= Input::MASK_KEY_PRESS;
 			}
-
+			else
+			{
+				// It seems the way we are handling input has intercepted the regular generation of the WM_CLOSE event (alt-F4)
+				// So we intercept that key combination here and manually post the message.
+				if( raw->data.keyboard.VKey == Input::KEY_F4 && Input::GetInstance()->GetKeyDown( Input::KEY_ALT ) )
+				{
+					PostMessage( m_hWindow, WM_CLOSE, 0, 0 );
+				}
+			}
 #if 0
 			wchar_t stringBuffer[ 256 ];
 			wsprintf( stringBuffer, L" Kbd: make=%04x Flags:%04x Reserved:%04x ExtraInformation:%08x, msg=%04x VK=%04x\n",

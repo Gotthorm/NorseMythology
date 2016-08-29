@@ -68,6 +68,8 @@ private:
 	Input* m_pInput = nullptr;
 	Logger* m_pLogger = nullptr;
 
+	Platform::WindowHandle m_hWindow = 0;
+
 	bool m_Initialized = false;
 
 	// State variables for FPS tracking

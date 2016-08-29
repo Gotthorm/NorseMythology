@@ -18,39 +18,6 @@ bool Input::Init()
 	memset( m_OldKeyStateBuffer, 0, m_KeyCodeCount * sizeof( char ) );
 	memset( m_NewKeyStateBuffer, 0, m_KeyCodeCount * sizeof( char ) );
 
-/*
-	RAWINPUTDEVICE Rid[2];
-
-	Rid[0].usUsagePage = 0x01;
-	Rid[0].usUsage = 0x02;
-	Rid[0].dwFlags = RIDEV_NOLEGACY;   // adds HID mouse and also ignores legacy mouse messages
-	Rid[0].hwndTarget = 0;
-
-	Rid[1].usUsagePage = 0x01;
-	Rid[1].usUsage = 0x06;
-	Rid[1].dwFlags = RIDEV_NOLEGACY;   // adds HID keyboard and also ignores legacy keyboard messages
-	Rid[1].hwndTarget = 0;
-
-	if (RegisterRawInputDevices(Rid, 2, sizeof(Rid[0])) == FALSE) 
-	{
-		//registration failed. Call GetLastError for the cause of the error
-		return false;
-	}
-*/
-
-	RAWINPUTDEVICE Rid;
-
-	Rid.usUsagePage = 0x01;
-	Rid.usUsage = 0x06;			
-	Rid.dwFlags = RIDEV_NOLEGACY;   // adds HID keyboard and also ignores legacy keyboard messages
-	Rid.hwndTarget = 0;
-
-	if (RegisterRawInputDevices(&Rid, 1, sizeof(Rid)) == FALSE)
-	{
-		//registration failed. Call GetLastError for the cause of the error
-		return false;
-	}
-
 	return true;
 }
 
@@ -70,7 +37,7 @@ void Input::ProcessEvent( unsigned int eventData )
 	{
 		unsigned int inputData = keyValue;
 
-		if( GetKeyDown( KEY_SHIFT ) )
+		if( GetKeyDown( KEY_SHIFT ) || GetKeyDown( KEY_CAPS_LOCK ) )
 		{
 			inputData |= MASK_KEY_SHIFT;
 		}
