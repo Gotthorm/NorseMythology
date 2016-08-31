@@ -9,6 +9,7 @@
 #include "MessageClient.h"
 
 class ConsoleParser;
+class ConsoleParameterList;
 
 /// \brief A window for logging and run time variable tweaking
 ///
@@ -103,6 +104,8 @@ private:
 	void ProcessKeystroke( unsigned int keyStroke );
 
 	void ProcessLogMessage( Message::MessageType type, std::wstring* logMessage );
+
+	void SetTextScale_Callback( const ConsoleParameterList& paramList );
 
 	bool m_IsVisible = false;
 

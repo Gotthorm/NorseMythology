@@ -7,6 +7,7 @@
 #include <sstream>
 #include "Input.h"
 #include "ConsoleParser.h"
+#include "ConsoleCommands.h"
 
 // TODO: This will become a console variable
 unsigned int cv_MinimumConsoleMessageLength = 0;
@@ -88,6 +89,10 @@ bool Console::Initialize( unsigned int width, unsigned int height, float heightP
 	m_Parser = new ConsoleParser();
 	PLATFORM_ASSERT( m_Parser );
 
+	ConsoleCommands::Create();
+
+	ConsoleCommands::GetInstance()->RegisterCommand( L"set_text_size", std::bind( &Console::SetTextScale_Callback, this, std::placeholders::_1 ), ConsoleParameterList( 2, ConsoleParameter::ParameterType::FLOAT, ConsoleParameter::ParameterType::FLOAT ) );
+
 	return true;
 }
  
@@ -102,6 +107,8 @@ void Console::Shutdown()
 
 	delete m_Parser;
 	m_Parser = nullptr;
+
+	ConsoleCommands::Destroy();
 
 	m_Cache.clear();
 
@@ -525,6 +532,41 @@ void Console::ProcessKeystroke( unsigned int keyStroke )
 	{
 		character = L' ';
 	}
+	else if( keyValue == Input::KEY_BACKSPACE )
+	{
+		if( m_ConsoleTextBuffer.length() > 0 )
+		{
+			m_ConsoleTextBuffer.pop_back();
+		}
+	}
+	else if( keyValue == Input::KEY_SEMICOLON )
+	{
+		character = shifted ? L':' : L';';
+	}
+	else if( keyValue == Input::KEY_EQUALS )
+	{
+		character = shifted ? L'+' : L'=';
+	}
+	else if( keyValue == Input::KEY_COMMA )
+	{
+		character = shifted ? L'<' : L',';
+	}
+	else if( keyValue == Input::KEY_MINUS )
+	{
+		character = shifted ? L'_' : L'-';
+	}
+	else if( keyValue == Input::KEY_PERIOD )
+	{
+		character = shifted ? L'>' : L'.';
+	}
+	else if( keyValue == Input::KEY_FORWARD_SLASH )
+	{
+		character = shifted ? L'?' : L'/';
+	}
+	else if( keyValue == Input::KEY_SINGLE_QUOTE )
+	{
+		character = shifted ? L'"' : L'\'';
+	}
 
 	if( character != 0 )
 	{
@@ -578,4 +620,25 @@ void Console::ProcessLogMessage( Message::MessageType type, std::wstring* logMes
 	}
 
 	m_Dirty = true;
+}
+
+void Console::SetTextScale_Callback( const ConsoleParameterList& paramList )
+{
+	if( paramList.GetCount() == 2 )
+	{
+		if( paramList.GetParameterType( 0 ) == ConsoleParameter::ParameterType::FLOAT && paramList.GetParameterType( 1 ) == ConsoleParameter::ParameterType::FLOAT )
+		{
+			TypedConsoleParameter<float>* param1 = dynamic_cast<TypedConsoleParameter<float>*>( paramList.GetParameterValue( 0 ) );
+			TypedConsoleParameter<float>* param2 = dynamic_cast<TypedConsoleParameter<float>*>( paramList.GetParameterValue( 1 ) );
+			PLATFORM_ASSERT( param1 != nullptr && param2 != nullptr );
+
+			if( param1 != nullptr && param2 != nullptr )
+			{
+				float widthScale = param1->GetData();
+				float heightScale = param2->GetData();
+
+				SetTextScale( widthScale, heightScale );
+			}
+		}
+	}
 }

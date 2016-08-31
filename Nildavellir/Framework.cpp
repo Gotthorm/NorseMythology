@@ -8,6 +8,9 @@
 #include <sstream>
 #include <cwchar>
 #include "MessageManager.h"
+#include "ConsoleCommands.h"
+#include "ConsoleParameterList.h"
+#include <functional>
 
 bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo& launchInfo )
 {

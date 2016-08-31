@@ -29,7 +29,8 @@ private:
 	// 
 	int Tokenize( const std::wstring& inputString, std::vector<std::wstring>& tokens );
 
-	std::unordered_map<std::wstring, unsigned int> m_CommandTable;
+	//
+	bool GetCommandToken( std::wstring& commandBuffer, std::wstring& token );
 };
 
 #endif // _CONSOLEPARSER_H_
