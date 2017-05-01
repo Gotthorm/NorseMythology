@@ -5,7 +5,7 @@
 
 //
 #include "Text2D.h"
-#include "Console.h"
+#include "Alfheimr.h"
 #include <gl\GL.h>
 
 class Camera;
@@ -63,7 +63,7 @@ private:
 
 	Text2D m_Text2D;
 
-	Console m_Console;
+	Alfheimr::Console m_Console;
 
 	Camera* m_pCurrentCamera;
 };

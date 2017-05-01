@@ -69,8 +69,18 @@ void Game::Shutdown()
 	//}
 }
 
+#include <iostream> 
+#include "Vanaheimr.h"
+#include "Niflheim.h"
+
 void Game::Update()
 {
+	Niflheim::Message myMessage;
+	myMessage.floatData = 1.2345f;
+
+	Niflheim::MessageManager::Create();
+	Niflheim::MessageManager::GetInstance()->Update();
+
 	//m_pInput->Update();
 
 	//if (m_pInput)

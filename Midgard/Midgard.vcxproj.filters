@@ -1,0 +1,97 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{ae33fa65-94c4-41ed-97f0-f944cc1f3211}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Framework.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Include\Platform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Loki.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Volstagg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Midgard.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Framework.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Platform.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Loki.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Volstagg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Media\Shaders\console.overlay.fs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Media\Shaders\console.overlay.vs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Media\Shaders\console.text2d.fs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Media\Shaders\console.text2d.vs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Media\Shaders\default.fs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Media\Shaders\default.vs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Media\Shaders\render.fs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Media\Shaders\render.vs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Media\Shaders\text2d.fs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Media\Shaders\text2d.vs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Media\Shaders\surface.background.fs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Media\Shaders\surface.background.vs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Media\Shaders\tessellation.fs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Media\Shaders\tessellation.tcs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Media\Shaders\tessellation.tes.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Media\Shaders\tessellation.vs.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+  </ItemGroup>
+</Project>

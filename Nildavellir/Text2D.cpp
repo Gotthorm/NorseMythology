@@ -2,7 +2,7 @@
 
 #include "Text2D.h"
 //#include "glext.h"
-#include "KTX.h"
+#include "Vanaheimr.h"
 
 void Text2D::init(int width, int height, const char* font)
 {
@@ -31,7 +31,7 @@ void Text2D::init(int width, int height, const char* font)
 	OpenGLInterface::TexStorage2D(GL_TEXTURE_2D, 1, GL_R8UI, width, height);
 
 	glPixelStorei( GL_UNPACK_ALIGNMENT, 4 ); // Fix from tesselation?
-	font_texture = KTX::load(font ? font : "Media/Textures/cp437_9x16.ktx");
+	font_texture = Vanaheimr::KTX::load(font ? font : "Media/Textures/cp437_9x16.ktx");
 
 	// Extract the font width and height
 	glGetTexLevelParameteriv( GL_TEXTURE_2D_ARRAY, 0, GL_TEXTURE_WIDTH, &m_FontWidth );

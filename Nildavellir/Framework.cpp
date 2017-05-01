@@ -3,12 +3,11 @@
 #include "Framework.h"
 #include "Graphics.h"
 #include "Game.h"
-#include "Input.h"
-#include "Logger.h"
+#include "Helheimr.h"
 #include <sstream>
 #include <cwchar>
-#include "MessageManager.h"
-#include "ConsoleCommands.h"
+#include "Niflheim.h"
+#include "ConsoleCommandManager.h"
 #include "ConsoleParameterList.h"
 #include <functional>
 
@@ -17,10 +16,10 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 	if( m_Initialized == false )
 	{
 		// Initialize the message manager
-		MessageManager::Create();
+		Niflheim::MessageManager::Create();
 
 		// Initialize the log system
-		m_pLogger = new Logger();
+		m_pLogger = new Niflheim::Logger();
 		PLATFORM_ASSERT( m_pLogger != nullptr );
 		if( m_pLogger == nullptr || m_pLogger->Initialize( L"LogFile.txt" ) == false )
 		{
@@ -28,30 +27,30 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 			return false;
 		}
 
-		MessageManager::GetInstance()->Post( Message::LOG_INFO, launchInfo.applicationTitle );
+		Niflheim::MessageManager::GetInstance()->Post( Niflheim::Message::LOG_INFO, launchInfo.applicationTitle );
 
 		// Initialize the graphics system
 		m_pGraphics = new Graphics();
 		PLATFORM_ASSERT( m_pGraphics != nullptr );
 		if( m_pGraphics == nullptr || m_pGraphics->InitializeRenderingContext( hWindow ) == false )
 		{
-			MessageManager::GetInstance()->Post( Message::LOG_ERROR, std::wstring( L"Failed to initialize the graphics rendering context" ) );
+			Niflheim::MessageManager::GetInstance()->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Failed to initialize the graphics rendering context" ) );
 			return false;
 		}
 
-		MessageManager::GetInstance()->Post( Message::LOG_INFO, m_pGraphics->GetVersionInformation() );
+		Niflheim::MessageManager::GetInstance()->Post( Niflheim::Message::LOG_INFO, m_pGraphics->GetVersionInformation() );
 
 		if( m_pGraphics->InitializeSubSystems() == false )
 		{
-			MessageManager::GetInstance()->Post( Message::LOG_ERROR, std::wstring( L"Failed to initialize the graphics subsystems" ) );
+			Niflheim::MessageManager::GetInstance()->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Failed to initialize the graphics subsystems" ) );
 			return false;
 		}
 
 		// Initialize the input system
-		Input::Create();
-		if( Input::GetInstance()->Init() == false )
+		Helheimr::Input::Create();
+		if( Helheimr::Input::GetInstance()->Init() == false )
 		{
-			MessageManager::GetInstance()->Post( Message::LOG_ERROR, std::wstring( L"Cannot initialize the input system" ) );
+			Niflheim::MessageManager::GetInstance()->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Cannot initialize the input system" ) );
 			return false;
 		}
 		else
@@ -66,7 +65,7 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 			if( RegisterRawInputDevices( &Rid, 1, sizeof( Rid ) ) == FALSE )
 			{
 				//registration failed. Call GetLastError for the cause of the error
-				MessageManager::GetInstance()->Post( Message::LOG_ERROR, std::wstring( L"Cannot initialize the keyboard for the input system" ) );
+				Niflheim::MessageManager::GetInstance()->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Cannot initialize the keyboard for the input system" ) );
 				return false;
 			}
 		}
@@ -76,7 +75,7 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		PLATFORM_ASSERT( m_pGame != nullptr );
 		if( m_pGame == nullptr || m_pGame->Init() == false )
 		{
-			MessageManager::GetInstance()->Post( Message::LOG_ERROR, std::wstring( L"Cannot initialize the game system" ) );
+			Niflheim::MessageManager::GetInstance()->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Cannot initialize the game system" ) );
 			return false;
 		}
 
@@ -103,7 +102,7 @@ void Framework::Shutdown()
 		delete m_pGraphics;
 		m_pGraphics = nullptr;
 	}
-	Input::Destroy();
+	Helheimr::Input::Destroy();
 	if( m_pGame != nullptr )
 	{
 		m_pGame->Shutdown();
@@ -118,7 +117,7 @@ void Framework::Shutdown()
 		m_pLogger = nullptr;
 	}
 	// Try to always shutdown the message manager last if possible
-	MessageManager::Destroy();
+	Niflheim::MessageManager::Destroy();
 }
 
 void Framework::Update()
@@ -182,7 +181,7 @@ void Framework::Update()
 		m_OldFrameTime = newFrameTime;
 
 		// Check for the console activation/deactivation
-		if( Input::GetInstance()->GetKeyUp( Input::KEY_TILDA ) )
+		if( Helheimr::Input::GetInstance()->GetKeyUp( Helheimr::Input::KEY_TILDA ) )
 		{
 			// Toggle the console
 			PLATFORM_ASSERT( m_pGraphics != nullptr );
@@ -209,10 +208,10 @@ void Framework::Update()
 		m_pGraphics->Render();
 
 		// Clear input key releases and post message buffer
-		Input::GetInstance()->AdvanceFrame();
+		Helheimr::Input::GetInstance()->AdvanceFrame();
 
 		// Pump the message manager to broadcast all cached messages
-		MessageManager::GetInstance()->Update();
+		Niflheim::MessageManager::GetInstance()->Update();
 	}
 }
 
@@ -225,13 +224,13 @@ void Framework::ProcessInputEvent( Platform::LongParam lParam )
 
 		if( GetRawInputData( (HRAWINPUT)lParam, RID_INPUT, NULL, &dwSize, sizeof( RAWINPUTHEADER ) ) != 0 )
 		{
-			MessageManager::GetInstance()->Post( Message::LOG_ERROR, std::wstring( L"Size query to GetRawInputData failed!" ) );
+			Niflheim::MessageManager::GetInstance()->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Size query to GetRawInputData failed!" ) );
 			return;
 		}
 
 		if( dwSize == 0 )
 		{
-			MessageManager::GetInstance()->Post( Message::LOG_ERROR, std::wstring( L"Size query to GetRawInputData returned 0 size!" ) );
+			Niflheim::MessageManager::GetInstance()->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Size query to GetRawInputData returned 0 size!" ) );
 			return;
 		}
 
@@ -240,7 +239,7 @@ void Framework::ProcessInputEvent( Platform::LongParam lParam )
 
 		if( GetRawInputData( (HRAWINPUT)lParam, RID_INPUT, lpb, &dwSize, sizeof( RAWINPUTHEADER ) ) != dwSize )
 		{
-			MessageManager::GetInstance()->Post( Message::LOG_ERROR, std::wstring( L"GetRawInputData does not return correct size!" ) );
+			Niflheim::MessageManager::GetInstance()->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"GetRawInputData does not return correct size!" ) );
 		}
 
 		RAWINPUT* raw = (RAWINPUT*)lpb;
@@ -251,13 +250,13 @@ void Framework::ProcessInputEvent( Platform::LongParam lParam )
 			data = raw->data.keyboard.VKey;
 			if( ( raw->data.keyboard.Flags & RI_KEY_BREAK ) == 0 )
 			{
-				data |= Input::MASK_KEY_PRESS;
+				data |= Helheimr::Input::MASK_KEY_PRESS;
 			}
 			else
 			{
 				// It seems the way we are handling input has intercepted the regular generation of the WM_CLOSE event (alt-F4)
 				// So we intercept that key combination here and manually post the message.
-				if( raw->data.keyboard.VKey == Input::KEY_F4 && Input::GetInstance()->GetKeyDown( Input::KEY_ALT ) )
+				if( raw->data.keyboard.VKey == Helheimr::Input::KEY_F4 && Helheimr::Input::GetInstance()->GetKeyDown( Helheimr::Input::KEY_ALT ) )
 				{
 					PostMessage( m_hWindow, WM_CLOSE, 0, 0 );
 				}
@@ -293,7 +292,7 @@ void Framework::ProcessInputEvent( Platform::LongParam lParam )
 
 		delete[] lpb;
 
-		Input::GetInstance()->ProcessEvent( data );
+		Helheimr::Input::GetInstance()->ProcessEvent( data );
 	}
 }
 

@@ -1,0 +1,2 @@
+Sun Apr 30 22:55:35 2017 INFO: 
+Sun Apr 30 22:55:35 2017 INFO: OpenGL information: 4.5.13469 Compatibility Profile Context 21.19.519.2

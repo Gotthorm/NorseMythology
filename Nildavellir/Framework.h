@@ -9,7 +9,9 @@
 class Graphics;
 class Game;
 class Input;
-class Logger;
+namespace Niflheim {
+	class Logger;
+}
 
 /// \brief Encapsulation all of the engine's subsystems.
 ///
@@ -66,7 +68,7 @@ private:
 	Graphics* m_pGraphics = nullptr;
 	Game* m_pGame = nullptr;
 	Input* m_pInput = nullptr;
-	Logger* m_pLogger = nullptr;
+	Niflheim::Logger* m_pLogger = nullptr;
 
 	Platform::WindowHandle m_hWindow = 0;
 

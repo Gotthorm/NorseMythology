@@ -108,11 +108,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)Include;$(SolutionDir)Vanaheimr;$(SolutionDir)Niflheim;$(SolutionDir)Alfheimr;$(SolutionDir)Helheimr;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;Alfheimr.lib;Vanaheimr.lib;Niflheim.lib;Helheimr.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>F:\Projects\NorseMythology\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -148,51 +150,33 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)Include;$(SolutionDir)Vanaheimr;$(SolutionDir)Niflheim;$(SolutionDir)Alfheimr;$(SolutionDir)Helheimr;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;Alfheimr.lib;Vanaheimr.lib;Niflheim.lib;Helheimr.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\Source\OpenGLInterface.cpp" />
     <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="Console.cpp" />
-    <ClCompile Include="ConsoleCommands.cpp" />
-    <ClCompile Include="ConsoleParameterList.cpp" />
-    <ClCompile Include="ConsoleParser.cpp" />
     <ClCompile Include="Framework.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Graphics.cpp" />
-    <ClCompile Include="Input.cpp" />
-    <ClCompile Include="KTX.cpp" />
-    <ClCompile Include="Logger.cpp" />
-    <ClCompile Include="MessageManager.cpp" />
-    <ClCompile Include="OpenGLInterface.cpp" />
     <ClCompile Include="Text2D.cpp" />
     <ClCompile Include="WinMain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Include\glext.h" />
+    <ClInclude Include="..\Include\OpenGLInterface.h" />
     <ClInclude Include="Camera.h" />
-    <ClInclude Include="Console.h" />
-    <ClInclude Include="ConsoleCommands.h" />
-    <ClInclude Include="ConsoleParameterList.h" />
-    <ClInclude Include="ConsoleParser.h" />
     <ClInclude Include="Framework.h" />
     <ClInclude Include="Game.h" />
-    <ClInclude Include="glext.h" />
     <ClInclude Include="Graphics.h" />
-    <ClInclude Include="Input.h" />
-    <ClInclude Include="KTX.h" />
-    <ClInclude Include="Logger.h" />
-    <ClInclude Include="Message.h" />
-    <ClInclude Include="MessageClient.h" />
-    <ClInclude Include="MessageManager.h" />
-    <ClInclude Include="OpenGLInterface.h" />
     <ClInclude Include="Platform.h" />
-    <ClInclude Include="Singleton.h" />
     <ClInclude Include="Text2D.h" />
   </ItemGroup>
   <ItemGroup>
