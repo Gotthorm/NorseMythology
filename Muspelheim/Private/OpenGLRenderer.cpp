@@ -259,7 +259,6 @@ namespace Muspelheim
 		return nullptr;
 	}
 
-
 	//
 	bool OpenGLRenderer::CreateSurface( SurfaceID& surfaceID )
 	{
