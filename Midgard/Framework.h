@@ -74,10 +74,7 @@ private:
 	std::shared_ptr<Niflheim::MessageManager> m_MessageManager;
 	Niflheim::Logger* m_Logger = nullptr;
 
-	Loki* m_Loki1 = nullptr;
-	Loki* m_Loki2 = nullptr;
-	Loki* m_Loki3 = nullptr;
-	Loki* m_Loki4 = nullptr;
+	Loki* m_Loki = nullptr;
 	Volstagg* m_Volstagg = nullptr;
 	Game* m_pGame = nullptr;
 	Input* m_pInput = nullptr;
