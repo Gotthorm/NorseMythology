@@ -84,12 +84,12 @@ namespace Helheimr
 		m_MouseMovementDeltaY = 0;
 	}
 
-	bool Input::GetKeyUp( KeyCode key )
+	bool Input::GetKeyUp( KeyCode key ) const
 	{
 		return ( ( m_OldKeyStateBuffer[ key ] != 0 ) && ( m_NewKeyStateBuffer[ key ] == 0 ) );
 	}
 
-	bool Input::GetKeyDown( KeyCode key )
+	bool Input::GetKeyDown( KeyCode key ) const
 	{
 		return ( m_NewKeyStateBuffer[ key ] != 0 );
 	}
@@ -99,7 +99,7 @@ namespace Helheimr
 		m_MessageManager = messageManager;
 	}
 
-	bool Input::GetMouse( int& deltaX, int& deltaY )
+	bool Input::GetMouse( int& deltaX, int& deltaY ) const
 	{
 		deltaX = m_MouseMovementDeltaX;
 		deltaY = m_MouseMovementDeltaY;

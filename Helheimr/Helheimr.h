@@ -91,15 +91,15 @@ namespace Helheimr
 		// Indicates that one frame has elapsed
 		void AdvanceFrame();
 
-		bool GetKeyUp( KeyCode keyCode );
+		bool GetKeyUp( KeyCode keyCode ) const;
 
-		bool GetKeyDown( KeyCode key );
+		bool GetKeyDown( KeyCode key ) const;
 
 		//
 		//bool GetKey( KeyCode nKey );
 
 		//
-		bool GetMouse( int& deltaX, int& deltaY );
+		bool GetMouse( int& deltaX, int& deltaY ) const;
 
 		//
 		//void EnableMouseCapture( bool bEnable );
