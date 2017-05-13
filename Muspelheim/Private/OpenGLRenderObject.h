@@ -19,7 +19,7 @@ namespace Muspelheim
 		OpenGLRenderObject( unsigned short id, std::weak_ptr<OpenGLSurface> surface );
 
 		//
-		~OpenGLRenderObject();
+		~OpenGLRenderObject() = default;
 
 		virtual bool SetShader( unsigned int shaderID ) override;
 		virtual bool LoadData( unsigned int size, void* data, unsigned int objectCount ) override;
@@ -41,23 +41,18 @@ namespace Muspelheim
 		bool m_PolyLineMode = false;
 		bool m_PolyBackFace = false;
 		PolyMode m_PolyMode = TRIANGLES;
-		unsigned int m_ObjectCount = 0;
 		std::vector<unsigned int> m_LoadedTextures;
 
 		std::weak_ptr<OpenGLSurface> m_Surface;
 
-		// When using a shader
 		OpenGLShader* m_Shader;
 		unsigned short m_ID;
 		unsigned int m_DataBuffer = 0;
 		unsigned int m_VertexArrayObject = 0;
+		unsigned int m_ObjectCount = 0;
 		GLint m_UniformModelMatrix = -1;
 		GLint m_UniformViewMatrix = -1;
 		GLint m_UniformProjectionMatrix = -1;
-
-		// When not using a shader
-		float* m_VertexArray = nullptr;
-		float* m_NormalArray = nullptr;
 
 		static OpenGLRenderer* sm_Renderer;
 	};
