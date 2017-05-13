@@ -10,15 +10,20 @@ namespace Vanaheimr
 	{
 	public:
 		FreeCamera( const std::wstring& name );
+
 		virtual ~FreeCamera() = default;
 
-		virtual void Update( float timeElapsed, Helheimr::Input* input ) override;
+		virtual void Update( float timeElapsed, const Helheimr::Input* input ) override;
 
-		virtual glm::mat4 GetMatrix() const override;
+		virtual void SetDirection( const glm::vec3& direction ) override;
 
-	private:
-		float m_CurrentPitch;
-		float m_CurrentYaw;
+	protected:
+		void UpdateData();
+
+		float m_Pitch;
+		float m_Yaw;
+
+		glm::vec3 m_Right;
 	};
 }
 

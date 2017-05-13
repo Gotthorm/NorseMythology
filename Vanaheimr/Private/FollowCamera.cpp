@@ -12,7 +12,7 @@ namespace Vanaheimr
 	{
 	}
 
-	void FollowCamera::Update( float timeElapsed, Helheimr::Input* input )
+	void FollowCamera::Update( float timeElapsed, const Helheimr::Input* input )
 	{
 		if( m_Target != nullptr )
 		{

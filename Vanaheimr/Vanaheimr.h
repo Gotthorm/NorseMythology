@@ -30,7 +30,10 @@ namespace Vanaheimr
 		const glm::quat& GetOrientation() const { return m_Orientation; }
 		//void SetOrientation( const glm::quat& orientation ) { m_Orientation = orientation; }
 
-		virtual glm::mat4 GetMatrix() const { return glm::translate( glm::mat4_cast( m_Orientation ), glm::vec3( m_Position.x, m_Position.y, m_Position.z ) ); }
+		glm::mat4 GetMatrix() const 
+		{ 
+			return glm::mat4_cast( m_Orientation ) * glm::inverse( glm::translate( glm::mat4( 1.0f ), glm::vec3( m_Position ) ) );
+		}
 
 		void Rotate( float angle, const glm::vec3 &axis ) { m_Orientation *= glm::angleAxis( angle, axis * m_Orientation ); }
 		void Rotate( float angle, float x, float y, float z ) { m_Orientation *= glm::angleAxis( angle, glm::vec3( x, y, z ) * m_Orientation ); }
@@ -43,7 +46,9 @@ namespace Vanaheimr
 		void Pitch( float angle ) { Rotate( angle, 1.0f, 0.0f, 0.0f ); }
 		void Roll( float angle ) { Rotate( angle, 0.0f, 0.0f, 1.0f ); }
 
-	private:
+		glm::mat4 m_NewMatrix;
+
+	protected:
 		// These private attributes do not need a DLL interface declaration
 #pragma warning( push )
 #pragma warning( disable : 4251)
@@ -53,10 +58,20 @@ namespace Vanaheimr
 #pragma warning( pop ) 
 	};
 
-	class EXPORT Camera : public Object3D
+	class EXPORT Camera
 	{
 	public:
-		//virtual void Update( float timeElapsed ) = 0;
+		//
+		virtual const std::wstring& GetName() const = 0;
+
+		//
+		virtual void SetPosition( const glm::vec3& position ) = 0;
+
+		//
+		virtual void SetDirection( const glm::vec3& direction ) = 0;
+
+		//
+		virtual glm::mat4 GetViewMatrix() const = 0;
 	};
 
 	class EXPORT CameraManager
