@@ -7,7 +7,6 @@
 #include <codecvt>
 #include "Niflheim.h"
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #pragma comment(lib, "OpenGL32.lib")
 #pragma comment(lib, "Niflheim.lib")
@@ -186,9 +185,6 @@ namespace Muspelheim
 		// Ensure lighting is enabled
 		glEnable( GL_LIGHTING );
 
-		// Set the global ambient light level
-		glLightModelfv( GL_LIGHT_MODEL_AMBIENT, glm::value_ptr( glm::vec4( 0.2, 0.2, 0.2, 1 ) ) );
-
 		return true;
 	}
 
@@ -258,6 +254,7 @@ namespace Muspelheim
 
 		return nullptr;
 	}
+
 
 	//
 	bool OpenGLRenderer::CreateSurface( SurfaceID& surfaceID )

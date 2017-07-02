@@ -20,7 +20,7 @@ public:
 
 	bool Update();
 
-	void SetPosition( const glm::vec4& position );
+	void SetPosition( const glm::vec3& position );
 
 private:
 	std::weak_ptr<Muspelheim::RenderObject> m_RenderObject;

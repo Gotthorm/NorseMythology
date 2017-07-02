@@ -22,6 +22,34 @@
 #pragma comment(lib, "Vanaheimr.lib")
 #pragma comment(lib, "Valhalla.lib")
 
+class camera {
+	glm::vec3 m_pos;
+	glm::quat m_orient;
+public:
+	camera( void ) = default;
+	camera( const camera & ) = default;
+
+	camera( const glm::vec3 &pos ) : m_pos( pos ) {}
+	camera( const glm::vec3 &pos, const glm::quat &orient ) : m_pos( pos ), m_orient( orient ) {}
+
+	camera &operator =( const camera & ) = default;
+
+	const glm::vec3 &position( void ) const { return m_pos; }
+	const glm::quat &orientation( void ) const { return m_orient; }
+
+	glm::mat4 view( void ) const { return glm::translate( glm::mat4_cast( m_orient ), m_pos ); }
+
+	void translate( const glm::vec3 &v ) { m_pos += v * m_orient; }
+	void translate( float x, float y, float z ) { m_pos += glm::vec3( x, y, z ) * m_orient; }
+
+	void rotate( float angle, const glm::vec3 &axis ) { m_orient *= glm::angleAxis( angle, axis * m_orient ); }
+	void rotate( float angle, float x, float y, float z ) { m_orient *= glm::angleAxis( angle, glm::vec3( x, y, z ) * m_orient ); }
+
+	void yaw( float angle ) { rotate( angle, 0.0f, 1.0f, 0.0f ); }
+	void pitch( float angle ) { rotate( angle, 1.0f, 0.0f, 0.0f ); }
+	void roll( float angle ) { rotate( angle, 0.0f, 0.0f, 1.0f ); }
+};
+
 bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo& launchInfo )
 {
 	if( m_Initialized == false )
@@ -104,20 +132,13 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		m_CameraManager = new Vanaheimr::CameraManager();
 		m_CameraManager->AddCamera( Vanaheimr::CameraManager::FREE, L"Free" );
 
-		std::weak_ptr<Muspelheim::LightObject> mainLight = m_Renderer->CreateSurfaceLightObject( m_MainScreen );
-
-		mainLight.lock()->SetAmbient( 0, 0, 0, 1 );
-		mainLight.lock()->SetDiffuse( 1, 1, 1, 1 );
-		mainLight.lock()->SetSpecular( 1, 1, 1, 1 );
-		mainLight.lock()->SetPosition( glm::vec4( 100.0f, 100.0f, 100.0f, 1 ) );
-
 		const float moveScale = 10.0f;
 
 		// Initialize the game
-		m_Loki = new Loki( m_MainScreen );
-		if( m_Loki && m_Loki->Init( *m_Renderer ) )
+		m_Loki1 = new Loki( m_MainScreen );
+		if( m_Loki1 && m_Loki1->Init( *m_Renderer ) )
 		{
-			if( m_Loki->Load( "Media/Objects/volcanos.fbx" ) == false )
+			if( m_Loki1->Load( "Media/Objects/Dragon.sbm" ) == false )
 			{
 				m_MessageManager->Post( Niflheim::Message::LOG_WARN, std::wstring( L"Failed to load Loki render object" ) );
 			}
@@ -127,21 +148,66 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Failed to create Loki render object" ) );
 			return false;
 		}
-		m_Loki->SetPosition( glm::vec4( moveScale, 0, moveScale, 1.0f ) );
+		m_Loki1->SetPosition( glm::vec3( moveScale, 0, moveScale ) );
 
-		//m_Volstagg = new Volstagg( m_MainScreen );
-		//if( m_Volstagg && m_Volstagg->Init( *m_Renderer ) )
-		//{
-		//	if( m_Volstagg->Load( "Media/Textures/Island.png" ) == false )
-		//	{
-		//		m_MessageManager->Post( Niflheim::Message::LOG_WARN, std::wstring( L"Failed to load Volstagg render object" ) );
-		//	}
-		//}
-		//else
-		//{
-		//	m_MessageManager->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Failed to create Volstagg render object" ) );
-		//	return false;
-		//}
+		m_Loki2 = new Loki( m_MainScreen );
+		if( m_Loki2 && m_Loki2->Init( *m_Renderer ) )
+		{
+			if( m_Loki2->Load( "Media/Objects/Dragon.sbm" ) == false )
+			{
+				m_MessageManager->Post( Niflheim::Message::LOG_WARN, std::wstring( L"Failed to load Loki render object" ) );
+			}
+		}
+		else
+		{
+			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Failed to create Loki render object" ) );
+			return false;
+		}
+		m_Loki2->SetPosition( glm::vec3( -moveScale, 0, moveScale ) );
+
+		m_Loki3 = new Loki( m_MainScreen );
+		if( m_Loki3 && m_Loki3->Init( *m_Renderer ) )
+		{
+			if( m_Loki3->Load( "Media/Objects/Dragon.sbm" ) == false )
+			{
+				m_MessageManager->Post( Niflheim::Message::LOG_WARN, std::wstring( L"Failed to load Loki render object" ) );
+			}
+		}
+		else
+		{
+			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Failed to create Loki render object" ) );
+			return false;
+		}
+		m_Loki3->SetPosition( glm::vec3( moveScale, 0, -moveScale ) );
+
+		m_Loki4 = new Loki( m_MainScreen );
+		if( m_Loki4 && m_Loki4->Init( *m_Renderer ) )
+		{
+			if( m_Loki4->Load( "Media/Objects/Dragon.sbm" ) == false )
+			{
+				m_MessageManager->Post( Niflheim::Message::LOG_WARN, std::wstring( L"Failed to load Loki render object" ) );
+			}
+		}
+		else
+		{
+			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Failed to create Loki render object" ) );
+			return false;
+		}
+		m_Loki4->SetPosition( glm::vec3( -moveScale, 0, -moveScale ) );
+
+		m_Volstagg = new Volstagg( m_MainScreen );
+		if( m_Volstagg && m_Volstagg->Init( *m_Renderer ) )
+		{
+			if( m_Volstagg->Load( "Media/Textures/Island.png" ) == false )
+			{
+				m_MessageManager->Post( Niflheim::Message::LOG_WARN, std::wstring( L"Failed to load Volstagg render object" ) );
+			}
+		}
+		else
+		{
+			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Failed to create Volstagg render object" ) );
+			return false;
+		}
 
 		
 		//m_pGame = new Game();
@@ -163,14 +229,25 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		m_hWindow = hWindow;
 	}
 
+	//Vanaheimr::Object3D newObject;
+	//glm::vec3 forwardVector = newObject.GetForward();
+	//newObject.SetRotation( glm::vec3(0, 1.5708, 0) );
+	//forwardVector = newObject.GetForward();
+
 	// Set the initialized flag as true and return it as the results
     return m_Initialized = true;
 }
 
 void Framework::Shutdown()
 {
-	delete m_Loki;
-	m_Loki = nullptr;
+	delete m_Loki1;
+	m_Loki1 = nullptr;
+	delete m_Loki2;
+	m_Loki2 = nullptr;
+	delete m_Loki3;
+	m_Loki3 = nullptr;
+	delete m_Loki4;
+	m_Loki4 = nullptr;
 
 	delete m_Volstagg;
 	m_Volstagg = nullptr;
@@ -271,8 +348,11 @@ void Framework::Update()
 		//PLATFORM_ASSERT( m_pGame != nullptr );
 		//m_pGame->Update();
 
-		m_Loki->Update();
-		//m_Volstagg->Update();
+		m_Loki1->Update();
+		m_Loki2->Update();
+		m_Loki3->Update();
+		m_Loki4->Update();
+		m_Volstagg->Update();
 		m_CameraManager->Update( timeElapsed / 1000.0f, Helheimr::Input::GetInstance() );
 
 		//PLATFORM_ASSERT( m_Renderer != nullptr );
@@ -284,8 +364,94 @@ void Framework::Update()
 		// Render the scene
 		const Vanaheimr::Camera* currentCamera = m_CameraManager->GetCurrentCamera();
 
-		//const glm::mat4& viewMatrix = currentCamera->GetMatrix();
-		const glm::mat4 viewMatrix = currentCamera->GetViewMatrix();
+		const glm::mat4& viewMatrix = currentCamera->GetMatrix();
+
+		//// ###################################################
+		//static camera internetCamera;
+		//static glm::vec3 position;
+		////static float currentYaw = 0;
+		////static float currentPitch = 0;
+
+		//if( Helheimr::Input::GetInstance()->GetKeyDown( Helheimr::Input::KEY_MOUSE_RIGHT ) )
+		//{
+		//	float mouseSpeed = 0.01f * timeElapsed;
+
+		//	int deltaX;
+		//	int deltaY;
+		//	Helheimr::Input::GetInstance()->GetMouse( deltaX, deltaY );
+
+		//	float targetPitch = (float)deltaY;
+		//	float targetYaw = (float)-deltaX;
+
+		//	float currentYaw = ( targetYaw * mouseSpeed );
+		//	float currentPitch = ( targetPitch * mouseSpeed );
+
+		//	//if( currentPitch > 89.0f )
+		//	//	currentPitch = 89.0f;
+		//	//if( currentPitch < -89.0f )
+		//	//	currentPitch = -89.0f;
+
+		//	internetCamera.pitch( currentPitch );
+		//	internetCamera.yaw( currentYaw );
+
+		//}
+		//float arrowSpeed = 0.001f * timeElapsed;
+		//if( Helheimr::Input::GetInstance()->GetKeyDown( Helheimr::Input::KEY_ARROW_DOWN ) )
+		//{
+		//	internetCamera.pitch( arrowSpeed );
+		//}
+		//else if( Helheimr::Input::GetInstance()->GetKeyDown( Helheimr::Input::KEY_ARROW_UP ) )
+		//{
+		//	internetCamera.pitch( -arrowSpeed );
+		//}
+		//if( Helheimr::Input::GetInstance()->GetKeyDown( Helheimr::Input::KEY_ARROW_LEFT ) )
+		//{
+		//	internetCamera.yaw( arrowSpeed );
+		//}
+		//else if( Helheimr::Input::GetInstance()->GetKeyDown( Helheimr::Input::KEY_ARROW_RIGHT ) )
+		//{
+		//	internetCamera.yaw( -arrowSpeed );
+		//}
+
+
+
+		//const glm::quat& viewQuat = internetCamera.orientation();
+
+		//glm::mat4 identityMat = glm::mat4( 1.0f );
+		//glm::mat4 rotMatrix = glm::mat4_cast( viewQuat );   //rotation is glm::quat
+		//glm::mat4 transMatrix = glm::translate( identityMat, internetCamera.position() );
+		//glm::mat4 viewMatrix = rotMatrix * glm::inverse( transMatrix );
+
+		//glm::vec3 forward = glm::rotate( viewQuat, glm::vec3(0,0,1) );
+		//glm::vec3 right = glm::cross( forward, glm::vec3( 0, 1, 0 ) );
+		////glm::vec3 position = viewMatrix[ 3 ];
+
+		//float MovementIncrement = 0.01f;
+
+		//if( Helheimr::Input::GetInstance()->GetKeyDown( Helheimr::Input::KEY_W ) )
+		//{
+		//	//internetCamera.translate( glm::vec3( 0, 0, -MovementIncrement ) );
+		//	position = position + ( forward * MovementIncrement );
+		//}
+		//else if( Helheimr::Input::GetInstance()->GetKeyDown( Helheimr::Input::KEY_S ) )
+		//{
+		//	//internetCamera.translate( glm::vec3( 0, 0, MovementIncrement ) );
+		//	position = position - ( forward * MovementIncrement );
+		//}
+		//if( Helheimr::Input::GetInstance()->GetKeyDown( Helheimr::Input::KEY_A ) )
+		//{
+		//	//internetCamera.translate( glm::vec3( -MovementIncrement, 0, 0 ) );
+		//	position = position - ( right * MovementIncrement );
+		//}
+		//else if( Helheimr::Input::GetInstance()->GetKeyDown( Helheimr::Input::KEY_D ) )
+		//{
+		//	//internetCamera.translate( glm::vec3( MovementIncrement, 0, 0 ) );
+		//	position = position + ( right * MovementIncrement );
+		//}
+
+		//glm::mat4 viewMatrix99 = glm::lookAt( position, position + forward, glm::vec3(0,1,0) );
+
+		// ####################################################
 
 		m_Renderer->BeginRender( viewMatrix );
 
@@ -298,7 +464,7 @@ void Framework::Update()
 		std::swprintf( stringBuffer, Platform::kMaxStringLength, L"Camera Direction: %.3f, %.3f, %.3f", cameraForward.x, cameraForward.y, cameraForward.z );
 		m_Renderer->DrawSurfaceString( m_MainScreen, stringBuffer, 40, 1, Muspelheim::Renderer::TEXT_RIGHT );
 
-		glm::vec3 cameraPosition = viewMatrix[ 3 ];
+		glm::vec3 cameraPosition = currentCamera->GetPosition();
 		std::swprintf( stringBuffer, Platform::kMaxStringLength, L"Camera Position: %.1f, %.1f, %.1f", cameraPosition.x, cameraPosition.y, cameraPosition.z );
 		m_Renderer->DrawSurfaceString( m_MainScreen, stringBuffer, 40, 2, Muspelheim::Renderer::TEXT_RIGHT );
 
@@ -454,3 +620,121 @@ void Framework::ResizeWindow( unsigned short width, unsigned short height )
 		m_Renderer->SetWindowSize( width, height );
 	}
 }
+
+//void Framework::UpdateCamera( unsigned int timeElapsed )
+//{
+//	// nTimeDelta is the number of milliseconds that has elapsed since the last frame
+//#if 1
+//	if( m_pInput != NULL )
+//	{
+//		float deltaTime = timeElapsed / 1000.0f;
+//
+//		if( m_pInput->GetKey( Input::KEY_MOUSE_RIGHT ) )
+//		{
+//			long deltaX;
+//			long deltaY;
+//			m_pInput->GetMouse( deltaX, deltaY );
+//
+//			//camera->ProcessMouseMovement((float)deltaX, (float)-deltaY);
+//			m_CameraTargetPitch = (float)-deltaY;
+//			m_CameraTargetYaw = (float)-deltaX;
+//		}
+//
+//		const float mouseSpeed = 0.25f;
+//
+//		m_CameraCurrentYaw += ( m_CameraTargetYaw * mouseSpeed );
+//		m_CameraCurrentPitch -= ( m_CameraTargetPitch * mouseSpeed );
+//
+//		m_CameraTargetPitch = m_CameraTargetYaw = 0.0f;
+//
+//		Matrix3 theYawMatrix( Vector3::UNIT_Y, Math::DEG_TO_RAD * m_CameraCurrentYaw );
+//		Matrix3 thePitchMatrix( Vector3::UNIT_X, Math::DEG_TO_RAD * m_CameraCurrentPitch );
+//		Vector3 theUpVector = thePitchMatrix * Vector3::UNIT_Y;
+//
+//		Vector3 orientationMatrix = ( theYawMatrix * thePitchMatrix ) * Vector3::UNIT_Z;
+//		m_CameraOrientation[ 0 ] = orientationMatrix[ 0 ];
+//		m_CameraOrientation[ 1 ] = orientationMatrix[ 1 ];
+//		m_CameraOrientation[ 2 ] = orientationMatrix[ 2 ];
+//
+//		Vector3 rightVector = orientationMatrix.Cross( theUpVector );
+//
+//		// 10 units per second
+//		float MovementIncrement = 100.0f * ( timeElapsed / 1000.0f );
+//
+//		if( m_pInput->GetKey( Input::KEY_W ) )
+//		{
+//			//camera->ProcessKeyboard(FORWARD, deltaTime);
+//			m_CameraPosition = m_CameraPosition + ( m_CameraOrientation * MovementIncrement );
+//		}
+//		else if( m_pInput->GetKey( Input::KEY_S ) )
+//		{
+//			//camera->ProcessKeyboard(BACKWARD, deltaTime);
+//			m_CameraPosition = m_CameraPosition - ( m_CameraOrientation * MovementIncrement );
+//		}
+//
+//		if( m_pInput->GetKey( Input::KEY_A ) )
+//		{
+//			//camera->ProcessKeyboard(LEFT, deltaTime);
+//			m_CameraPosition = m_CameraPosition - ( rightVector * MovementIncrement );
+//		}
+//		else if( m_pInput->GetKey( Input::KEY_D ) )
+//		{
+//			//camera->ProcessKeyboard(RIGHT, deltaTime);
+//			m_CameraPosition = m_CameraPosition + ( rightVector * MovementIncrement );
+//		}
+//	}
+//#else
+//	//if (g_nRequestedCameraMode == FLY)
+//	{
+//		if( m_pInput->GetKey( Input::KEY_MOUSE_RIGHT ) )
+//		{
+//			long deltaX;
+//			long deltaY;
+//			m_pInput->GetMouse( deltaX, deltaY );
+//			//g_CameraPanActive = true;
+//			m_CameraTargetPitch = (float)-deltaY;
+//			m_CameraTargetYaw = (float)-deltaX;
+//		}
+//
+//		m_CameraCurrentYaw += ( m_CameraTargetYaw * 0.75f );
+//		m_CameraCurrentPitch -= ( m_CameraTargetPitch * 0.75f );
+//
+//		m_CameraTargetPitch = m_CameraTargetYaw = 0.0f;
+//
+//		Matrix3 theYawMatrix( Vector3::UNIT_Y, Math::DEG_TO_RAD * m_CameraCurrentYaw );
+//		Matrix3 thePitchMatrix( Vector3::UNIT_X, Math::DEG_TO_RAD * m_CameraCurrentPitch );
+//		Vector3 theUpVector = thePitchMatrix * Vector3::UNIT_Y;
+//
+//		Vector3 orientationMatrix = ( theYawMatrix * thePitchMatrix ) * Vector3::UNIT_Z;
+//		m_CameraOrientation[ 0 ] = orientationMatrix[ 0 ];
+//		m_CameraOrientation[ 1 ] = orientationMatrix[ 1 ];
+//		m_CameraOrientation[ 2 ] = orientationMatrix[ 2 ];
+//
+//		Vector3 rightVector = orientationMatrix.Cross( theUpVector );
+//
+//		// 10 units per second
+//		float MovementIncrement = 100.0f * ( timeElapsed / 1000.0f );
+//
+//		if( m_pInput != NULL )
+//		{
+//			if( m_pInput->GetKey( Input::KEY_W ) )
+//			{
+//				m_CameraPosition = m_CameraPosition + ( m_CameraOrientation * MovementIncrement );
+//			}
+//			else if( m_pInput->GetKey( Input::KEY_S ) )
+//			{
+//				m_CameraPosition = m_CameraPosition - ( m_CameraOrientation * MovementIncrement );
+//			}
+//
+//			if( m_pInput->GetKey( Input::KEY_A ) )
+//			{
+//				m_CameraPosition = m_CameraPosition - ( rightVector * MovementIncrement );
+//			}
+//			else if( m_pInput->GetKey( Input::KEY_D ) )
+//			{
+//				m_CameraPosition = m_CameraPosition + ( rightVector * MovementIncrement );
+//			}
+//		}
+//	}
+//#endif
+//}

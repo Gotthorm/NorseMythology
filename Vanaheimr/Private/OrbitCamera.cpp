@@ -12,7 +12,7 @@ namespace Vanaheimr
 	{
 	}
 
-	void OrbitCamera::Update( float timeElapsed, const Helheimr::Input* input )
+	void OrbitCamera::Update( float timeElapsed, Helheimr::Input* input )
 	{
 		if( m_Target != NULL )
 		{

@@ -12,8 +12,7 @@ namespace Muspelheim
 {
 	OpenGLRenderer* OpenGLRenderObject::sm_Renderer = nullptr;
 
-	//
-	OpenGLRenderObject::OpenGLRenderObject( unsigned short id, std::weak_ptr<OpenGLSurface> surface )
+	OpenGLRenderObject::OpenGLRenderObject( unsigned short id, std::weak_ptr<OpenGLSurface> surface ) 
 		: m_ID( id )
 		, m_Surface( surface )
 		, m_Shader( nullptr )
@@ -52,18 +51,30 @@ namespace Muspelheim
 
 		OpenGLInterface::BufferSubData( GL_ARRAY_BUFFER, 0, size, data );
 
-		OpenGLInterface::VertexAttribPointer( 0, 4, GL_FLOAT, GL_FALSE, 0, (GLvoid *)(uintptr_t)0 );
-		OpenGLInterface::EnableVertexAttribArray( 0 );
-
-		// data_size * (4/7) Assuming equal entries, first block uses 4 floats, second block uses 3
-		OpenGLInterface::VertexAttribPointer( 1, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid *)uintptr_t( ( size * 4 ) / 7 ) );
-		OpenGLInterface::EnableVertexAttribArray( 1 );
-
-		OpenGLInterface::BindVertexArray( 0 );
-		OpenGLInterface::BindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
+		{
+				OpenGLInterface::VertexAttribPointer(0,
+					4,
+					GL_FLOAT,
+					GL_FALSE,
+					0,
+					(GLvoid *)(uintptr_t)0);
+				OpenGLInterface::EnableVertexAttribArray(0);
+		}
+		{
+				OpenGLInterface::VertexAttribPointer(1,
+					3,
+					GL_FLOAT,
+					GL_FALSE,
+					0,
+					(GLvoid *)(uintptr_t)4800000); // data_size * (4/7) Assuming equal entries, first block uses 4 floats, second block uses 3
+				OpenGLInterface::EnableVertexAttribArray(1);
+		}
 
 		m_ObjectCount = objectCount;
 
+		OpenGLInterface::BindVertexArray(0);
+		OpenGLInterface::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);		
+		
 		return true;
 	}
 
@@ -127,7 +138,7 @@ namespace Muspelheim
 			GLenum windingOrder = m_WindingOrderClockwise ? GL_CW : GL_CCW;
 			GLenum face = m_PolyBackFace ? GL_FRONT_AND_BACK : GL_FRONT;
 			GLenum mode = m_PolyLineMode ? GL_LINE : GL_FILL;
-
+			
 			glFrontFace( windingOrder );
 			glPolygonMode( face, mode );
 			glEnable( GL_DEPTH_TEST );

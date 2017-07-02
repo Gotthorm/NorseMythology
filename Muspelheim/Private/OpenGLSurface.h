@@ -10,8 +10,8 @@
 namespace Muspelheim
 {
 	class OpenGLRenderObject;
-	class OpenGLLightObject;
 	class OpenGLShader;
+	class OpenGLLightObject;
 
 	class OpenGLSurface
 	{
@@ -60,6 +60,7 @@ namespace Muspelheim
 
 		//
 		void AddLightObject( std::weak_ptr<OpenGLLightObject> lightObject );
+		std::shared_ptr<LightObject> CreateLightObject();
 
 		//
 		bool GetRenderBackground() { return m_RenderBackground; }
@@ -92,9 +93,6 @@ namespace Muspelheim
 
 		// The list of all render objects owned by this surface
 		std::vector<std::shared_ptr<OpenGLRenderObject>> m_RenderObjects;
-		
-		// The list of all light objects owned by this surface
-		std::vector<std::weak_ptr<OpenGLLightObject>> m_LightObjects;
 	};
 }
 

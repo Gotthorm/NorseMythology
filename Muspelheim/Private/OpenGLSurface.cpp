@@ -96,17 +96,8 @@ namespace Muspelheim
 			glEnable( GL_DEPTH_TEST );
 		}
 
-		// Turn on any lights if any std::weak_ptr<LightObject>
-		for( auto lightPointer : m_LightObjects )
-		{
-			std::shared_ptr<OpenGLLightObject> lightObject = lightPointer.lock();
-
-			if( lightObject )
-			{
-				lightObject->Apply();
-			}
-		}
-		
+		// Turn on any lights if any
+		glEnable( GL_LIGHT0 );
 
 		// Render all objects
 		for( std::shared_ptr<OpenGLRenderObject> renderObject : m_RenderQueue )
@@ -172,9 +163,16 @@ namespace Muspelheim
 	}
 
 	//
-	void OpenGLSurface::AddLightObject( std::weak_ptr<OpenGLLightObject> lightObject )
+	void OpenGLSurface::AddLightObject(std::weak_ptr<OpenGLLightObject> lightObject)
 	{
-		m_LightObjects.push_back( lightObject );
+
+	}
+	std::shared_ptr<LightObject> OpenGLSurface::CreateLightObject()
+	{
+		// Ask the renderer for a new light, which may fail is we have reached the maximum
+		//std::shared_ptr<OpenGLLightObject> newLightObject = std::make_shared<OpenGLLightObject>( m_WeakSelf );
+
+		return nullptr;
 	}
 
 }

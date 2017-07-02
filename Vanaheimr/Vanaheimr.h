@@ -24,54 +24,39 @@ namespace Vanaheimr
 		const std::wstring& GetName() const { return m_Name; }
 		void SetName( const std::wstring& name ) { m_Name = name; }
 
-		const glm::vec4& GetPosition() const { return m_Position; }
-		void SetPosition( const glm::vec4& position ) { m_Position = position; }
+		const glm::vec3& GetPosition() const { return m_Position; }
+		void SetPosition( const glm::vec3& position ) { m_Position = position; }
 
 		const glm::quat& GetOrientation() const { return m_Orientation; }
 		//void SetOrientation( const glm::quat& orientation ) { m_Orientation = orientation; }
 
-		glm::mat4 GetMatrix() const 
-		{ 
-			return glm::mat4_cast( m_Orientation ) * glm::inverse( glm::translate( glm::mat4( 1.0f ), glm::vec3( m_Position ) ) );
-		}
+		virtual glm::mat4 GetMatrix() const { return glm::translate( glm::mat4_cast( m_Orientation ), m_Position ); }
 
 		void Rotate( float angle, const glm::vec3 &axis ) { m_Orientation *= glm::angleAxis( angle, axis * m_Orientation ); }
 		void Rotate( float angle, float x, float y, float z ) { m_Orientation *= glm::angleAxis( angle, glm::vec3( x, y, z ) * m_Orientation ); }
 
-		void Translate( const glm::vec4 &v ) { m_Position += v * m_Orientation; }
-		void Translate( float x, float y, float z ) { m_Position += glm::vec4( x, y, z, 1 ) * m_Orientation; }
+		void Translate( const glm::vec3 &v ) { m_Position += v * m_Orientation; }
+		void Translate( float x, float y, float z ) { m_Position += glm::vec3( x, y, z ) * m_Orientation; }
 
 		// Helpers
 		void Yaw( float angle ) { Rotate( angle, 0.0f, 1.0f, 0.0f ); }
 		void Pitch( float angle ) { Rotate( angle, 1.0f, 0.0f, 0.0f ); }
 		void Roll( float angle ) { Rotate( angle, 0.0f, 0.0f, 1.0f ); }
 
-		glm::mat4 m_NewMatrix;
-
-	protected:
+	private:
 		// These private attributes do not need a DLL interface declaration
 #pragma warning( push )
 #pragma warning( disable : 4251)
-		glm::vec4 m_Position;
+		glm::vec3 m_Position;
 		glm::quat m_Orientation;
 		std::wstring m_Name;
 #pragma warning( pop ) 
 	};
 
-	class EXPORT Camera
+	class EXPORT Camera : public Object3D
 	{
 	public:
-		//
-		virtual const std::wstring& GetName() const = 0;
-
-		//
-		virtual void SetPosition( const glm::vec3& position ) = 0;
-
-		//
-		virtual void SetDirection( const glm::vec3& direction ) = 0;
-
-		//
-		virtual glm::mat4 GetViewMatrix() const = 0;
+		//virtual void Update( float timeElapsed ) = 0;
 	};
 
 	class EXPORT CameraManager
@@ -109,9 +94,9 @@ namespace Vanaheimr
 
 		bool SetCameraTarget( CameraId cameraId, Object3D* target );
 
-		bool SetCameraPosition( CameraId cameraId, const glm::vec4& position );
+		bool SetCameraPosition( CameraId cameraId, const glm::vec3& position );
 
-		bool SetCameraOffset( CameraId cameraId, const glm::vec4& position );
+		bool SetCameraOffset( CameraId cameraId, const glm::vec3& position );
 
 	private:
 		CameraId m_CurrentCameraIndex;

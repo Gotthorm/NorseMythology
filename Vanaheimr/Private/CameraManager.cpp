@@ -124,7 +124,7 @@ namespace Vanaheimr
 		return false;
 	}
 
-	bool CameraManager::SetCameraPosition( CameraId cameraId, const glm::vec4& position )
+	bool CameraManager::SetCameraPosition( CameraId cameraId, const glm::vec3& position )
 	{
 		if( cameraId > 0 && cameraId <= m_Cameras.size() )
 		{
@@ -138,7 +138,7 @@ namespace Vanaheimr
 		return false;
 	}
 
-	bool CameraManager::SetCameraOffset( CameraId cameraId, const glm::vec4& position )
+	bool CameraManager::SetCameraOffset( CameraId cameraId, const glm::vec3& position )
 	{
 		if( cameraId > 0 && cameraId <= m_Cameras.size() )
 		{

@@ -78,7 +78,7 @@ bool Loki::Update()
 	return false;
 }
 
-void Loki::SetPosition( const glm::vec4& position )
+void Loki::SetPosition( const glm::vec3& position )
 {
 	std::shared_ptr<Muspelheim::RenderObject> renderObject = m_RenderObject.lock();
 

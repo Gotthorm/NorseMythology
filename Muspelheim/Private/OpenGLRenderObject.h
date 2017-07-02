@@ -41,18 +41,19 @@ namespace Muspelheim
 		bool m_PolyLineMode = false;
 		bool m_PolyBackFace = false;
 		PolyMode m_PolyMode = TRIANGLES;
-		std::vector<unsigned int> m_LoadedTextures;
 
 		std::weak_ptr<OpenGLSurface> m_Surface;
-
 		OpenGLShader* m_Shader;
 		unsigned short m_ID;
 		unsigned int m_DataBuffer = 0;
-		unsigned int m_VertexArrayObject = 0;
 		unsigned int m_ObjectCount = 0;
+		unsigned int m_VertexArrayObject = 0;
+
 		GLint m_UniformModelMatrix = -1;
 		GLint m_UniformViewMatrix = -1;
 		GLint m_UniformProjectionMatrix = -1;
+
+		std::vector<unsigned int> m_LoadedTextures;
 
 		static OpenGLRenderer* sm_Renderer;
 	};

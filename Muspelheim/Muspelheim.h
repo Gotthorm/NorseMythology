@@ -48,16 +48,16 @@ namespace Muspelheim
 	{
 	public:
 		//
-		virtual void SetAmbient( float r, float g, float b, float a ) = 0;
+		virtual bool SetAmbient( float r, float g, float b, float a ) = 0;
 
 		//
-		virtual void SetDiffuse( float r, float g, float b, float a ) = 0;
+		virtual bool SetDiffuse( float r, float g, float b, float a ) = 0;
 
 		//
-		virtual void SetSpecular( float r, float g, float b, float a ) = 0;
+		virtual bool SetSpecular( float r, float g, float b, float a ) = 0;
 
 		//
-		virtual void SetEmission( float r, float g, float b, float a ) = 0;
+		virtual bool SetEmission( float r, float g, float b, float a ) = 0;
 
 		//
 		virtual bool GetEnabled() = 0;
