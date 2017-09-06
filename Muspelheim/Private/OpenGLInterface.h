@@ -4,6 +4,7 @@
 #include <gl\GL.h>
 //#include "glcorearb.h"
 #include "glext.h"
+#include "wglext.h"
 #include <string>
 
 struct OpenGLInterface
