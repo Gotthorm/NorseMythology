@@ -1,7 +1,6 @@
 // FRAMEWORK.H
 
-#ifndef _FRAMEWORK_H_
-#define _FRAMEWORK_H_
+#pragma once
 
 #include <memory>
 #include "Platform.h"
@@ -70,15 +69,15 @@ private:
 	Framework( const Framework & ) = delete;
 
 	// Subsystems
-	Muspelheim::Renderer* m_Renderer = nullptr;
+	Muspelheim::Renderer* m_pRenderer = nullptr;
 	std::shared_ptr<Niflheim::MessageManager> m_MessageManager;
-	Niflheim::Logger* m_Logger = nullptr;
+	Niflheim::Logger* m_pLogger = nullptr;
 
-	Loki* m_Loki1 = nullptr;
-	Loki* m_Loki2 = nullptr;
-	Loki* m_Loki3 = nullptr;
-	Loki* m_Loki4 = nullptr;
-	Volstagg* m_Volstagg = nullptr;
+	Loki* m_pLoki1 = nullptr;
+	//Loki* m_Loki2 = nullptr;
+	//Loki* m_Loki3 = nullptr;
+	//Loki* m_Loki4 = nullptr;
+	Volstagg* m_pVolstagg = nullptr;
 	Game* m_pGame = nullptr;
 	Input* m_pInput = nullptr;
 
@@ -87,7 +86,7 @@ private:
 	// The main screen
 	Muspelheim::SurfaceID m_MainScreen = Muspelheim::InvalidSurface;
 
-	Vanaheimr::CameraManager* m_CameraManager;
+	Vanaheimr::CameraManager* m_pCameraManager;
 
 	bool m_Initialized = false;
 
@@ -103,6 +102,3 @@ private:
 	// Provide friend access to Singleton<Input> specialization
 	friend Singleton<Framework>;
 };
-
-#endif // _FRAMEWORK_H_
-

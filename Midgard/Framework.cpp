@@ -50,162 +50,190 @@ public:
 	void roll( float angle ) { rotate( angle, 0.0f, 0.0f, 1.0f ); }
 };
 
+std::wstring const surfaceShaderName( L"Media/Shaders/surface.background" );
+std::wstring const text2DShaderName( L"Media/Shaders/text2d" );
+std::wstring const terrainDataName( L"Media/Textures/Island.png" );
+std::wstring const avatarDataName( L"Media/Objects/Dragon.sbm" );
+
 bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo& launchInfo )
 {
-	if( m_Initialized == false )
+	if( false == m_Initialized )
 	{
 		// Initialize the message manager
 		m_MessageManager = std::make_shared<Niflheim::MessageManager>();
-		PLATFORM_ASSERT( m_MessageManager != nullptr );
+		PLATFORM_ASSERT( nullptr != m_MessageManager );
 
 		// Initialize the log system
-		m_Logger = new Niflheim::Logger( m_MessageManager );
-		PLATFORM_ASSERT( m_Logger != nullptr );
+		m_pLogger = new Niflheim::Logger( m_MessageManager );
+		PLATFORM_ASSERT( nullptr != m_pLogger );
 
-		if( m_Logger == nullptr || m_Logger->Initialize( L"LogFile.txt" ) == false )
+		if( nullptr == m_pLogger || false == m_pLogger->Initialize( L"LogFile.txt" ) )
 		{
-			PLATFORM_DEBUG_MESSAGE( L"Cannot initialize the logger system\n" );
+			PLATFORM_DEBUG_MESSAGE( L"Failed to initialize the logger system\n" );
 			return false;
 		}
 
 		m_MessageManager->Post( Niflheim::Message::LOG_INFO, launchInfo.applicationTitle );
 
 		// Initialize the renderer
-		m_Renderer = Muspelheim::Renderer::Create();
-		PLATFORM_ASSERT( m_Renderer != nullptr );
-		if( m_Renderer == nullptr || m_Renderer->Initialize( hWindow ) == false )
+		m_pRenderer = Muspelheim::Renderer::Create();
+		PLATFORM_ASSERT( nullptr != m_pRenderer );
+		if( nullptr == m_pRenderer || false == m_pRenderer->Initialize( hWindow ) )
 		{
-			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Failed to initialize the graphics rendering system" ) );
+			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, L"Failed to initialize the graphics rendering system" );
 			return false;
 		}
 
-		m_MessageManager->Post( Niflheim::Message::LOG_INFO, m_Renderer->GetVersionInformation() );
+		m_MessageManager->Post( Niflheim::Message::LOG_INFO, m_pRenderer->GetVersionInformation() );
 
 		// Initialize the input system
 		Helheimr::Input::Create();
-		if( Helheimr::Input::GetInstance()->Init() == false )
+		if( false == Helheimr::Input::GetInstance()->Init() )
 		{
-			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Cannot initialize the input system" ) );
+			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, L"Failed to initialize the input system" );
 			return false;
 		}
 		else
 		{
-			RAWINPUTDEVICE Rid[ 2 ];
-
-			Rid[ 0 ].usUsagePage = 0x01;
-			Rid[ 0 ].usUsage = 0x02;		// Adds HID mouse
-			Rid[ 0 ].dwFlags = 0;			// Change to RIDEV_NOLEGACY to ignore legacy keyboard messages
-			Rid[ 0 ].hwndTarget = 0;
-
-			Rid[ 1 ].usUsagePage = 0x01;
-			Rid[ 1 ].usUsage = 0x06;		// Adds HID keyboard
-			Rid[ 1 ].dwFlags = RIDEV_NOLEGACY;			// Change to RIDEV_NOLEGACY to ignore legacy keyboard messages
-			Rid[ 1 ].hwndTarget = 0;
-
-			if( RegisterRawInputDevices( Rid, 2, sizeof( Rid[0] ) ) == FALSE )
+			// SEAN : Why is this done here and not within Helheimr?
 			{
-				//registration failed. Call GetLastError for the cause of the error
-				m_MessageManager->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Cannot initialize the keyboard for the input system" ) );
-				return false;
+				RAWINPUTDEVICE Rid[ 2 ];
+
+				Rid[ 0 ].usUsagePage = 0x01;
+				Rid[ 0 ].usUsage = 0x02;		// Adds HID mouse
+				Rid[ 0 ].dwFlags = 0;			// Change to RIDEV_NOLEGACY to ignore legacy keyboard messages
+				Rid[ 0 ].hwndTarget = 0;
+
+				Rid[ 1 ].usUsagePage = 0x01;
+				Rid[ 1 ].usUsage = 0x06;		// Adds HID keyboard
+				Rid[ 1 ].dwFlags = RIDEV_NOLEGACY;			// Change to RIDEV_NOLEGACY to ignore legacy keyboard messages
+				Rid[ 1 ].hwndTarget = 0;
+
+				// This is a Windows only call
+				// To receive WM_INPUT messages, an application must first register the raw input devices using RegisterRawInputDevices. 
+				// By default, an application does not receive raw input.
+				if ( FALSE == RegisterRawInputDevices( Rid, 2, sizeof( Rid[ 0 ] ) ) )
+				{
+					// Registration failed. Call GetLastError for the cause of the error
+					m_MessageManager->Post( Niflheim::Message::LOG_ERROR, L"Cannot initialize the keyboard for the input system" );
+					return false;
+				}
 			}
 		}
 
-		// Setup main screen
-		if( m_Renderer->CreateSurface( m_MainScreen ) == false )
+		// Set up the main screen
+		if( false == m_pRenderer->CreateSurface( m_MainScreen ) )
 		{
-			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Failed to create main render surface" ) );
+			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, L"Failed to create main render surface" );
 			return false;
 		}
 		else
 		{
-			unsigned int shaderId = m_Renderer->LoadShader( L"Media/Shaders/surface.background" );
-			m_Renderer->SetSurfaceShader( m_MainScreen, shaderId );
+			unsigned int shaderId = m_pRenderer->LoadShader( surfaceShaderName );
+
+			if ( 0 == shaderId || false == m_pRenderer->SetSurfaceShader( m_MainScreen, shaderId ) )
+			{
+				m_MessageManager->Post( Niflheim::Message::LOG_WARN, L"Failed to load shader: " + surfaceShaderName );
+			}
 
 			// Set background to the color orange
-			m_Renderer->SetSurfaceColor( m_MainScreen, glm::vec4( 0.8f, 0.3f, 0.3f, 1.0f ) );
+			m_pRenderer->SetSurfaceColor( m_MainScreen, glm::vec4( 0.8f, 0.3f, 0.3f, 1.0f ) );
 
-			shaderId = m_Renderer->LoadShader( L"Media/Shaders/text2d" );
-			m_Renderer->SetSurfaceTextShader( m_MainScreen, shaderId );
+			shaderId = m_pRenderer->LoadShader( text2DShaderName );
+			
+			if ( 0 == shaderId || false == m_pRenderer->SetSurfaceTextShader( m_MainScreen, shaderId ) )
+			{
+				m_MessageManager->Post( Niflheim::Message::LOG_WARN, L"Failed to load shader: " + text2DShaderName );
+			}
 		}
 
 		//
-		m_CameraManager = new Vanaheimr::CameraManager();
-		m_CameraManager->AddCamera( Vanaheimr::CameraManager::FREE, L"Free" );
+		m_pCameraManager = new Vanaheimr::CameraManager();
+		PLATFORM_ASSERT( nullptr != m_pCameraManager );
 
-		const float moveScale = 10.0f;
+		m_pCameraManager->AddCamera( Vanaheimr::CameraManager::FREE, L"Free" );
+
+		float const moveScale = 10.0f;
 
 		// Initialize the game
-		m_Loki1 = new Loki( m_MainScreen );
-		if( m_Loki1 && m_Loki1->Init( *m_Renderer ) )
+
+		// Create and initialize the avatar
+		m_pLoki1 = new Loki( m_MainScreen );
+		PLATFORM_ASSERT( nullptr != m_pCameraManager );
+		if( m_pLoki1->Init( *m_pRenderer ) )
 		{
-			if( m_Loki1->Load( "Media/Objects/Dragon.sbm" ) == false )
+			if( false == m_pLoki1->Load( avatarDataName ) )
 			{
-				m_MessageManager->Post( Niflheim::Message::LOG_WARN, std::wstring( L"Failed to load Loki render object" ) );
+				m_MessageManager->Post( Niflheim::Message::LOG_WARN, L"Failed to load Loki render data: " + avatarDataName );
 			}
 		}
 		else
 		{
-			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Failed to create Loki render object" ) );
+			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, L"Failed to initialize a Loki render object" );
 			return false;
 		}
-		m_Loki1->SetPosition( glm::vec3( moveScale, 0, moveScale ) );
 
-		m_Loki2 = new Loki( m_MainScreen );
-		if( m_Loki2 && m_Loki2->Init( *m_Renderer ) )
+		m_pLoki1->SetPosition( glm::vec3( moveScale, 0, moveScale ) );
+
+		//m_Loki2 = new Loki( m_MainScreen );
+		//if( m_Loki2 && m_Loki2->Init( *m_pRenderer ) )
+		//{
+		//	if( m_Loki2->Load( "Media/Objects/Dragon.sbm" ) == false )
+		//	{
+		//		m_MessageManager->Post( Niflheim::Message::LOG_WARN, std::wstring( L"Failed to load Loki render object" ) );
+		//	}
+		//}
+		//else
+		//{
+		//	m_MessageManager->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Failed to create Loki render object" ) );
+		//	return false;
+		//}
+		//m_Loki2->SetPosition( glm::vec3( -moveScale, 0, moveScale ) );
+
+		//m_Loki3 = new Loki( m_MainScreen );
+		//if( m_Loki3 && m_Loki3->Init( *m_pRenderer ) )
+		//{
+		//	if( m_Loki3->Load( "Media/Objects/Dragon.sbm" ) == false )
+		//	{
+		//		m_MessageManager->Post( Niflheim::Message::LOG_WARN, std::wstring( L"Failed to load Loki render object" ) );
+		//	}
+		//}
+		//else
+		//{
+		//	m_MessageManager->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Failed to create Loki render object" ) );
+		//	return false;
+		//}
+		//m_Loki3->SetPosition( glm::vec3( moveScale, 0, -moveScale ) );
+
+		//m_Loki4 = new Loki( m_MainScreen );
+		//if( m_Loki4 && m_Loki4->Init( *m_pRenderer ) )
+		//{
+		//	if( m_Loki4->Load( "Media/Objects/Dragon.sbm" ) == false )
+		//	{
+		//		m_MessageManager->Post( Niflheim::Message::LOG_WARN, std::wstring( L"Failed to load Loki render object" ) );
+		//	}
+		//}
+		//else
+		//{
+		//	m_MessageManager->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Failed to create Loki render object" ) );
+		//	return false;
+		//}
+		//m_Loki4->SetPosition( glm::vec3( -moveScale, 0, -moveScale ) );
+
+		// Create and initialize the terrain loader
+		m_pVolstagg = new Volstagg( m_MainScreen );
+		PLATFORM_ASSERT( nullptr != m_pVolstagg );
+		if( m_pVolstagg->Init( *m_pRenderer ) )
 		{
-			if( m_Loki2->Load( "Media/Objects/Dragon.sbm" ) == false )
+			// Load the terrain data
+			if( false == m_pVolstagg->Load( terrainDataName ) )
 			{
-				m_MessageManager->Post( Niflheim::Message::LOG_WARN, std::wstring( L"Failed to load Loki render object" ) );
+				m_MessageManager->Post( Niflheim::Message::LOG_WARN, L"Failed to load Volstagg render data:" + terrainDataName );
 			}
 		}
 		else
 		{
-			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Failed to create Loki render object" ) );
-			return false;
-		}
-		m_Loki2->SetPosition( glm::vec3( -moveScale, 0, moveScale ) );
-
-		m_Loki3 = new Loki( m_MainScreen );
-		if( m_Loki3 && m_Loki3->Init( *m_Renderer ) )
-		{
-			if( m_Loki3->Load( "Media/Objects/Dragon.sbm" ) == false )
-			{
-				m_MessageManager->Post( Niflheim::Message::LOG_WARN, std::wstring( L"Failed to load Loki render object" ) );
-			}
-		}
-		else
-		{
-			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Failed to create Loki render object" ) );
-			return false;
-		}
-		m_Loki3->SetPosition( glm::vec3( moveScale, 0, -moveScale ) );
-
-		m_Loki4 = new Loki( m_MainScreen );
-		if( m_Loki4 && m_Loki4->Init( *m_Renderer ) )
-		{
-			if( m_Loki4->Load( "Media/Objects/Dragon.sbm" ) == false )
-			{
-				m_MessageManager->Post( Niflheim::Message::LOG_WARN, std::wstring( L"Failed to load Loki render object" ) );
-			}
-		}
-		else
-		{
-			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Failed to create Loki render object" ) );
-			return false;
-		}
-		m_Loki4->SetPosition( glm::vec3( -moveScale, 0, -moveScale ) );
-
-		m_Volstagg = new Volstagg( m_MainScreen );
-		if( m_Volstagg && m_Volstagg->Init( *m_Renderer ) )
-		{
-			if( m_Volstagg->Load( "Media/Textures/Island.png" ) == false )
-			{
-				m_MessageManager->Post( Niflheim::Message::LOG_WARN, std::wstring( L"Failed to load Volstagg render object" ) );
-			}
-		}
-		else
-		{
-			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Failed to create Volstagg render object" ) );
+			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, L"Failed to initialize a Volstagg render object" );
 			return false;
 		}
 
@@ -240,23 +268,23 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 
 void Framework::Shutdown()
 {
-	delete m_Loki1;
-	m_Loki1 = nullptr;
-	delete m_Loki2;
-	m_Loki2 = nullptr;
-	delete m_Loki3;
-	m_Loki3 = nullptr;
-	delete m_Loki4;
-	m_Loki4 = nullptr;
+	delete m_pLoki1;
+	m_pLoki1 = nullptr;
+	//delete m_Loki2;
+	//m_Loki2 = nullptr;
+	//delete m_Loki3;
+	//m_Loki3 = nullptr;
+	//delete m_Loki4;
+	//m_Loki4 = nullptr;
 
-	delete m_Volstagg;
-	m_Volstagg = nullptr;
+	delete m_pVolstagg;
+	m_pVolstagg = nullptr;
 
-	if( m_Renderer != nullptr )
+	if( nullptr != m_pRenderer )
 	{
-		m_Renderer->Shutdown();
-		delete m_Renderer;
-		m_Renderer = nullptr;
+		m_pRenderer->Shutdown();
+		delete m_pRenderer;
+		m_pRenderer = nullptr;
 	}
 	Helheimr::Input::Destroy();
 	//if( m_pGame != nullptr )
@@ -266,11 +294,11 @@ void Framework::Shutdown()
 	//	m_pGame = nullptr;
 	//}
 	// Try to always shutdown the logger 2nd last if possible
-	if( m_Logger != nullptr )
+	if( nullptr != m_pLogger )
 	{
-		m_Logger->Shutdown();
-		delete m_Logger;
-		m_Logger = nullptr;
+		m_pLogger->Shutdown();
+		delete m_pLogger;
+		m_pLogger = nullptr;
 	}
 	// Try to always shutdown the message manager last if possible
 	m_MessageManager.reset();
@@ -281,7 +309,7 @@ void Framework::Update()
 	if( m_Initialized )
 	{
 		// Get the current time in milliseconds since the computer was turned on
-		unsigned int newFrameTime = Platform::GetTime();
+		unsigned int const newFrameTime = Platform::GetTime();
 
 		// Calculate the amount of milliseconds since the last update
 		unsigned int timeElapsed = newFrameTime - m_OldFrameTime;
@@ -300,7 +328,7 @@ void Framework::Update()
 			// Increment the update accumulator;
 			++m_UpdateAccumulator;
 
-			const unsigned int kOneSecond = 1000;
+			unsigned int const kOneSecond = 1000;
 
 			if( m_OneSecondIntervalAccumulator >= kOneSecond )
 			{
@@ -348,12 +376,12 @@ void Framework::Update()
 		//PLATFORM_ASSERT( m_pGame != nullptr );
 		//m_pGame->Update();
 
-		m_Loki1->Update();
-		m_Loki2->Update();
-		m_Loki3->Update();
-		m_Loki4->Update();
-		m_Volstagg->Update();
-		m_CameraManager->Update( timeElapsed / 1000.0f, Helheimr::Input::GetInstance() );
+		m_pLoki1->Update();
+		//m_Loki2->Update();
+		//m_Loki3->Update();
+		//m_Loki4->Update();
+		m_pVolstagg->Update();
+		m_pCameraManager->Update( timeElapsed / 1000.0f, Helheimr::Input::GetInstance() );
 
 		//PLATFORM_ASSERT( m_Renderer != nullptr );
 		//m_pGraphics->UpdateConsole( timeElapsed / 1000.0f );
@@ -362,9 +390,9 @@ void Framework::Update()
 		//m_Renderer->SetCamera( m_pGame->GetCurrentCamera() );
 
 		// Render the scene
-		const Vanaheimr::Camera* currentCamera = m_CameraManager->GetCurrentCamera();
+		Vanaheimr::Camera const * const pCurrentCamera = m_pCameraManager->GetCurrentCamera();
 
-		const glm::mat4& viewMatrix = currentCamera->GetMatrix();
+		glm::mat4 const & viewMatrix = pCurrentCamera->GetMatrix();
 
 		//// ###################################################
 		//static camera internetCamera;
@@ -453,22 +481,22 @@ void Framework::Update()
 
 		// ####################################################
 
-		m_Renderer->BeginRender( viewMatrix );
+		m_pRenderer->BeginRender( viewMatrix );
 
 		// Render the current FPS
 		wchar_t stringBuffer[ Platform::kMaxStringLength ];
 		std::swprintf( stringBuffer, Platform::kMaxStringLength, L"%4u FPS", m_CurrentFPS );
-		m_Renderer->DrawSurfaceString( m_MainScreen, stringBuffer, 10, 0, Muspelheim::Renderer::TEXT_RIGHT );
+		m_pRenderer->DrawSurfaceString( m_MainScreen, stringBuffer, 10, 0, Muspelheim::Renderer::TEXT_RIGHT );
 
-		glm::vec3 cameraForward = viewMatrix[ 2 ];
+		glm::vec3 const & cameraForward = viewMatrix[ 2 ];
 		std::swprintf( stringBuffer, Platform::kMaxStringLength, L"Camera Direction: %.3f, %.3f, %.3f", cameraForward.x, cameraForward.y, cameraForward.z );
-		m_Renderer->DrawSurfaceString( m_MainScreen, stringBuffer, 40, 1, Muspelheim::Renderer::TEXT_RIGHT );
+		m_pRenderer->DrawSurfaceString( m_MainScreen, stringBuffer, 40, 1, Muspelheim::Renderer::TEXT_RIGHT );
 
-		glm::vec3 cameraPosition = currentCamera->GetPosition();
+		glm::vec3 const & cameraPosition = pCurrentCamera->GetPosition();
 		std::swprintf( stringBuffer, Platform::kMaxStringLength, L"Camera Position: %.1f, %.1f, %.1f", cameraPosition.x, cameraPosition.y, cameraPosition.z );
-		m_Renderer->DrawSurfaceString( m_MainScreen, stringBuffer, 40, 2, Muspelheim::Renderer::TEXT_RIGHT );
+		m_pRenderer->DrawSurfaceString( m_MainScreen, stringBuffer, 40, 2, Muspelheim::Renderer::TEXT_RIGHT );
 
-		m_Renderer->EndRender();
+		m_pRenderer->EndRender();
 
 		// Clear input key releases and post message buffer
 		Helheimr::Input::GetInstance()->AdvanceFrame();
@@ -483,35 +511,39 @@ void Framework::ProcessInputEvent( Platform::LongParam lParam )
 {
 	if( m_Initialized )
 	{
-		UINT dwSize;
+		UINT rawInputDataSize;
 
-		if( GetRawInputData( (HRAWINPUT)lParam, RID_INPUT, NULL, &dwSize, sizeof( RAWINPUTHEADER ) ) != 0 )
+		if( 0 != GetRawInputData( (HRAWINPUT)lParam, RID_INPUT, NULL, &rawInputDataSize, sizeof( RAWINPUTHEADER ) ) )
 		{
-			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Size query to GetRawInputData failed!" ) );
+			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, L"Size query to GetRawInputData failed!" );
 			return;
 		}
 
-		if( dwSize == 0 )
+		if( 0 == rawInputDataSize )
 		{
-			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Size query to GetRawInputData returned 0 size!" ) );
+			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, L"Size query to GetRawInputData returned 0 size!" );
 			return;
 		}
 
-		LPBYTE lpb = new BYTE[ dwSize ];
-		PLATFORM_ASSERT( lpb != nullptr );
+		LPBYTE pTempDataBuffer = new BYTE[ rawInputDataSize ];
+		PLATFORM_ASSERT( nullptr != pTempDataBuffer );
 
-		if( GetRawInputData( (HRAWINPUT)lParam, RID_INPUT, lpb, &dwSize, sizeof( RAWINPUTHEADER ) ) != dwSize )
+		// When pTempDataBuffer is non NULL the reference to rawInputDataSize is not supposed to be written to but it can look confusing, 
+		// so we cache the value here for clarity.
+		UINT const bytesToCopy = rawInputDataSize;
+
+		if( bytesToCopy != GetRawInputData( (HRAWINPUT)lParam, RID_INPUT, pTempDataBuffer, &rawInputDataSize, sizeof( RAWINPUTHEADER ) ) )
 		{
-			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"GetRawInputData does not return correct size!" ) );
+			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, L"GetRawInputData does not return correct size!" );
 		}
 
-		RAWINPUT* raw = (RAWINPUT*)lpb;
+		RAWINPUT* pRawInputData = (RAWINPUT*)pTempDataBuffer;
 		unsigned int data = 0;
 
-		if( raw->header.dwType == RIM_TYPEKEYBOARD )
+		if( RIM_TYPEKEYBOARD == pRawInputData->header.dwType )
 		{
-			data = raw->data.keyboard.VKey;
-			if( ( raw->data.keyboard.Flags & RI_KEY_BREAK ) == 0 )
+			data = pRawInputData->data.keyboard.VKey;
+			if( ( pRawInputData->data.keyboard.Flags & RI_KEY_BREAK ) == 0 )
 			{
 				data |= Helheimr::Input::MODIFIER_KEY_PRESS;
 			}
@@ -519,15 +551,15 @@ void Framework::ProcessInputEvent( Platform::LongParam lParam )
 			{
 				// It seems the way we are handling input has intercepted the regular generation of the WM_CLOSE event (alt-F4)
 				// So we intercept that key combination here and manually post the message.
-				if( raw->data.keyboard.VKey == Helheimr::Input::KEY_F4 && Helheimr::Input::GetInstance()->GetKeyDown( Helheimr::Input::KEY_ALT ) )
+				if( pRawInputData->data.keyboard.VKey == Helheimr::Input::KEY_F4 && Helheimr::Input::GetInstance()->GetKeyDown( Helheimr::Input::KEY_ALT ) )
 				{
 					PostMessage( m_hWindow, WM_CLOSE, 0, 0 );
 				}
 			}
 		}
-		else if (raw->header.dwType == RIM_TYPEMOUSE)
+		else if ( pRawInputData->header.dwType == RIM_TYPEMOUSE )
 		{
-			if( raw->data.mouse.usButtonFlags & RI_MOUSE_RIGHT_BUTTON_DOWN )
+			if( pRawInputData->data.mouse.usButtonFlags & RI_MOUSE_RIGHT_BUTTON_DOWN )
 			{
 				if( m_MouseCaptured == false )
 				{
@@ -540,7 +572,7 @@ void Framework::ProcessInputEvent( Platform::LongParam lParam )
 				//data |= Helheimr::Input::MODIFIER_KEY_PRESS;
 
 			}
-			else if( raw->data.mouse.usButtonFlags & RI_MOUSE_RIGHT_BUTTON_UP )
+			else if( pRawInputData->data.mouse.usButtonFlags & RI_MOUSE_RIGHT_BUTTON_UP )
 			{
 				if( m_MouseCaptured == true )
 				{
@@ -563,10 +595,10 @@ void Framework::ProcessInputEvent( Platform::LongParam lParam )
 			}
 
 			// Ensure that the last X & Y are deltas and not absolute
-			if( m_MouseCaptured && ( raw->data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE ) == 0 )
+			if( m_MouseCaptured && ( pRawInputData->data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE ) == 0 )
 			{
-				long rawMouseX = raw->data.mouse.lLastX;
-				long rawMouseY = raw->data.mouse.lLastY;
+				long rawMouseX = pRawInputData->data.mouse.lLastX;
+				long rawMouseY = pRawInputData->data.mouse.lLastY;
 
 				// We will cap deltas to CHAR_MIN to CHAR_MAX for each axis
 				if( rawMouseX < CHAR_MIN || rawMouseX > CHAR_MAX || rawMouseY < CHAR_MIN || rawMouseY > CHAR_MAX )
@@ -606,7 +638,7 @@ void Framework::ProcessInputEvent( Platform::LongParam lParam )
 			}
 		}
 
-		delete[] lpb;
+		delete[] pTempDataBuffer;
 
 		Helheimr::Input::GetInstance()->ProcessEvent( data );
 	}
@@ -616,8 +648,8 @@ void Framework::ResizeWindow( unsigned short width, unsigned short height )
 {
 	if( m_Initialized )
 	{
-		PLATFORM_ASSERT( m_Renderer != nullptr );
-		m_Renderer->SetWindowSize( width, height );
+		PLATFORM_ASSERT( nullptr != m_pRenderer );
+		m_pRenderer->SetWindowSize( width, height );
 	}
 }
 

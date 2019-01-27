@@ -15,6 +15,10 @@
 
 namespace Vanaheimr
 {
+	constexpr double pi = 3.14159265358979323846;
+	constexpr float Deg2Rad( float value ) { return value * (pi / 180.0f); }
+	constexpr float Rad2Deg( float value ) { return value * (180.0f / pi); }
+
 	class EXPORT Object3D
 	{
 	public:

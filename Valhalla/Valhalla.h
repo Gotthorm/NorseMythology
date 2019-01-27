@@ -16,7 +16,7 @@ namespace Valhalla
 		PNGObject() = default;
 		virtual ~PNGObject();
 
-		bool Load( const std::string& fileName );
+		bool Load( const std::wstring& fileName );
 
 		unsigned int GetHeight() { return m_Height; }
 		unsigned int GetWidth() { return m_Width; }
@@ -41,7 +41,7 @@ namespace Valhalla
 		SBMObject() = default;
 		virtual ~SBMObject();
 
-		bool Load( const std::string& fileName );
+		bool Load( const std::wstring& fileName );
 
 		unsigned int GetSize() { return m_Size; }
 		unsigned int GetVertices() { return m_Vertices; }

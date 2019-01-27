@@ -113,7 +113,7 @@ namespace Valhalla
 		delete[] m_RawData;
 	}
 
-	bool SBMObject::Load( const std::string& fileName )
+	bool SBMObject::Load( const std::wstring& fileName )
 	{
 		bool results = false;
 		unsigned int sig_read = 0;
@@ -122,7 +122,7 @@ namespace Valhalla
 		{
 			FILE* filePointer;
 
-			if( fopen_s( &filePointer, fileName.c_str(), "rb" ) == 0 )
+			if( _wfopen_s( &filePointer, fileName.c_str(), L"rb" ) == 0 )
 			{
 				//char * data;
 

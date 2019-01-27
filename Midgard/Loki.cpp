@@ -1,17 +1,14 @@
 // LOKI.CPP
 
-#include <windows.h>
+//#include <windows.h>
 #include "Loki.h"
 #include <stdio.h>
 #include "Valhalla.h"
 
 const std::wstring shaderName( L"Media/Shaders/render" );
 
-Loki::Loki( Muspelheim::SurfaceID id ) : m_SurfaceID( id )
-{
-}
-
-Loki::~Loki()
+Loki::Loki( Muspelheim::SurfaceID id ) 
+	: m_SurfaceID( id )
 {
 }
 
@@ -32,12 +29,11 @@ bool Loki::Init( Muspelheim::Renderer& renderer )
 	return false;
 }
 
-bool Loki::Load( const std::string& filename )
+bool Loki::Load( const std::wstring& filename )
 {
-	if( m_RenderObject.expired() == false )
+	if( false == m_RenderObject.expired() )
 	{
-		Valhalla::SBMObject sbmObject;
-
+#if 0
 		Valhalla::FBXObject fbxObject;
 
 		if( fbxObject.Load( "Media/Objects/cube.fbx" ) )
@@ -46,6 +42,8 @@ bool Loki::Load( const std::string& filename )
 
 			return true;
 		}
+#else
+		Valhalla::SBMObject sbmObject;
 
 		if( sbmObject.Load( filename ) )
 		{
@@ -53,6 +51,7 @@ bool Loki::Load( const std::string& filename )
 		
 			return true;
 		}
+#endif
 	}
 
 	return false;

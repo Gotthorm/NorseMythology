@@ -15,7 +15,7 @@ namespace Valhalla
 		delete[] m_Data;
 	}
 
-	bool PNGObject::Load( const std::string& fileName )
+	bool PNGObject::Load( const std::wstring& fileName )
 	{
 		bool results = false;
 		unsigned int sig_read = 0;
@@ -24,7 +24,7 @@ namespace Valhalla
 		{
 			FILE* filePointer;
 
-			if( fopen_s( &filePointer, fileName.c_str(), "rb" ) == 0 )
+			if( _wfopen_s( &filePointer, fileName.c_str(), L"rb" ) == 0 )
 			{
 				// Create and initialize the png_struct with the desired error handler functions.  
 				// If you want to use the default stderr and longjump method, you can supply NULL for the last three parameters.  

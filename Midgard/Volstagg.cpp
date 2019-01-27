@@ -1,17 +1,14 @@
 // VOLSTAGG.CPP
 
-#include <windows.h>
+//#include <windows.h>
 #include "Volstagg.h"
 #include "Valhalla.h"
 #include <stdio.h>
 
-const std::wstring shaderName( L"Media/Shaders/tessellation" );
+std::wstring const shaderName( L"Media/Shaders/tessellation" );
 
-Volstagg::Volstagg( Muspelheim::SurfaceID id ) : m_SurfaceID( id )
-{
-}
-
-Volstagg::~Volstagg()
+Volstagg::Volstagg( Muspelheim::SurfaceID id ) 
+	: m_SurfaceID( id )
 {
 }
 
@@ -21,12 +18,12 @@ bool Volstagg::Init( Muspelheim::Renderer& renderer )
 
 	std::shared_ptr<Muspelheim::RenderObject> renderObject = m_RenderObject.lock();
 
-	if( renderObject != nullptr )
+	if( nullptr != renderObject )
 	{
 		if( renderObject->SetShader( renderer.LoadShader( shaderName ) ) )
 		{
-			// Need to figure out why this is necessary, rotating the mesh by 90 degrees
-			renderObject->Pitch( 1.5708f );
+			// Need to figure out why this is necessary
+			renderObject->Pitch( Vanaheimr::Deg2Rad(90) );
 
 			return true;
 		}
@@ -35,11 +32,11 @@ bool Volstagg::Init( Muspelheim::Renderer& renderer )
 	return false;
 }
 
-bool Volstagg::Load( const std::string& displacementTextureName )
+bool Volstagg::Load( const std::wstring& displacementTextureName )
 {
 	std::shared_ptr<Muspelheim::RenderObject> renderObject = m_RenderObject.lock();
 
-	if( renderObject != nullptr )
+	if( nullptr != renderObject )
 	{
 		Valhalla::PNGObject png;
 
@@ -48,7 +45,7 @@ bool Volstagg::Load( const std::string& displacementTextureName )
 			renderObject->LoadTexture( png.GetData(), png.GetWidth(), png.GetHeight(), png.GetAlpha() );
 		}
 
-		if( png.Load( "Media/Textures/Green.png" ) )
+		if( png.Load( L"Media/Textures/Green.png" ) )
 		{
 			renderObject->LoadTexture( png.GetData(), png.GetWidth(), png.GetHeight(), png.GetAlpha() );
 		}

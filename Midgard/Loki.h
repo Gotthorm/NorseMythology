@@ -1,7 +1,6 @@
 // LOKI.H
 
-#ifndef _LOKI_H_
-#define _LOKI_H_
+#pragma once
 
 //#include "VectorMath.h"
 #include <string>
@@ -12,11 +11,11 @@ class Loki
 {
 public:
 	Loki( Muspelheim::SurfaceID id );
-    virtual ~Loki();
+	virtual ~Loki() = default;
 
 	bool Init( Muspelheim::Renderer& renderer );
 
-    bool Load( const std::string& filename );
+    bool Load( const std::wstring& filename );
 
 	bool Update();
 
@@ -26,6 +25,3 @@ private:
 	std::weak_ptr<Muspelheim::RenderObject> m_RenderObject;
 	Muspelheim::SurfaceID m_SurfaceID;
 };
-
-#endif // _LOKI_H_
-
