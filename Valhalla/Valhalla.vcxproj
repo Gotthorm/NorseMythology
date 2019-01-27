@@ -109,12 +109,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;_USRDLL;VALHALLA_EXPORTS;%(PreprocessorDefinitions);MAKE_DLL</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)Include;$(SolutionDir)External\zlib-1.2.11;$(SolutionDir)External\lpng-1.6.28;$(SolutionDir)External\autodesk-FBX-SDK-2017.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)Include;$(SolutionDir)External\zlib-1.2.11;$(SolutionDir)External\lpng-1.6.28;$(SolutionDir)External\autodesk-FBX-SDK-2019.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)External\zlib-1.2.11\lib;$(SolutionDIr)External\lpng-1.6.28\lib;$(SolutionDir)External\autodesk-FBX-SDK-2017.1\lib\vs2015\x64\debug</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)External\zlib-1.2.11\lib;$(SolutionDIr)External\lpng-1.6.28\lib;$(SolutionDir)External\autodesk-FBX-SDK-2019.2\lib\vs2017\x64\debug</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -143,14 +143,14 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;_USRDLL;VALHALLA_EXPORTS;%(PreprocessorDefinitions);MAKE_DLL</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)Include;$(SolutionDir)External\zlib-1.2.11;$(SolutionDir)External\lpng-1.6.28;$(SolutionDir)External\autodesk-FBX-SDK-2017.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)Include;$(SolutionDir)External\zlib-1.2.11;$(SolutionDir)External\lpng-1.6.28;$(SolutionDir)External\autodesk-FBX-SDK-2019.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)External\zlib-1.2.11\lib;$(SolutionDIr)External\lpng-1.6.28\lib;$(SolutionDir)External\autodesk-FBX-SDK-2017.1\lib\vs2015\x64\release</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)External\zlib-1.2.11\lib;$(SolutionDIr)External\lpng-1.6.28\lib;$(SolutionDir)External\autodesk-FBX-SDK-2019.2\lib\vs2017\x64\release</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -9,6 +9,7 @@ using namespace fbxsdk;
 
 // Link the static non-dll version of the FBX library
 #pragma comment(lib, "libfbxsdk-md.lib")
+#pragma comment(lib, "libxml2-md.lib")
 
 FbxNode* FindMeshNode( FbxNode* pNode )
 {
