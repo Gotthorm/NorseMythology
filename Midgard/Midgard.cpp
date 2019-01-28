@@ -1,10 +1,11 @@
 // MIDGARD.CPP
+//
+// Main x64 application entry point module for Mythology
+//
 
 #include <windows.h>
 #include <TCHAR.H>
 #include <assert.h>
-#include <stdio.h>
-#include "Muspelheim.h"
 #include "Framework.h"
 
 // Constants

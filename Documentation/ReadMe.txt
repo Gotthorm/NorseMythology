@@ -1,3 +1,16 @@
+Mythology 
+
+01/27/2019
+Began a complete reassessment of the solution:
+- Code review of "Midgard"
+- Code review of "Framework"
+
+TODO:
+- Research the "needs to have dll-interface" warning
+- Move data object creation from framework into game module
+- Mouse input is busted
+- Camera is still incorrect when panning
+
 Asgard
 Alfheimr - Console/Scripting
 Svartalfheimr

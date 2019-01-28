@@ -146,12 +146,14 @@
   <ItemGroup>
     <ClInclude Include="..\Include\Platform.h" />
     <ClInclude Include="Framework.h" />
+    <ClInclude Include="GameTime.h" />
     <ClInclude Include="Loki.h" />
     <ClInclude Include="Volstagg.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Source\Platform.cpp" />
     <ClCompile Include="Framework.cpp" />
+    <ClCompile Include="GameTime.cpp" />
     <ClCompile Include="Loki.cpp" />
     <ClCompile Include="Midgard.cpp" />
     <ClCompile Include="Volstagg.cpp" />

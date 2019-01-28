@@ -5,17 +5,17 @@
 #include <memory>
 #include "Platform.h"
 #include "Singleton.h"
-#include "Muspelheim.h"
+#include "GameTime.h"
 
 // Forward declarations
-//namespace Muspelheim { class Renderer; class Surface; class Text; }
-namespace Niflheim { class MessageManager; }
-namespace Niflheim { class Logger; }
+namespace Muspelheim { class Renderer; }
+namespace Niflheim { class MessageManager; class Logger;  }
 namespace Vanaheimr { class CameraManager; }
 class Game;
-class Input;
+//class Input;
 class Loki;
 class Volstagg;
+class FPS;
 
 /// \brief Encapsulation all of the engine's subsystems.
 ///
@@ -32,7 +32,7 @@ public:
 	/// \param hWindow A constant character pointer.
 	/// \param launchInfo A reference to launch parameters.
 	/// \return Returns true if all subsystems were initialized properly.
-	bool Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo& launchInfo );
+	bool Init( Platform::WindowHandle hWindow, Platform::LaunchInfo const & launchInfo );
 
 	/// \brief The main shutdown of the framework.
 	/// 
@@ -56,48 +56,44 @@ public:
 	void ResizeWindow( unsigned short width, unsigned short height );
 
 private:
-	// Use the default implementation
-	Framework() = default;
-
-	// Use the default implementation
+	Framework();
 	virtual ~Framework() = default;
 
 	// Remove the default assignment operator
-	Framework & operator =( const Framework & ) = delete;
+	Framework & operator =( Framework const & ) = delete;
 
 	// Remove the copy constructor
-	Framework( const Framework & ) = delete;
+	Framework( Framework const & ) = delete;
 
 	// Subsystems
-	Muspelheim::Renderer* m_pRenderer = nullptr;
+	Muspelheim::Renderer* m_pRenderer;
+	Niflheim::Logger* m_pLogger;
+	Game* m_pGame;
+	//Input* m_pInput;
+	Vanaheimr::CameraManager* m_pCameraManager;
 	std::shared_ptr<Niflheim::MessageManager> m_MessageManager;
-	Niflheim::Logger* m_pLogger = nullptr;
 
+	// The main window identifier
+	Platform::WindowHandle m_WindowHandle;
+
+	// The main screen (surface) identifier
+	unsigned char m_MainScreenID;
+
+	// TODO : move these into game
 	Loki* m_pLoki1 = nullptr;
 	//Loki* m_Loki2 = nullptr;
 	//Loki* m_Loki3 = nullptr;
 	//Loki* m_Loki4 = nullptr;
 	Volstagg* m_pVolstagg = nullptr;
-	Game* m_pGame = nullptr;
-	Input* m_pInput = nullptr;
 
-	Platform::WindowHandle m_hWindow = 0;
-
-	// The main screen
-	Muspelheim::SurfaceID m_MainScreen = Muspelheim::InvalidSurface;
-
-	Vanaheimr::CameraManager* m_pCameraManager;
 
 	bool m_Initialized = false;
 
+	// TODO: Shouldnt this be in the input module?
 	// Tracking mouse capture
 	bool m_MouseCaptured = false;
 
-	// State variables for FPS tracking
-	unsigned int m_OldFrameTime = 0;
-	unsigned int m_CurrentFPS = 0;
-	unsigned int m_OneSecondIntervalAccumulator = 0;
-	unsigned int m_UpdateAccumulator = 0;
+	GameTime m_GameTime;
 
 	// Provide friend access to Singleton<Input> specialization
 	friend Singleton<Framework>;

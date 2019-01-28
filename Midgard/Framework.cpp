@@ -12,6 +12,7 @@
 #include "Loki.h"
 #include "Volstagg.h"
 #include "Vanaheimr.h"
+
 //#include "ConsoleCommandManager.h"
 //#include "ConsoleParameterList.h"
 #include <glm/gtc/matrix_transform.hpp>
@@ -54,6 +55,18 @@ std::wstring const surfaceShaderName( L"Media/Shaders/surface.background" );
 std::wstring const text2DShaderName( L"Media/Shaders/text2d" );
 std::wstring const terrainDataName( L"Media/Textures/Island.png" );
 std::wstring const avatarDataName( L"Media/Objects/Dragon.sbm" );
+
+Framework::Framework()
+	: m_pRenderer( nullptr )
+	, m_pLogger( nullptr )
+	, m_pGame( nullptr )
+//	, m_pInput( nullptr )
+	, m_pCameraManager( nullptr )
+	, m_WindowHandle( 0 )
+	, m_MainScreenID( Muspelheim::InvalidSurface )
+{
+
+}
 
 bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo& launchInfo )
 {
@@ -122,7 +135,7 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		}
 
 		// Set up the main screen
-		if( false == m_pRenderer->CreateSurface( m_MainScreen ) )
+		if( false == m_pRenderer->CreateSurface( m_MainScreenID ) )
 		{
 			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, L"Failed to create main render surface" );
 			return false;
@@ -131,17 +144,17 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		{
 			unsigned int shaderId = m_pRenderer->LoadShader( surfaceShaderName );
 
-			if ( 0 == shaderId || false == m_pRenderer->SetSurfaceShader( m_MainScreen, shaderId ) )
+			if ( 0 == shaderId || false == m_pRenderer->SetSurfaceShader( m_MainScreenID, shaderId ) )
 			{
 				m_MessageManager->Post( Niflheim::Message::LOG_WARN, L"Failed to load shader: " + surfaceShaderName );
 			}
 
 			// Set background to the color orange
-			m_pRenderer->SetSurfaceColor( m_MainScreen, glm::vec4( 0.8f, 0.3f, 0.3f, 1.0f ) );
+			m_pRenderer->SetSurfaceColor( m_MainScreenID, glm::vec4( 0.8f, 0.3f, 0.3f, 1.0f ) );
 
 			shaderId = m_pRenderer->LoadShader( text2DShaderName );
 			
-			if ( 0 == shaderId || false == m_pRenderer->SetSurfaceTextShader( m_MainScreen, shaderId ) )
+			if ( 0 == shaderId || false == m_pRenderer->SetSurfaceTextShader( m_MainScreenID, shaderId ) )
 			{
 				m_MessageManager->Post( Niflheim::Message::LOG_WARN, L"Failed to load shader: " + text2DShaderName );
 			}
@@ -158,7 +171,7 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		// Initialize the game
 
 		// Create and initialize the avatar
-		m_pLoki1 = new Loki( m_MainScreen );
+		m_pLoki1 = new Loki( m_MainScreenID );
 		PLATFORM_ASSERT( nullptr != m_pCameraManager );
 		if( m_pLoki1->Init( *m_pRenderer ) )
 		{
@@ -175,7 +188,7 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 
 		m_pLoki1->SetPosition( glm::vec3( moveScale, 0, moveScale ) );
 
-		//m_Loki2 = new Loki( m_MainScreen );
+		//m_Loki2 = new Loki( m_MainScreenID );
 		//if( m_Loki2 && m_Loki2->Init( *m_pRenderer ) )
 		//{
 		//	if( m_Loki2->Load( "Media/Objects/Dragon.sbm" ) == false )
@@ -190,7 +203,7 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		//}
 		//m_Loki2->SetPosition( glm::vec3( -moveScale, 0, moveScale ) );
 
-		//m_Loki3 = new Loki( m_MainScreen );
+		//m_Loki3 = new Loki( m_MainScreenID );
 		//if( m_Loki3 && m_Loki3->Init( *m_pRenderer ) )
 		//{
 		//	if( m_Loki3->Load( "Media/Objects/Dragon.sbm" ) == false )
@@ -205,7 +218,7 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		//}
 		//m_Loki3->SetPosition( glm::vec3( moveScale, 0, -moveScale ) );
 
-		//m_Loki4 = new Loki( m_MainScreen );
+		//m_Loki4 = new Loki( m_MainScreenID );
 		//if( m_Loki4 && m_Loki4->Init( *m_pRenderer ) )
 		//{
 		//	if( m_Loki4->Load( "Media/Objects/Dragon.sbm" ) == false )
@@ -221,7 +234,7 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		//m_Loki4->SetPosition( glm::vec3( -moveScale, 0, -moveScale ) );
 
 		// Create and initialize the terrain loader
-		m_pVolstagg = new Volstagg( m_MainScreen );
+		m_pVolstagg = new Volstagg( m_MainScreenID );
 		PLATFORM_ASSERT( nullptr != m_pVolstagg );
 		if( m_pVolstagg->Init( *m_pRenderer ) )
 		{
@@ -248,13 +261,7 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 
 		//m_pGame->EnableMouseCapture( false );
 
-		// Initialize the stats related variables
-		m_OldFrameTime = timeGetTime();
-		m_OneSecondIntervalAccumulator = 0;
-		m_UpdateAccumulator = 0;
-		m_CurrentFPS = 0;
-
-		m_hWindow = hWindow;
+		m_WindowHandle = hWindow;
 	}
 
 	//Vanaheimr::Object3D newObject;
@@ -308,61 +315,7 @@ void Framework::Update()
 {
 	if( m_Initialized )
 	{
-		// Get the current time in milliseconds since the computer was turned on
-		unsigned int const newFrameTime = Platform::GetTime();
-
-		// Calculate the amount of milliseconds since the last update
-		unsigned int timeElapsed = newFrameTime - m_OldFrameTime;
-
-		// If someone's computer has been running for 49 days, the counter may wrap over
-		if( newFrameTime < m_OldFrameTime )
-		{
-			timeElapsed = newFrameTime + ( UINT_MAX - m_OldFrameTime );
-		}
-
-		// Calculate the current FPS value
-		{
-			// Update the 1 second accumulator
-			m_OneSecondIntervalAccumulator += timeElapsed;
-
-			// Increment the update accumulator;
-			++m_UpdateAccumulator;
-
-			unsigned int const kOneSecond = 1000;
-
-			if( m_OneSecondIntervalAccumulator >= kOneSecond )
-			{
-				unsigned int secondElapsed = 0;
-
-				while( m_OneSecondIntervalAccumulator >= kOneSecond )
-				{
-					++secondElapsed;
-					m_OneSecondIntervalAccumulator -= kOneSecond;
-				}
-
-				m_CurrentFPS = m_UpdateAccumulator / secondElapsed;
-
-				m_UpdateAccumulator = 0;
-
-#if 0
-				// TEMP: For debugging
-				static int counter = 0;
-				std::wstringstream s;
-				s << L"One second has elapsed : " << counter++ << "#";
-				size_t length = s.str().length();
-				for( ; length < 150; ++length )
-				{
-					s << ( length  % 10 );
-					//length = s.str().length();
-				}
-				MessageManager::GetInstance()->Post( Message::LOG_INFO, s.str() );
-				//MessageManager::GetInstance()->Post( Message::LOG_ERROR, s.str() );
-#endif
-			}
-		}
-
-		// Update the old time for the next update
-		m_OldFrameTime = newFrameTime;
+		m_GameTime.Update();
 
 		// Check for the console activation/deactivation
 		//if( Helheimr::Input::GetInstance()->GetKeyUp( Helheimr::Input::KEY_TILDA ) )
@@ -381,7 +334,7 @@ void Framework::Update()
 		//m_Loki3->Update();
 		//m_Loki4->Update();
 		m_pVolstagg->Update();
-		m_pCameraManager->Update( timeElapsed / 1000.0f, Helheimr::Input::GetInstance() );
+		m_pCameraManager->Update( m_GameTime.Duration(), Helheimr::Input::GetInstance() );
 
 		//PLATFORM_ASSERT( m_Renderer != nullptr );
 		//m_pGraphics->UpdateConsole( timeElapsed / 1000.0f );
@@ -485,16 +438,16 @@ void Framework::Update()
 
 		// Render the current FPS
 		wchar_t stringBuffer[ Platform::kMaxStringLength ];
-		std::swprintf( stringBuffer, Platform::kMaxStringLength, L"%4u FPS", m_CurrentFPS );
-		m_pRenderer->DrawSurfaceString( m_MainScreen, stringBuffer, 10, 0, Muspelheim::Renderer::TEXT_RIGHT );
+		std::swprintf( stringBuffer, Platform::kMaxStringLength, L"%4u FPS", m_GameTime.FPS() );
+		m_pRenderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 10, 0, Muspelheim::Renderer::TEXT_RIGHT );
 
 		glm::vec3 const & cameraForward = viewMatrix[ 2 ];
 		std::swprintf( stringBuffer, Platform::kMaxStringLength, L"Camera Direction: %.3f, %.3f, %.3f", cameraForward.x, cameraForward.y, cameraForward.z );
-		m_pRenderer->DrawSurfaceString( m_MainScreen, stringBuffer, 40, 1, Muspelheim::Renderer::TEXT_RIGHT );
+		m_pRenderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 40, 1, Muspelheim::Renderer::TEXT_RIGHT );
 
 		glm::vec3 const & cameraPosition = pCurrentCamera->GetPosition();
 		std::swprintf( stringBuffer, Platform::kMaxStringLength, L"Camera Position: %.1f, %.1f, %.1f", cameraPosition.x, cameraPosition.y, cameraPosition.z );
-		m_pRenderer->DrawSurfaceString( m_MainScreen, stringBuffer, 40, 2, Muspelheim::Renderer::TEXT_RIGHT );
+		m_pRenderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 40, 2, Muspelheim::Renderer::TEXT_RIGHT );
 
 		m_pRenderer->EndRender();
 
@@ -553,7 +506,7 @@ void Framework::ProcessInputEvent( Platform::LongParam lParam )
 				// So we intercept that key combination here and manually post the message.
 				if( pRawInputData->data.keyboard.VKey == Helheimr::Input::KEY_F4 && Helheimr::Input::GetInstance()->GetKeyDown( Helheimr::Input::KEY_ALT ) )
 				{
-					PostMessage( m_hWindow, WM_CLOSE, 0, 0 );
+					PostMessage( m_WindowHandle, WM_CLOSE, 0, 0 );
 				}
 			}
 		}
@@ -563,7 +516,7 @@ void Framework::ProcessInputEvent( Platform::LongParam lParam )
 			{
 				if( m_MouseCaptured == false )
 				{
-					SetCapture( m_hWindow );
+					SetCapture( m_WindowHandle );
 					m_MouseCaptured = true;
 					ShowCursor( FALSE );
 				}
@@ -582,7 +535,7 @@ void Framework::ProcessInputEvent( Platform::LongParam lParam )
 
 					// Place the cursor back to the center of the window
 					RECT rect;
-					if( GetWindowRect( m_hWindow, &rect ) )
+					if( GetWindowRect( m_WindowHandle, &rect ) )
 					{
 						int width = rect.right - rect.left;
 						int height = rect.bottom - rect.top;
