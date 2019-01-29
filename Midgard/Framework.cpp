@@ -80,7 +80,7 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		m_pLogger = new Niflheim::Logger( m_MessageManager );
 		PLATFORM_ASSERT( nullptr != m_pLogger );
 
-		if( nullptr == m_pLogger || false == m_pLogger->Initialize( L"LogFile.txt" ) )
+		if( nullptr == m_pLogger || false == m_pLogger->Initialize( L"Logs\\LogFile.txt" ) )
 		{
 			PLATFORM_DEBUG_MESSAGE( L"Failed to initialize the logger system\n" );
 			return false;
