@@ -253,5 +253,5 @@ paket-files/
 /Nildavellir/LogFile.txt
 /Documentation/Nildavellir/html
 /FutureStuff
-/Midgard/LogFile.txt
-Midgard/LogFile.txt
+
+/Midgard/Logs/LogFile.txt
