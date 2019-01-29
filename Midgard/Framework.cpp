@@ -132,6 +132,8 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 					return false;
 				}
 			}
+
+			m_MessageManager->Post( Niflheim::Message::LOG_INFO, L"Input system initialized" );
 		}
 
 		// Set up the main screen
@@ -142,12 +144,16 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		}
 		else
 		{
+			m_MessageManager->Post( Niflheim::Message::LOG_INFO, L"Render surface created" );
+
 			unsigned int shaderId = m_pRenderer->LoadShader( surfaceShaderName );
 
 			if ( 0 == shaderId || false == m_pRenderer->SetSurfaceShader( m_MainScreenID, shaderId ) )
 			{
 				m_MessageManager->Post( Niflheim::Message::LOG_WARN, L"Failed to load shader: " + surfaceShaderName );
 			}
+
+			m_MessageManager->Post( Niflheim::Message::LOG_INFO, L"Shader: " + surfaceShaderName + L" loaded" );
 
 			// Set background to the color orange
 			m_pRenderer->SetSurfaceColor( m_MainScreenID, glm::vec4( 0.8f, 0.3f, 0.3f, 1.0f ) );
@@ -158,6 +164,8 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 			{
 				m_MessageManager->Post( Niflheim::Message::LOG_WARN, L"Failed to load shader: " + text2DShaderName );
 			}
+
+			m_MessageManager->Post( Niflheim::Message::LOG_INFO, L"Shader: " + text2DShaderName + L" loaded" );
 		}
 
 		//
@@ -300,6 +308,10 @@ void Framework::Shutdown()
 	//	delete m_pGame;
 	//	m_pGame = nullptr;
 	//}
+
+	m_MessageManager->Post( Niflheim::Message::LOG_INFO, L"System shutdown" );
+	m_MessageManager->Update();
+
 	// Try to always shutdown the logger 2nd last if possible
 	if( nullptr != m_pLogger )
 	{
