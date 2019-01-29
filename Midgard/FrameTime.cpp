@@ -1,4 +1,4 @@
-#include "GameTime.h"
+#include "FrameTime.h"
 #include <chrono>
 #include <iostream>
 
@@ -10,8 +10,8 @@ namespace
 	std::chrono::time_point<std::chrono::steady_clock> oldTimePoint;
 }
 
-GameTime::GameTime()
-	: m_Duration(0.0f)
+FrameTime::FrameTime()
+	: m_Duration( 0.0f )
 	, m_FPS( 0 )
 	, m_OneSecondIntervalAccumulator( 0.0f )
 	, m_UpdateAccumulator( 0 )
@@ -19,11 +19,9 @@ GameTime::GameTime()
 	oldTimePoint = std::chrono::high_resolution_clock::now();
 }
 
-void GameTime::Update()
+void FrameTime::Update()
 {
 	std::chrono::time_point<std::chrono::steady_clock> currentTimePoint = std::chrono::high_resolution_clock::now();
-
-	//auto duration = std::chrono::duration_cast< std::chrono::seconds >( currentTimePoint - m_OldTimePoint ).count();
 
 	auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>( currentTimePoint - oldTimePoint ).count();
 

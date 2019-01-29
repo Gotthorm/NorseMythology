@@ -26,7 +26,7 @@
     <ClInclude Include="Volstagg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GameTime.h">
+    <ClInclude Include="FrameTime.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -46,7 +46,7 @@
     <ClCompile Include="Volstagg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GameTime.cpp">
+    <ClCompile Include="FrameTime.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

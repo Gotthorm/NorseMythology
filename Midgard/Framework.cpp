@@ -315,7 +315,7 @@ void Framework::Update()
 {
 	if( m_Initialized )
 	{
-		m_GameTime.Update();
+		m_FrameTime.Update();
 
 		// Check for the console activation/deactivation
 		//if( Helheimr::Input::GetInstance()->GetKeyUp( Helheimr::Input::KEY_TILDA ) )
@@ -334,7 +334,7 @@ void Framework::Update()
 		//m_Loki3->Update();
 		//m_Loki4->Update();
 		m_pVolstagg->Update();
-		m_pCameraManager->Update( m_GameTime.Duration(), Helheimr::Input::GetInstance() );
+		m_pCameraManager->Update( m_FrameTime.Duration(), Helheimr::Input::GetInstance() );
 
 		//PLATFORM_ASSERT( m_Renderer != nullptr );
 		//m_pGraphics->UpdateConsole( timeElapsed / 1000.0f );
@@ -438,7 +438,7 @@ void Framework::Update()
 
 		// Render the current FPS
 		wchar_t stringBuffer[ Platform::kMaxStringLength ];
-		std::swprintf( stringBuffer, Platform::kMaxStringLength, L"%4u FPS", m_GameTime.FPS() );
+		std::swprintf( stringBuffer, Platform::kMaxStringLength, L"%4u FPS", m_FrameTime.FPS() );
 		m_pRenderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 10, 0, Muspelheim::Renderer::TEXT_RIGHT );
 
 		glm::vec3 const & cameraForward = viewMatrix[ 2 ];

@@ -5,7 +5,7 @@
 #include <memory>
 #include "Platform.h"
 #include "Singleton.h"
-#include "GameTime.h"
+#include "FrameTime.h"
 
 // Forward declarations
 namespace Muspelheim { class Renderer; }
@@ -93,7 +93,7 @@ private:
 	// Tracking mouse capture
 	bool m_MouseCaptured = false;
 
-	GameTime m_GameTime;
+	FrameTime m_FrameTime;
 
 	// Provide friend access to Singleton<Input> specialization
 	friend Singleton<Framework>;
