@@ -23,6 +23,57 @@
 #pragma comment(lib, "Vanaheimr.lib")
 #pragma comment(lib, "Valhalla.lib")
 
+//void Camera::Update()
+//{
+//	m_mat4ViewMatrix = glm::mat4();
+//
+//	m_flYaw += 0.02f * g_pInput->GetMouseDeltaX() * g_pEngine->GetDeltaTime();
+//	m_flPitch += 0.02f * g_pInput->GetMouseDeltaY() * g_pEngine->GetDeltaTime();
+//
+//	float flYawDegrees = glm::degrees( m_flYaw );
+//	float flPitchDegrees = glm::degrees( m_flPitch );
+//
+//	if ( flYawDegrees < 0.0f )
+//		m_flYaw = glm::radians( flYawDegrees + 360.0f );
+//	else if ( flYawDegrees > 360.0f )
+//		m_flYaw = glm::radians( flYawDegrees - 360.0f );
+//
+//	if ( flPitchDegrees < 0.0f )
+//		m_flPitch = glm::radians( flPitchDegrees + 360.0f );
+//	else if ( flPitchDegrees > 360.0f )
+//		m_flPitch = glm::radians( flPitchDegrees - 360.0f );
+//
+//	m_mat4ViewMatrix = glm::rotate( m_mat4ViewMatrix, m_flYaw, Vector3f( 0.0f, 1.0f, 0.0f ) );
+//
+//	m_mat4ViewMatrix = glm::rotate( m_mat4ViewMatrix, m_flPitch, Vector3f( m_mat4ViewMatrix[ 0 ][ 0 ], m_mat4ViewMatrix[ 1 ][ 0 ], m_mat4ViewMatrix[ 2 ][ 0 ] ) );
+//
+//	m_mat4ViewMatrix = glm::translate( m_mat4ViewMatrix, GetPosition() );
+//
+//	m_vForward = Vector3f( m_mat4ViewMatrix[ 0 ][ 2 ], m_mat4ViewMatrix[ 1 ][ 2 ], m_mat4ViewMatrix[ 2 ][ 2 ] );
+//	m_vUp = Vector3f( m_mat4ViewMatrix[ 0 ][ 1 ], m_mat4ViewMatrix[ 1 ][ 1 ], m_mat4ViewMatrix[ 2 ][ 1 ] );
+//	m_vLeft = Vector3f( m_mat4ViewMatrix[ 0 ][ 0 ], m_mat4ViewMatrix[ 1 ][ 0 ], m_mat4ViewMatrix[ 2 ][ 0 ] );
+//
+//	m_vBackward = -m_vForward;
+//	m_vRight = -m_vLeft;
+//
+//	if ( g_pInput->IsButtonPressed( "Forward" ) )
+//	{
+//		SetPosition( GetPosition() + m_vForward * 0.01f * g_pEngine->GetDeltaTime() );
+//	}
+//	else if ( g_pInput->IsButtonPressed( "Backward" ) )
+//	{
+//		SetPosition( GetPosition() + m_vBackward * 0.01f * g_pEngine->GetDeltaTime() );
+//	}
+//	if ( g_pInput->IsButtonPressed( "Left" ) )
+//	{
+//		SetPosition( GetPosition() + m_vLeft * 0.01f * g_pEngine->GetDeltaTime() );
+//	}
+//	else if ( g_pInput->IsButtonPressed( "Right" ) )
+//	{
+//		SetPosition( GetPosition() + m_vRight * 0.01f * g_pEngine->GetDeltaTime() );
+//	}
+//}
+
 class camera {
 	glm::vec3 m_pos;
 	glm::quat m_orient;
