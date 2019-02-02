@@ -50,6 +50,12 @@ namespace Muspelheim
 		virtual unsigned int LoadTexture( const unsigned char* imageData, unsigned int height, unsigned int width, bool hasAlpha ) override;
 
 		//
+		virtual bool GetVSyncEnabled() override;
+
+		//
+		virtual void SetVSyncEnabled( bool enable ) override;
+
+		//
 		virtual bool CreateSurface( SurfaceID& surfaceID ) override;
 
 		// 

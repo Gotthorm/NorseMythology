@@ -89,10 +89,10 @@ private:
 
 	bool m_Initialized = false;
 
-	// TODO: Shouldnt this be in the input module?
 	// Tracking mouse capture
 	bool m_MouseCaptured = false;
 
+	//
 	FrameTime m_FrameTime;
 
 	// Provide friend access to Singleton<Input> specialization

@@ -65,5 +65,8 @@ struct OpenGLInterface
 	static PFNGLISSHADERPROC IsShader;
 	static PFNGLISPROGRAMPROC IsProgram;
 
+	static PFNWGLSWAPINTERVALEXTPROC SwapInterval;
+	static PFNWGLGETSWAPINTERVALEXTPROC GetSwapInterval;
+
 	static std::wstring VersionString;
 };

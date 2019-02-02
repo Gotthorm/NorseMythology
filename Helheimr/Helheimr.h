@@ -50,6 +50,7 @@ namespace Helheimr
 			KEY_Z = 0x5A,
 			KEY_NUMPAD_0 = 0x60,
 			KEY_NUMPAD_9 = 0x69,
+			KEY_F2 = 0x71,
 			KEY_F4 = 0x73,
 			KEY_TILDA = 0xC0,
 			KEY_SEMICOLON = 0xBA,

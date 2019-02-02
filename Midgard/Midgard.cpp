@@ -66,7 +66,7 @@ int APIENTRY _tWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpC
 					// If there was a windows message, process it now
 					if( bGotMessage )
 					{
-						// Received equest to quit the application
+						// Received request to quit the application
 						if( theMessage.message == WM_QUIT )
 						{
 							// Break from the main loop and shut down

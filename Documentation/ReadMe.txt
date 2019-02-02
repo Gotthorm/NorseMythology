@@ -8,8 +8,8 @@ Began a complete reassessment of the solution:
 TODO:
 - Research the "needs to have dll-interface" warning
 - Move data object creation from framework into game module
-- Mouse input is busted
-- Camera is still incorrect when panning
+- Mouse input is fixed but I need to change the input to read buffers instead of single events
+	to prevent the queued input when vsync is used.
 
 Asgard
 Alfheimr - Console/Scripting

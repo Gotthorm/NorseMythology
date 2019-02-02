@@ -164,13 +164,13 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 				RAWINPUTDEVICE Rid[ 2 ];
 
 				Rid[ 0 ].usUsagePage = 0x01;
-				Rid[ 0 ].usUsage = 0x02;		// Adds HID mouse
-				Rid[ 0 ].dwFlags = 0;			// Change to RIDEV_NOLEGACY to ignore legacy keyboard messages
+				Rid[ 0 ].usUsage = 0x02;			// Adds HID mouse
+				Rid[ 0 ].dwFlags = 0;				// Change to RIDEV_NOLEGACY to ignore legacy mouse messages
 				Rid[ 0 ].hwndTarget = 0;
 
 				Rid[ 1 ].usUsagePage = 0x01;
-				Rid[ 1 ].usUsage = 0x06;		// Adds HID keyboard
-				Rid[ 1 ].dwFlags = RIDEV_NOLEGACY;			// Change to RIDEV_NOLEGACY to ignore legacy keyboard messages
+				Rid[ 1 ].usUsage = 0x06;			// Adds HID keyboard
+				Rid[ 1 ].dwFlags = RIDEV_NOLEGACY;	// Change to RIDEV_NOLEGACY to ignore legacy keyboard messages
 				Rid[ 1 ].hwndTarget = 0;
 
 				// This is a Windows only call
@@ -388,6 +388,13 @@ void Framework::Update()
 		//	m_pGraphics->ToggleConsole();
 		//}
 
+		if( Helheimr::Input::GetInstance()->GetKeyUp( Helheimr::Input::KEY_F2 ) )
+		{
+			// Toggle the vsync
+			PLATFORM_ASSERT( m_pRenderer != nullptr );
+			m_pRenderer->SetVSyncEnabled( m_pRenderer->GetVSyncEnabled() == false );
+		}
+
 		// Update the game
 		//PLATFORM_ASSERT( m_pGame != nullptr );
 		//m_pGame->Update();
@@ -497,12 +504,17 @@ void Framework::Update()
 
 		// ####################################################
 
+		bool vsync = m_pRenderer->GetVSyncEnabled();
+
 		m_pRenderer->BeginRender( viewMatrix );
 
 		// Render the current FPS
 		wchar_t stringBuffer[ Platform::kMaxStringLength ];
 		std::swprintf( stringBuffer, Platform::kMaxStringLength, L"%4u FPS", m_FrameTime.FPS() );
 		m_pRenderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 10, 0, Muspelheim::Renderer::TEXT_RIGHT );
+
+		std::swprintf( stringBuffer, Platform::kMaxStringLength, L"VSync: %s", ( vsync ? L"enabled" : L"disabled" ) );
+		m_pRenderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 40, 0, Muspelheim::Renderer::TEXT_RIGHT );
 
 		glm::vec3 const & cameraForward = viewMatrix[ 2 ];
 		std::swprintf( stringBuffer, Platform::kMaxStringLength, L"Camera Direction: %.3f, %.3f, %.3f", cameraForward.x, cameraForward.y, cameraForward.z );
@@ -611,7 +623,7 @@ void Framework::ProcessInputEvent( Platform::LongParam lParam )
 			}
 
 			// Ensure that the last X & Y are deltas and not absolute
-			if( m_MouseCaptured && ( pRawInputData->data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE ) == 0 )
+			if ( m_MouseCaptured && ( pRawInputData->data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE ) == 0 )
 			{
 				long rawMouseX = pRawInputData->data.mouse.lLastX;
 				long rawMouseY = pRawInputData->data.mouse.lLastY;
@@ -643,11 +655,9 @@ void Framework::ProcessInputEvent( Platform::LongParam lParam )
 					}
 				}
 
-				char signMouseX = ( rawMouseX < 0 ) ? 0x80 : 0;
-				char signMouseY = ( rawMouseY < 0 ) ? 0x80 : 0;
-
-				char mouseX = ( ( rawMouseX & CHAR_MAX ) | signMouseX );
-				char mouseY = ( ( rawMouseY & CHAR_MAX ) | signMouseY );
+				// Test
+				unsigned char mouseX = ( rawMouseX & UCHAR_MAX );
+				unsigned char mouseY = ( rawMouseY & UCHAR_MAX );
 
 				data |= ( mouseX << 24 );
 				data |= ( mouseY << 16 );

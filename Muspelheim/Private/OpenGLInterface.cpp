@@ -53,6 +53,9 @@ PFNGLGETPROGRAMIVPROC OpenGLInterface::GetProgramiv = NULL;
 PFNGLISSHADERPROC OpenGLInterface::IsShader = NULL;
 PFNGLISPROGRAMPROC OpenGLInterface::IsProgram = NULL;
 
+PFNWGLSWAPINTERVALEXTPROC OpenGLInterface::SwapInterval = NULL;
+PFNWGLGETSWAPINTERVALEXTPROC OpenGLInterface::GetSwapInterval = NULL;
+
 
 // wglGetProcAddress will not return function pointers from any OpenGL functions that are directly exported by the OpenGL32.DLL itself. 
 // This means the old ones from OpenGL version 1.1. 
@@ -123,6 +126,9 @@ bool OpenGLInterface::Initialize()
 	GetProgramiv = (PFNGLGETPROGRAMIVPROC)GetOpenGLFunctionAddress( "glGetProgramiv" );
 	IsShader = (PFNGLISSHADERPROC)GetOpenGLFunctionAddress( "glIsShader" );
 	IsProgram = (PFNGLISPROGRAMPROC)GetOpenGLFunctionAddress( "glIsProgram" );
+
+	SwapInterval = (PFNWGLSWAPINTERVALEXTPROC)GetOpenGLFunctionAddress( "wglSwapIntervalEXT" );
+	GetSwapInterval = ( PFNWGLGETSWAPINTERVALEXTPROC )GetOpenGLFunctionAddress( "wglGetSwapIntervalEXT" );
 
 	return true;
 }

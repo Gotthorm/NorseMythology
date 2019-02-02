@@ -13,7 +13,6 @@ namespace Vanaheimr
 	glm::vec3 up( 0.0f, 1.0f, 0.0f );
 
 	glm::vec3 directionVector( 0.0f, 0.0f, 1.0f );
-	glm::vec3 positionVector( 50.0f, 50.0f, 50.0f );
 	glm::quat orientation;
 
 	float m_Yaw = 0.0f;
@@ -23,6 +22,7 @@ namespace Vanaheimr
 
 	FreeCamera::FreeCamera( const std::wstring& name ) : FixedCamera( name )
 	{
+		SetPosition( glm::vec3( 100.0f, -150.0f, -500.0f ) );
 	}
 
 	void FreeCamera::Update( float timeElapsed, Helheimr::Input* pInput )
@@ -59,6 +59,8 @@ namespace Vanaheimr
 			}
 		}
 
+		glm::vec3 positionVector = GetPosition();
+
 		viewMatrix = glm::translate( viewMatrix, positionVector );
 			
 		glm::vec3 forwardVector = glm::vec3( viewMatrix[ 0 ][ 2 ], viewMatrix[ 1 ][ 2 ], viewMatrix[ 2 ][ 2 ] );
@@ -67,20 +69,22 @@ namespace Vanaheimr
 
 		if ( pInput->GetKeyDown( Helheimr::Input::KEY_W ) )
 		{
-			positionVector += forwardVector * 100.01f * timeElapsed;
+			positionVector += forwardVector * 100.0f * timeElapsed;
 		}
 		else if ( pInput->GetKeyDown( Helheimr::Input::KEY_S ) )
 		{
-			positionVector -= forwardVector * 100.01f * timeElapsed;
+			positionVector -= forwardVector * 100.0f * timeElapsed;
 		}
 		if ( pInput->GetKeyDown( Helheimr::Input::KEY_A ) )
 		{
-			positionVector += leftVector * 100.01f * timeElapsed;
+			positionVector += leftVector * 100.0f * timeElapsed;
 		}
 		else if ( pInput->GetKeyDown( Helheimr::Input::KEY_D ) )
 		{
-			positionVector -= leftVector * 100.01f * timeElapsed;
+			positionVector -= leftVector * 100.0f * timeElapsed;
 		}
+
+		SetPosition( positionVector );
 
 		{
 			//m_mat4ViewMatrix = glm::mat4();

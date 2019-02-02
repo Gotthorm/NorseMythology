@@ -255,6 +255,19 @@ namespace Muspelheim
 		return nullptr;
 	}
 
+	//
+	bool OpenGLRenderer::GetVSyncEnabled()
+	{
+		return OpenGLInterface::GetSwapInterval() != 0;
+	}
+
+	//
+	void OpenGLRenderer::SetVSyncEnabled( bool enable )
+	{
+		// Disable VSync
+		OpenGLInterface::SwapInterval( enable ? 1 : 0 );
+	}
+
 
 	//
 	bool OpenGLRenderer::CreateSurface( SurfaceID& surfaceID )

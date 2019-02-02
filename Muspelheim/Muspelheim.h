@@ -99,6 +99,12 @@ namespace Muspelheim
 		virtual unsigned int LoadTexture( const unsigned char* imageData, unsigned int height, unsigned int width, bool hasAlpha ) = 0;
 
 		//
+		virtual bool GetVSyncEnabled() = 0;
+
+		//
+		virtual void SetVSyncEnabled( bool enable ) = 0;
+
+		//
 		static Renderer* Create();
 
 		//
