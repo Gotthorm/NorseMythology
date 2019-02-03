@@ -209,9 +209,6 @@ LRESULT CALLBACK WindowProcedure( HWND hWindow, UINT nMessage, WPARAM wParam, LP
 	case WM_EXITSIZEMOVE:
 		//g_Framework.EnableMouseCapture( true );
 		break;
-	case WM_INPUT:
-		Framework::GetInstance()->ProcessInputEvent( lParam );
-		break;
 		//case WM_SIZING:
 	case WM_SIZE:
 		//Framework::GetInstance()->ResizeWindow( LOWORD( lParam ), HIWORD( lParam ) );
@@ -238,38 +235,4 @@ UINT GetApplicationTitle( LPTSTR title, UINT titleMaxLength )
 
 	return _stprintf_s( title, titleMaxLength, applicationTemplateName, buildType, _T( __DATE__ ), _T( __TIME__ ) );
 }
-
-/*
-case WM_INPUT: //void __glwBufferedHandle(HRAWINPUT input) 
-{ 
-	unsigned int size = 0; 
-	PRAWINPUT raw; 
-	int status; 
-	status = GetRawInputBuffer(0,&size,sizeof(RAWINPUTHEADER)); 
-	//glwPrintLastError(L"GetRawInputBuffer: ");	
-	printf("status %d size %d\n",status,size); 
-	raw = (PRAWINPUT)malloc(sizeof(RAWINPUT)*16); 
-	size = sizeof(RAWINPUT)*16; 
-	if(!raw) puts("no buffer"); 
-	for (;;) 
-	{ 
-		int nInput = GetRawInputBuffer(raw, &size, sizeof(RAWINPUTHEADER)); 
-		printf("nInput = %d\n", nInput); 
-		if (nInput == -1){ puts("nInput == -1"); break; } 
-		if(nInput == 0) { puts("no input read"); break; } 
-		PRAWINPUT* paRawInput = (PRAWINPUT*)malloc(sizeof(PRAWINPUT) * nInput); 
-		if (paRawInput == NULL) { puts("NUL"); break; } 
-		PRAWINPUT pri = raw; 
-		for (UINT i = 0; i < nInput; ++i) 
-		{ 
-			printf("found input %d\n", i); 
-			paRawInput = pri; 
-			pri = NEXTRAWINPUTBLOCK(pri); 
-		} 
-		DefRawInputProc(paRawInput, nInput, sizeof(RAWINPUTHEADER)); 
-		free(paRawInput); 
-	} 
-	free(raw); 
-} 
-*/
 
