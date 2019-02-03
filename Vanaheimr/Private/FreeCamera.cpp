@@ -31,8 +31,6 @@ namespace Vanaheimr
 
 		//if ( pInput->GetKeyDown( Helheimr::Input::KEY_MOUSE_RIGHT ) )
 		{
-			float mouseSpeed = 2.0f * timeElapsed;
-
 			int deltaX;
 			int deltaY;
 			if ( pInput->GetMouse( deltaX, deltaY ) )

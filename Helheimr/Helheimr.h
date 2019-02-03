@@ -108,6 +108,9 @@ namespace Helheimr
 		//
 		void AddMessaging( const std::weak_ptr<Niflheim::MessageManager>& messageManager );
 
+		float GetMouseSpeed() { return m_MouseSpeed; }
+		void SetMouseSpeed( float speed ) { m_MouseSpeed = speed; }
+
 	private:
 		// Remove the default assignment operator
 		Input & operator =( const Input & ) = delete;
@@ -123,8 +126,10 @@ namespace Helheimr
 		char m_NewKeyStateBuffer[ m_KeyCodeCount ];
 		char m_OldKeyStateBuffer[ m_KeyCodeCount ];
 
-		int m_MouseMovementDeltaX;
-		int m_MouseMovementDeltaY;
+		float m_MouseMovementDeltaX;
+		float m_MouseMovementDeltaY;
+
+		float m_MouseSpeed = 1.0f;
 
 #pragma warning( push )
 #pragma warning( disable : 4251)

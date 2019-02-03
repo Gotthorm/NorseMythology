@@ -23,6 +23,13 @@
 #pragma comment(lib, "Vanaheimr.lib")
 #pragma comment(lib, "Valhalla.lib")
 
+// Used for the macro NEXTRAWINPUTBLOCK
+typedef __int64 QWORD;
+
+const unsigned int MaxRawInputEntries = 32;
+const float VSyncMouseSpeed = 0.1f;
+const float DefaultMouseSpeed = 1.0f;
+
 //void Camera::Update()
 //{
 //	m_mat4ViewMatrix = glm::mat4();
@@ -115,6 +122,7 @@ Framework::Framework()
 	, m_pCameraManager( nullptr )
 	, m_WindowHandle( 0 )
 	, m_MainScreenID( Muspelheim::InvalidSurface )
+	, m_pRawInputBuffer( nullptr )
 {
 
 }
@@ -147,10 +155,12 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, L"Failed to initialize the graphics rendering system" );
 			return false;
 		}
+		m_pRenderer->SetVSyncEnabled( false );
 
 		m_MessageManager->Post( Niflheim::Message::LOG_INFO, m_pRenderer->GetVersionInformation() );
 
 		// Initialize the input system
+		// TODO: Can we remove the singleton?
 		Helheimr::Input::Create();
 		if( false == Helheimr::Input::GetInstance()->Init() )
 		{
@@ -159,7 +169,6 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		}
 		else
 		{
-			// SEAN : Why is this done here and not within Helheimr?
 			{
 				RAWINPUTDEVICE Rid[ 2 ];
 
@@ -182,6 +191,8 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 					m_MessageManager->Post( Niflheim::Message::LOG_ERROR, L"Cannot initialize the keyboard for the input system" );
 					return false;
 				}
+
+				m_pRawInputBuffer = new BYTE[ sizeof( RAWINPUT ) * MaxRawInputEntries ];
 			}
 
 			m_MessageManager->Post( Niflheim::Message::LOG_INFO, L"Input system initialized" );
@@ -359,6 +370,8 @@ void Framework::Shutdown()
 	//	delete m_pGame;
 	//	m_pGame = nullptr;
 	//}
+	delete m_pRawInputBuffer;
+	m_pRawInputBuffer = nullptr;
 
 	m_MessageManager->Post( Niflheim::Message::LOG_INFO, L"System shutdown" );
 	m_MessageManager->Update();
@@ -380,6 +393,8 @@ void Framework::Update()
 	{
 		m_FrameTime.Update();
 
+		ProcessPlatformInput();
+
 		// Check for the console activation/deactivation
 		//if( Helheimr::Input::GetInstance()->GetKeyUp( Helheimr::Input::KEY_TILDA ) )
 		//{
@@ -391,8 +406,10 @@ void Framework::Update()
 		if( Helheimr::Input::GetInstance()->GetKeyUp( Helheimr::Input::KEY_F2 ) )
 		{
 			// Toggle the vsync
+			bool const enable = ( false == m_pRenderer->GetVSyncEnabled() );
 			PLATFORM_ASSERT( m_pRenderer != nullptr );
-			m_pRenderer->SetVSyncEnabled( m_pRenderer->GetVSyncEnabled() == false );
+			m_pRenderer->SetVSyncEnabled( enable );
+			Helheimr::Input::GetInstance()->SetMouseSpeed( enable ? VSyncMouseSpeed : DefaultMouseSpeed );
 		}
 
 		// Update the game
@@ -534,148 +551,158 @@ void Framework::Update()
 	}
 }
 
-// This method is responsible for removing the platform dependence from the input data
-void Framework::ProcessInputEvent( Platform::LongParam lParam )
-{
-	if( m_Initialized )
-	{
-		UINT rawInputDataSize;
-
-		if( 0 != GetRawInputData( (HRAWINPUT)lParam, RID_INPUT, NULL, &rawInputDataSize, sizeof( RAWINPUTHEADER ) ) )
-		{
-			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, L"Size query to GetRawInputData failed!" );
-			return;
-		}
-
-		if( 0 == rawInputDataSize )
-		{
-			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, L"Size query to GetRawInputData returned 0 size!" );
-			return;
-		}
-
-		LPBYTE pTempDataBuffer = new BYTE[ rawInputDataSize ];
-		PLATFORM_ASSERT( nullptr != pTempDataBuffer );
-
-		// When pTempDataBuffer is non NULL the reference to rawInputDataSize is not supposed to be written to but it can look confusing, 
-		// so we cache the value here for clarity.
-		UINT const bytesToCopy = rawInputDataSize;
-
-		if( bytesToCopy != GetRawInputData( (HRAWINPUT)lParam, RID_INPUT, pTempDataBuffer, &rawInputDataSize, sizeof( RAWINPUTHEADER ) ) )
-		{
-			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, L"GetRawInputData does not return correct size!" );
-		}
-
-		RAWINPUT* pRawInputData = (RAWINPUT*)pTempDataBuffer;
-		unsigned int data = 0;
-
-		if( RIM_TYPEKEYBOARD == pRawInputData->header.dwType )
-		{
-			data = pRawInputData->data.keyboard.VKey;
-			if( ( pRawInputData->data.keyboard.Flags & RI_KEY_BREAK ) == 0 )
-			{
-				data |= Helheimr::Input::MODIFIER_KEY_PRESS;
-			}
-			else
-			{
-				// It seems the way we are handling input has intercepted the regular generation of the WM_CLOSE event (alt-F4)
-				// So we intercept that key combination here and manually post the message.
-				if( pRawInputData->data.keyboard.VKey == Helheimr::Input::KEY_F4 && Helheimr::Input::GetInstance()->GetKeyDown( Helheimr::Input::KEY_ALT ) )
-				{
-					PostMessage( m_WindowHandle, WM_CLOSE, 0, 0 );
-				}
-			}
-		}
-		else if ( pRawInputData->header.dwType == RIM_TYPEMOUSE )
-		{
-			if( pRawInputData->data.mouse.usButtonFlags & RI_MOUSE_RIGHT_BUTTON_DOWN )
-			{
-				if( m_MouseCaptured == false )
-				{
-					SetCapture( m_WindowHandle );
-					m_MouseCaptured = true;
-					ShowCursor( FALSE );
-				}
-
-				//data = Helheimr::Input::KEY_MOUSE_RIGHT;
-				//data |= Helheimr::Input::MODIFIER_KEY_PRESS;
-
-			}
-			else if( pRawInputData->data.mouse.usButtonFlags & RI_MOUSE_RIGHT_BUTTON_UP )
-			{
-				if( m_MouseCaptured == true )
-				{
-					ReleaseCapture();
-					m_MouseCaptured = false;
-					ShowCursor( TRUE );
-
-					// Place the cursor back to the center of the window
-					RECT rect;
-					if( GetWindowRect( m_WindowHandle, &rect ) )
-					{
-						int width = rect.right - rect.left;
-						int height = rect.bottom - rect.top;
-
-						SetCursorPos( width / 2, height / 2 );
-					}
-				}
-
-				//data = Helheimr::Input::KEY_MOUSE_RIGHT;
-			}
-
-			// Ensure that the last X & Y are deltas and not absolute
-			if ( m_MouseCaptured && ( pRawInputData->data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE ) == 0 )
-			{
-				long rawMouseX = pRawInputData->data.mouse.lLastX;
-				long rawMouseY = pRawInputData->data.mouse.lLastY;
-
-				// We will cap deltas to CHAR_MIN to CHAR_MAX for each axis
-				if( rawMouseX < CHAR_MIN || rawMouseX > CHAR_MAX || rawMouseY < CHAR_MIN || rawMouseY > CHAR_MAX )
-				{
-					wchar_t stringBuffer[ Platform::kMaxStringLength ];
-					std::swprintf( stringBuffer, Platform::kMaxStringLength, L"Mouse deltas exceeded max range (%i, %i)", rawMouseX, rawMouseY );
-
-					m_MessageManager->Post( Niflheim::Message::LOG_ERROR, stringBuffer );
-
-					if( rawMouseX < CHAR_MIN )
-					{
-						rawMouseX = CHAR_MIN;
-					}
-					else if( rawMouseX > CHAR_MAX )
-					{
-						rawMouseX = CHAR_MAX;
-					}
-
-					if( rawMouseY < CHAR_MIN )
-					{
-						rawMouseY = CHAR_MIN;
-					}
-					else if( rawMouseY > CHAR_MAX )
-					{
-						rawMouseY = CHAR_MAX;
-					}
-				}
-
-				// Test
-				unsigned char mouseX = ( rawMouseX & UCHAR_MAX );
-				unsigned char mouseY = ( rawMouseY & UCHAR_MAX );
-
-				data |= ( mouseX << 24 );
-				data |= ( mouseY << 16 );
-			}
-		}
-
-		delete[] pTempDataBuffer;
-
-		Helheimr::Input::GetInstance()->ProcessEvent( data );
-	}
-}
-
 void Framework::ResizeWindow( unsigned short width, unsigned short height )
 {
 	if( m_Initialized )
 	{
 		PLATFORM_ASSERT( nullptr != m_pRenderer );
 		m_pRenderer->SetWindowSize( width, height );
+	}
+}
+
+// Encapsulate the platform dependent input processing and send results to Helheimr as generic events
+void Framework::ProcessPlatformInput()
+{
+	unsigned int inputEventData = 0;
+	unsigned int requestedInputDataSize = 0;
+
+	if ( 0 != GetRawInputBuffer( NULL, &requestedInputDataSize, sizeof( RAWINPUTHEADER ) ) )
+	{
+		m_MessageManager->Post( Niflheim::Message::LOG_ERROR, L"Failed to read from raw input buffer" );
+	}
+	else if ( 0 != requestedInputDataSize )
+	{
+		// The requestedInputDataSize doesnt appear to be of any use since the min size needed tends to be much larger that this size.
+		// So we just use the predetermined size instead and let it fail if the size is too small.
+		requestedInputDataSize = MaxRawInputEntries * sizeof( RAWINPUTHEADER );
+
+		unsigned int const rawInputCount = GetRawInputBuffer( reinterpret_cast< RAWINPUT* >( m_pRawInputBuffer ), &requestedInputDataSize, sizeof( RAWINPUTHEADER ) );
+		if ( rawInputCount == -1 )
+		{
+			if ( 0x7A == GetLastError() )
+			{
+				m_MessageManager->Post( Niflheim::Message::LOG_ERROR, L"Raw input buffer is too small" );
+			}
+			else
+			{
+				m_MessageManager->Post( Niflheim::Message::LOG_ERROR, L"Unknown error retrieving the raw input data" );
+			}
+			return;
+		}
+
+		RAWINPUT const * pRawInput = reinterpret_cast<RAWINPUT*>( m_pRawInputBuffer );
+		for ( unsigned int i = 0; i < rawInputCount; ++i )
+		{
+			switch ( pRawInput->header.dwType )
+			{
+				case RIM_TYPEMOUSE:
+				{
+					if ( pRawInput->data.mouse.usButtonFlags & RI_MOUSE_RIGHT_BUTTON_DOWN )
+					{
+						if ( m_MouseCaptured == false )
+						{
+							SetCapture( m_WindowHandle );
+							m_MouseCaptured = true;
+							ShowCursor( FALSE );
+						}
+
+						//data = Helheimr::Input::KEY_MOUSE_RIGHT;
+						//data |= Helheimr::Input::MODIFIER_KEY_PRESS;
+
+					}
+					else if ( pRawInput->data.mouse.usButtonFlags & RI_MOUSE_RIGHT_BUTTON_UP )
+					{
+						if ( m_MouseCaptured == true )
+						{
+							ReleaseCapture();
+							m_MouseCaptured = false;
+							ShowCursor( TRUE );
+
+							// Place the cursor back to the center of the window
+							RECT rect;
+							if ( GetWindowRect( m_WindowHandle, &rect ) )
+							{
+								int width = rect.right - rect.left;
+								int height = rect.bottom - rect.top;
+
+								SetCursorPos( width / 2, height / 2 );
+							}
+						}
+
+						//data = Helheimr::Input::KEY_MOUSE_RIGHT;
+					}
+
+					// Ensure that the last X & Y are deltas and not absolute
+					if ( m_MouseCaptured && ( pRawInput->data.mouse.usFlags & MOUSE_MOVE_ABSOLUTE ) == 0 )
+					{
+						long rawMouseX = pRawInput->data.mouse.lLastX;
+						long rawMouseY = pRawInput->data.mouse.lLastY;
+
+						// We will cap deltas to CHAR_MIN to CHAR_MAX for each axis
+						if ( rawMouseX < CHAR_MIN || rawMouseX > CHAR_MAX || rawMouseY < CHAR_MIN || rawMouseY > CHAR_MAX )
+						{
+							wchar_t stringBuffer[ Platform::kMaxStringLength ];
+							std::swprintf( stringBuffer, Platform::kMaxStringLength, L"Mouse deltas exceeded max range (%i, %i)", rawMouseX, rawMouseY );
+
+							m_MessageManager->Post( Niflheim::Message::LOG_ERROR, stringBuffer );
+
+							if ( rawMouseX < CHAR_MIN )
+							{
+								rawMouseX = CHAR_MIN;
+							}
+							else if ( rawMouseX > CHAR_MAX )
+							{
+								rawMouseX = CHAR_MAX;
+							}
+
+							if ( rawMouseY < CHAR_MIN )
+							{
+								rawMouseY = CHAR_MIN;
+							}
+							else if ( rawMouseY > CHAR_MAX )
+							{
+								rawMouseY = CHAR_MAX;
+							}
+						}
+
+						// Test
+						unsigned char mouseX = ( rawMouseX & UCHAR_MAX );
+						unsigned char mouseY = ( rawMouseY & UCHAR_MAX );
+
+						inputEventData |= ( mouseX << 24 );
+						inputEventData |= ( mouseY << 16 );
+					}
+				}
+				break;
+				case RIM_TYPEKEYBOARD:
+				{
+					char stringBuffer[ 256 ];
+					sprintf( stringBuffer, "VKey %u Message %u Flags %u Extra %u\n", pRawInput->data.keyboard.VKey, pRawInput->data.keyboard.Message, pRawInput->data.keyboard.Flags, pRawInput->data.keyboard.ExtraInformation );
+					OutputDebugStringA( stringBuffer );
+
+					inputEventData = pRawInput->data.keyboard.VKey;
+
+					if ( ( pRawInput->data.keyboard.Flags & RI_KEY_BREAK ) == 0 )
+					{
+						inputEventData |= Helheimr::Input::MODIFIER_KEY_PRESS;
+						//OutputDebugStringA( "Key Press\n" );
+					}
+					else
+					{
+						// It seems the way we are handling input has intercepted the regular generation of the WM_CLOSE event (alt-F4)
+						// So we intercept that key combination here and manually post the message.
+						if ( pRawInput->data.keyboard.VKey == Helheimr::Input::KEY_F4 && Helheimr::Input::GetInstance()->GetKeyDown( Helheimr::Input::KEY_ALT ) )
+						{
+							PostMessage( m_WindowHandle, WM_CLOSE, 0, 0 );
+						}
+					}
+				}
+				break;
+			}
+			pRawInput = NEXTRAWINPUTBLOCK( pRawInput );
+		}
+
+		Helheimr::Input::GetInstance()->ProcessEvent( inputEventData );
 	}
 }
 

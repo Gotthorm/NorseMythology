@@ -17,6 +17,29 @@ HWND CreateAndInitializeWindow( HINSTANCE, LPCTSTR, int, LPCTSTR );
 LRESULT CALLBACK WindowProcedure( HWND, UINT, WPARAM, LPARAM );
 UINT GetApplicationTitle( LPTSTR, UINT );
 
+BOOL ProcessMessage( MSG const & message )
+{
+	// Received request to quit the application
+	if ( WM_QUIT == message.message )
+	{
+		// Indicate it is time to shutdown
+		return FALSE;
+	}
+
+	// Translate virtual-key messages into character messages.
+	// If the message is translated, the return value is nonzero.
+	// If the message is WM_KEYDOWN, WM_KEYUP, WM_SYSKEYDOWN, or WM_SYSKEYUP, 
+	// the return value is nonzero, regardless of the translation. 
+	// If the message is not translated, the return value is zero.
+	TranslateMessage( &message );
+
+	// Dispatch the message to a window procedure.
+	// Return value is whatever the window procedure returns.
+	DispatchMessage( &message );
+
+	return TRUE;
+}
+
 // The main entry point
 int APIENTRY _tWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow )
 {
@@ -53,36 +76,27 @@ int APIENTRY _tWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpC
 			if( Framework::Create() && Framework::GetInstance()->Init( hWindow, launchInfo ) )
 			{
 				MSG theMessage;
-				BOOL bGotMessage;
+				BOOL runLoop = TRUE;
 
 				// Drive the main windows pump until the application shuts down
-				while( true )
+				while( runLoop )
 				{
 					// Use PeekMessage when running so it doesn't wait.
 					// Retrieve all window or thread messages for the current thread
 					// and removes them from the queue.
-					bGotMessage = PeekMessage( &theMessage, 0, 0, 0, PM_REMOVE );
 
-					// If there was a windows message, process it now
-					if( bGotMessage )
+					// Since we will be reading a buffer of raw input in the framework
+					// we do not remove WM_INPUT messages from the queue
+
+					//Process and remove all messages before WM_INPUT
+					while ( runLoop && PeekMessage( &theMessage, NULL, 0, WM_INPUT - 1, PM_REMOVE ) )
 					{
-						// Received request to quit the application
-						if( theMessage.message == WM_QUIT )
-						{
-							// Break from the main loop and shut down
-							break;
-						}
-
-						// Translate virtual-key messages into character messages.
-						// If the message is translated, the return value is nonzero.
-						// If the message is WM_KEYDOWN, WM_KEYUP, WM_SYSKEYDOWN, or WM_SYSKEYUP, 
-						// the return value is nonzero, regardless of the translation. 
-						// If the message is not translated, the return value is zero.
-						TranslateMessage( &theMessage );
-
-						// Dispatch the message to a window procedure.
-						// Return value is whatever the window procedure returns.
-						DispatchMessage( &theMessage );
+						runLoop = ProcessMessage( theMessage );
+					}
+					//Process and remove all messages after WM_INPUT
+					while ( runLoop && PeekMessage( &theMessage, NULL, WM_INPUT + 1, ( UINT )-1, PM_REMOVE ) )
+					{
+						runLoop = ProcessMessage( theMessage );
 					}
 
 					// Pump the framework
@@ -224,4 +238,38 @@ UINT GetApplicationTitle( LPTSTR title, UINT titleMaxLength )
 
 	return _stprintf_s( title, titleMaxLength, applicationTemplateName, buildType, _T( __DATE__ ), _T( __TIME__ ) );
 }
+
+/*
+case WM_INPUT: //void __glwBufferedHandle(HRAWINPUT input) 
+{ 
+	unsigned int size = 0; 
+	PRAWINPUT raw; 
+	int status; 
+	status = GetRawInputBuffer(0,&size,sizeof(RAWINPUTHEADER)); 
+	//glwPrintLastError(L"GetRawInputBuffer: ");	
+	printf("status %d size %d\n",status,size); 
+	raw = (PRAWINPUT)malloc(sizeof(RAWINPUT)*16); 
+	size = sizeof(RAWINPUT)*16; 
+	if(!raw) puts("no buffer"); 
+	for (;;) 
+	{ 
+		int nInput = GetRawInputBuffer(raw, &size, sizeof(RAWINPUTHEADER)); 
+		printf("nInput = %d\n", nInput); 
+		if (nInput == -1){ puts("nInput == -1"); break; } 
+		if(nInput == 0) { puts("no input read"); break; } 
+		PRAWINPUT* paRawInput = (PRAWINPUT*)malloc(sizeof(PRAWINPUT) * nInput); 
+		if (paRawInput == NULL) { puts("NUL"); break; } 
+		PRAWINPUT pri = raw; 
+		for (UINT i = 0; i < nInput; ++i) 
+		{ 
+			printf("found input %d\n", i); 
+			paRawInput = pri; 
+			pri = NEXTRAWINPUTBLOCK(pri); 
+		} 
+		DefRawInputProc(paRawInput, nInput, sizeof(RAWINPUTHEADER)); 
+		free(paRawInput); 
+	} 
+	free(raw); 
+} 
+*/
 

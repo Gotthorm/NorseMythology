@@ -21,8 +21,8 @@ namespace Helheimr
 		memset( m_OldKeyStateBuffer, 0, m_KeyCodeCount * sizeof( char ) );
 		memset( m_NewKeyStateBuffer, 0, m_KeyCodeCount * sizeof( char ) );
 
-		m_MouseMovementDeltaX = 0;
-		m_MouseMovementDeltaY = 0;
+		m_MouseMovementDeltaX = 0.0f;
+		m_MouseMovementDeltaY = 0.0f;
 
 		return true;
 	}
@@ -55,17 +55,16 @@ namespace Helheimr
 			}
 		}
 
-		char deltaX = 0;
-		char deltaY = 0;
-
 		if( eventData & MASK_MOUSE_DELTA_X )
 		{
-			m_MouseMovementDeltaX += (char)( ( eventData & MASK_MOUSE_DELTA_X ) >> 24 );
+			char delta = ( char )( ( eventData & MASK_MOUSE_DELTA_X ) >> 24 );
+			m_MouseMovementDeltaX += delta * m_MouseSpeed;
 		}
 
 		if( eventData & MASK_MOUSE_DELTA_Y )
 		{
-			m_MouseMovementDeltaY += (char)( ( eventData & MASK_MOUSE_DELTA_Y ) >> 16 );
+			char delta = (char)( ( eventData & MASK_MOUSE_DELTA_Y ) >> 16 );
+			m_MouseMovementDeltaY += delta * m_MouseSpeed;
 		}
 	}
 
@@ -80,8 +79,8 @@ namespace Helheimr
 		//	OutputDebugString( stringBuffer );
 		//}
 
-		m_MouseMovementDeltaX = 0;
-		m_MouseMovementDeltaY = 0;
+		m_MouseMovementDeltaX = 0.0f;
+		m_MouseMovementDeltaY = 0.0f;
 	}
 
 	bool Input::GetKeyUp( KeyCode key ) const
@@ -101,8 +100,8 @@ namespace Helheimr
 
 	bool Input::GetMouse( int& deltaX, int& deltaY ) const
 	{
-		deltaX = m_MouseMovementDeltaX;
-		deltaY = m_MouseMovementDeltaY;
+		deltaX = static_cast<int>( m_MouseMovementDeltaX );
+		deltaY = static_cast<int>( m_MouseMovementDeltaY );
 
 		return true;
 	}

@@ -42,12 +42,6 @@ public:
 	//
 	void Update();
 
-	/// \brief Notify the framework that an input event has occurred.
-	///
-	/// This is called by the platform anytime an input event occurs.
-	/// \param lParam A platform specific data type containing information regarding the event.
-	void ProcessInputEvent( Platform::LongParam lParam );
-
 	/// \brief Notify the framework that the window has been resized.
 	/// 
 	/// This should be called directly from the platform whenever the window has been resized.
@@ -64,6 +58,8 @@ private:
 
 	// Remove the copy constructor
 	Framework( Framework const & ) = delete;
+
+	void ProcessPlatformInput();
 
 	// Subsystems
 	Muspelheim::Renderer* m_pRenderer;
@@ -94,6 +90,8 @@ private:
 
 	//
 	FrameTime m_FrameTime;
+
+	BYTE* m_pRawInputBuffer;
 
 	// Provide friend access to Singleton<Input> specialization
 	friend Singleton<Framework>;
