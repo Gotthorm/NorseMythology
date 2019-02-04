@@ -115,8 +115,7 @@ std::wstring const terrainDataName( L"Media/Textures/Island.png" );
 std::wstring const avatarDataName( L"Media/Objects/Dragon.sbm" );
 
 Framework::Framework()
-	: m_pRenderer( nullptr )
-	, m_pLogger( nullptr )
+	: m_pLogger( nullptr )
 	, m_pGame( nullptr )
 //	, m_pInput( nullptr )
 	, m_pCameraManager( nullptr )
@@ -148,16 +147,16 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		m_MessageManager->Post( Niflheim::Message::LOG_INFO, launchInfo.applicationTitle );
 
 		// Initialize the renderer
-		m_pRenderer = Muspelheim::Renderer::Create();
-		PLATFORM_ASSERT( nullptr != m_pRenderer );
-		if( nullptr == m_pRenderer || false == m_pRenderer->Initialize( hWindow ) )
+		m_Renderer = Muspelheim::Renderer::Create();
+		PLATFORM_ASSERT( nullptr != m_Renderer );
+		if( nullptr == m_Renderer || false == m_Renderer->Initialize( hWindow ) )
 		{
 			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, L"Failed to initialize the graphics rendering system" );
 			return false;
 		}
-		m_pRenderer->SetVSyncEnabled( false );
+		m_Renderer->SetVSyncEnabled( false );
 
-		m_MessageManager->Post( Niflheim::Message::LOG_INFO, m_pRenderer->GetVersionInformation() );
+		m_MessageManager->Post( Niflheim::Message::LOG_INFO, m_Renderer->GetVersionInformation() );
 
 		// Initialize the input system
 		// TODO: Can we remove the singleton?
@@ -199,7 +198,7 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		}
 
 		// Set up the main screen
-		if( false == m_pRenderer->CreateSurface( m_MainScreenID ) )
+		if( false == m_Renderer->CreateSurface( m_MainScreenID ) )
 		{
 			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, L"Failed to create main render surface" );
 			return false;
@@ -208,9 +207,9 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		{
 			m_MessageManager->Post( Niflheim::Message::LOG_INFO, L"Render surface created" );
 
-			unsigned int shaderId = m_pRenderer->LoadShader( surfaceShaderName );
+			unsigned int shaderId = m_Renderer->LoadShader( surfaceShaderName );
 
-			if ( 0 == shaderId || false == m_pRenderer->SetSurfaceShader( m_MainScreenID, shaderId ) )
+			if ( 0 == shaderId || false == m_Renderer->SetSurfaceShader( m_MainScreenID, shaderId ) )
 			{
 				m_MessageManager->Post( Niflheim::Message::LOG_WARN, L"Failed to load shader: " + surfaceShaderName );
 			}
@@ -218,11 +217,11 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 			m_MessageManager->Post( Niflheim::Message::LOG_INFO, L"Shader: " + surfaceShaderName + L" loaded" );
 
 			// Set background to the color orange
-			m_pRenderer->SetSurfaceColor( m_MainScreenID, glm::vec4( 0.8f, 0.3f, 0.3f, 1.0f ) );
+			m_Renderer->SetSurfaceColor( m_MainScreenID, glm::vec4( 0.8f, 0.3f, 0.3f, 1.0f ) );
 
-			shaderId = m_pRenderer->LoadShader( text2DShaderName );
+			shaderId = m_Renderer->LoadShader( text2DShaderName );
 			
-			if ( 0 == shaderId || false == m_pRenderer->SetSurfaceTextShader( m_MainScreenID, shaderId ) )
+			if ( 0 == shaderId || false == m_Renderer->SetSurfaceTextShader( m_MainScreenID, shaderId ) )
 			{
 				m_MessageManager->Post( Niflheim::Message::LOG_WARN, L"Failed to load shader: " + text2DShaderName );
 			}
@@ -243,7 +242,7 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		// Create and initialize the avatar
 		m_pLoki1 = new Loki( m_MainScreenID );
 		PLATFORM_ASSERT( nullptr != m_pCameraManager );
-		if( m_pLoki1->Init( *m_pRenderer ) )
+		if( m_pLoki1->Init( m_Renderer ) )
 		{
 			if( false == m_pLoki1->Load( avatarDataName ) )
 			{
@@ -259,7 +258,7 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		m_pLoki1->SetPosition( glm::vec3( moveScale, 0, moveScale ) );
 
 		//m_Loki2 = new Loki( m_MainScreenID );
-		//if( m_Loki2 && m_Loki2->Init( *m_pRenderer ) )
+		//if( m_Loki2 && m_Loki2->Init( *m_Renderer ) )
 		//{
 		//	if( m_Loki2->Load( "Media/Objects/Dragon.sbm" ) == false )
 		//	{
@@ -274,7 +273,7 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		//m_Loki2->SetPosition( glm::vec3( -moveScale, 0, moveScale ) );
 
 		//m_Loki3 = new Loki( m_MainScreenID );
-		//if( m_Loki3 && m_Loki3->Init( *m_pRenderer ) )
+		//if( m_Loki3 && m_Loki3->Init( *m_Renderer ) )
 		//{
 		//	if( m_Loki3->Load( "Media/Objects/Dragon.sbm" ) == false )
 		//	{
@@ -289,7 +288,7 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		//m_Loki3->SetPosition( glm::vec3( moveScale, 0, -moveScale ) );
 
 		//m_Loki4 = new Loki( m_MainScreenID );
-		//if( m_Loki4 && m_Loki4->Init( *m_pRenderer ) )
+		//if( m_Loki4 && m_Loki4->Init( *m_Renderer ) )
 		//{
 		//	if( m_Loki4->Load( "Media/Objects/Dragon.sbm" ) == false )
 		//	{
@@ -306,7 +305,7 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		// Create and initialize the terrain loader
 		m_pVolstagg = new Volstagg( m_MainScreenID );
 		PLATFORM_ASSERT( nullptr != m_pVolstagg );
-		if( m_pVolstagg->Init( *m_pRenderer ) )
+		if( m_pVolstagg->Init( *m_Renderer ) )
 		{
 			// Load the terrain data
 			if( false == m_pVolstagg->Load( terrainDataName ) )
@@ -357,12 +356,6 @@ void Framework::Shutdown()
 	delete m_pVolstagg;
 	m_pVolstagg = nullptr;
 
-	if( nullptr != m_pRenderer )
-	{
-		m_pRenderer->Shutdown();
-		delete m_pRenderer;
-		m_pRenderer = nullptr;
-	}
 	Helheimr::Input::Destroy();
 	//if( m_pGame != nullptr )
 	//{
@@ -372,6 +365,8 @@ void Framework::Shutdown()
 	//}
 	delete m_pRawInputBuffer;
 	m_pRawInputBuffer = nullptr;
+
+	m_Renderer.reset();
 
 	m_MessageManager->Post( Niflheim::Message::LOG_INFO, L"System shutdown" );
 	m_MessageManager->Update();
@@ -406,9 +401,9 @@ void Framework::Update()
 		if( Helheimr::Input::GetInstance()->GetKeyUp( Helheimr::Input::KEY_F2 ) )
 		{
 			// Toggle the vsync
-			bool const enable = ( false == m_pRenderer->GetVSyncEnabled() );
-			PLATFORM_ASSERT( m_pRenderer != nullptr );
-			m_pRenderer->SetVSyncEnabled( enable );
+			PLATFORM_ASSERT( nullptr != m_Renderer );
+			bool const enable = ( false == m_Renderer->GetVSyncEnabled() );
+			m_Renderer->SetVSyncEnabled( enable );
 			Helheimr::Input::GetInstance()->SetMouseSpeed( enable ? VSyncMouseSpeed : DefaultMouseSpeed );
 		}
 
@@ -521,27 +516,27 @@ void Framework::Update()
 
 		// ####################################################
 
-		bool vsync = m_pRenderer->GetVSyncEnabled();
+		bool vsync = m_Renderer->GetVSyncEnabled();
 
-		m_pRenderer->BeginRender( viewMatrix );
+		m_Renderer->BeginRender( viewMatrix );
 
 		// Render the current FPS
 		wchar_t stringBuffer[ Platform::kMaxStringLength ];
 		std::swprintf( stringBuffer, Platform::kMaxStringLength, L"%4u FPS", m_FrameTime.FPS() );
-		m_pRenderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 10, 0, Muspelheim::Renderer::TEXT_RIGHT );
+		m_Renderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 10, 0, Muspelheim::Renderer::TEXT_RIGHT );
 
 		std::swprintf( stringBuffer, Platform::kMaxStringLength, L"VSync: %s", ( vsync ? L"enabled" : L"disabled" ) );
-		m_pRenderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 40, 0, Muspelheim::Renderer::TEXT_RIGHT );
+		m_Renderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 40, 0, Muspelheim::Renderer::TEXT_RIGHT );
 
 		glm::vec3 const & cameraForward = viewMatrix[ 2 ];
 		std::swprintf( stringBuffer, Platform::kMaxStringLength, L"Camera Direction: %.3f, %.3f, %.3f", cameraForward.x, cameraForward.y, cameraForward.z );
-		m_pRenderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 40, 1, Muspelheim::Renderer::TEXT_RIGHT );
+		m_Renderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 40, 1, Muspelheim::Renderer::TEXT_RIGHT );
 
 		glm::vec3 const & cameraPosition = pCurrentCamera->GetPosition();
 		std::swprintf( stringBuffer, Platform::kMaxStringLength, L"Camera Position: %.1f, %.1f, %.1f", cameraPosition.x, cameraPosition.y, cameraPosition.z );
-		m_pRenderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 40, 2, Muspelheim::Renderer::TEXT_RIGHT );
+		m_Renderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 40, 2, Muspelheim::Renderer::TEXT_RIGHT );
 
-		m_pRenderer->EndRender();
+		m_Renderer->EndRender();
 
 		// Clear input key releases and post message buffer
 		Helheimr::Input::GetInstance()->AdvanceFrame();
@@ -555,8 +550,8 @@ void Framework::ResizeWindow( unsigned short width, unsigned short height )
 {
 	if( m_Initialized )
 	{
-		PLATFORM_ASSERT( nullptr != m_pRenderer );
-		m_pRenderer->SetWindowSize( width, height );
+		PLATFORM_ASSERT( nullptr != m_Renderer );
+		m_Renderer->SetWindowSize( width, height );
 	}
 }
 

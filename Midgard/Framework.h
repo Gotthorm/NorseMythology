@@ -62,11 +62,11 @@ private:
 	void ProcessPlatformInput();
 
 	// Subsystems
-	Muspelheim::Renderer* m_pRenderer;
 	Niflheim::Logger* m_pLogger;
 	Game* m_pGame;
 	//Input* m_pInput;
 	Vanaheimr::CameraManager* m_pCameraManager;
+	std::shared_ptr<Muspelheim::Renderer> m_Renderer;
 	std::shared_ptr<Niflheim::MessageManager> m_MessageManager;
 
 	// The main window identifier

@@ -20,13 +20,10 @@ namespace Muspelheim
 		OpenGLRenderer() = default;
 
 		//
-		~OpenGLRenderer() = default;
+		virtual ~OpenGLRenderer();
 
 		//
 		virtual bool Initialize( const Platform::WindowHandle& hWindow ) override;
-
-		//
-		virtual void Shutdown() override;
 
 		//
 		virtual void BeginRender( const glm::mat4& viewMatrix ) override;

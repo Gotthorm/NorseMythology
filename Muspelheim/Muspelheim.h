@@ -75,9 +75,6 @@ namespace Muspelheim
 		virtual bool Initialize( const Platform::WindowHandle& hWindow ) = 0;
 
 		//
-		virtual void Shutdown() = 0;
-
-		//
 		virtual void BeginRender( const glm::mat4& viewMatrix ) = 0;
 
 		//
@@ -105,10 +102,7 @@ namespace Muspelheim
 		virtual void SetVSyncEnabled( bool enable ) = 0;
 
 		//
-		static Renderer* Create();
-
-		//
-		static bool Destroy( Renderer*& );
+		static std::shared_ptr<Renderer> Create();
 
 		//
 		// Surface Methods

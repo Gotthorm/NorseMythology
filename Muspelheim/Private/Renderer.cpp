@@ -7,13 +7,8 @@
 
 namespace Muspelheim
 {
-	Renderer* Renderer::Create()
+	std::shared_ptr<Renderer> Renderer::Create()
 	{
-		return new OpenGLRenderer();
-	}
-
-	bool Renderer::Destroy( Renderer*& renderer )
-	{
-		return false;
+		return std::make_shared<OpenGLRenderer>();
 	}
 }

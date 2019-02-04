@@ -64,7 +64,7 @@ namespace Muspelheim
 	}
 
 	//
-	void OpenGLRenderer::Shutdown()
+	OpenGLRenderer::~OpenGLRenderer()
 	{
 		for( std::shared_ptr<OpenGLSurface> surface : m_Surfaces )
 		{

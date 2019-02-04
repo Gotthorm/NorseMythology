@@ -12,15 +12,17 @@ Loki::Loki( Muspelheim::SurfaceID id )
 {
 }
 
-bool Loki::Init( Muspelheim::Renderer& renderer )
+bool Loki::Init( std::shared_ptr<Muspelheim::Renderer> renderer )
 {
-	m_RenderObject = renderer.CreateSurfaceRenderObject( m_SurfaceID );
+	PLATFORM_ASSERT( nullptr != renderer );
+
+	m_RenderObject = renderer->CreateSurfaceRenderObject( m_SurfaceID );
 
 	std::shared_ptr<Muspelheim::RenderObject> renderObject = m_RenderObject.lock();
 
 	if( renderObject != nullptr )
 	{
-		if( renderObject->SetShader( renderer.LoadShader( shaderName ) ) )
+		if( renderObject->SetShader( renderer->LoadShader( shaderName ) ) )
 		{
 			return true;
 		}

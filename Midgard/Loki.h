@@ -13,13 +13,13 @@ public:
 	Loki( Muspelheim::SurfaceID id );
 	virtual ~Loki() = default;
 
-	bool Init( Muspelheim::Renderer& renderer );
+	bool Init( std::shared_ptr<Muspelheim::Renderer> renderer );
 
-    bool Load( const std::wstring& filename );
+    bool Load( std::wstring const & filename );
 
 	bool Update();
 
-	void SetPosition( const glm::vec3& position );
+	void SetPosition( glm::vec3 const & position );
 
 private:
 	std::weak_ptr<Muspelheim::RenderObject> m_RenderObject;
