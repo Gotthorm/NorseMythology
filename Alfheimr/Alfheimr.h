@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 #include "Niflheim.h"
+#include "Muspelheim.h"
 
 class ConsoleParser;
 class ConsoleParameterList;
@@ -23,11 +24,11 @@ namespace Alfheimr
 	class EXPORT Console : public Niflheim::MessageClient
 	{
 	public:
-		// Use the default implementation
-		Console() = default;
+		// 
+		Console( const std::weak_ptr<Niflheim::MessageManager>& messageManager );
 
-		// Use the default implementation
-		virtual ~Console() = default;
+		// 
+		virtual ~Console();
 
 		/// \brief Create the console window.
 		///
@@ -37,12 +38,12 @@ namespace Alfheimr
 		/// \param height The desired height of the console window.  This would typically be the height of the parent window.
 		/// \param heightPercent The vertical percentage of the given height that will be used by this console window. [0.0 > heightPercent <= 1.0]%
 		/// \return Currently always returns true, needs to be fixed.
-		bool Initialize( unsigned int width, unsigned int height, float heightPercent );
+		bool Initialize( std::weak_ptr<Muspelheim::Renderer> const & renderer, int width, unsigned int height, float heightPercent );
 
 		/// \brief Close the console window
 		///
 		/// Closes the console window and cleans up all internal data
-		void Shutdown();
+		//void Shutdown();
 
 		// Override MessageClient::ReceiveMessage
 		virtual void ReceiveMessage( const Niflheim::Message& message ) override;
@@ -140,8 +141,8 @@ namespace Alfheimr
 		bool m_Dirty = false;
 		float m_ClipSize = 0.0f;
 		float m_HeightPercent = 0.0f;
-		int m_FontHeight = 0;
-		int m_FontWidth = 0;
+		//int m_FontHeight = 0;
+		//int m_FontWidth = 0;
 
 		unsigned int m_OverlayProgram;
 		unsigned int m_RenderTextProgram;
@@ -173,7 +174,12 @@ namespace Alfheimr
 		unsigned int m_ScrollIndex = 0;
 		unsigned int m_MaxScrollIndex = 0;
 
+		// The main screen (surface) identifier
+		unsigned char m_MainScreenID;
+
 		std::wstring m_ConsoleTextBuffer;
+
+		std::weak_ptr<Muspelheim::Renderer> m_Renderer;
 	};
 
 }

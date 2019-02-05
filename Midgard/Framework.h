@@ -11,6 +11,7 @@
 namespace Muspelheim { class Renderer; }
 namespace Niflheim { class MessageManager; class Logger;  }
 namespace Vanaheimr { class CameraManager; }
+namespace Alfheimr { class Console; }
 class Game;
 //class Input;
 class Loki;
@@ -66,6 +67,7 @@ private:
 	Game* m_pGame;
 	//Input* m_pInput;
 	Vanaheimr::CameraManager* m_pCameraManager;
+	Alfheimr::Console* m_pConsole;
 	std::shared_ptr<Muspelheim::Renderer> m_Renderer;
 	std::shared_ptr<Niflheim::MessageManager> m_MessageManager;
 

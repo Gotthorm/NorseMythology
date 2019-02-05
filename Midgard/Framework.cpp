@@ -12,6 +12,7 @@
 #include "Loki.h"
 #include "Volstagg.h"
 #include "Vanaheimr.h"
+#include "Alfheimr.h"
 
 //#include "ConsoleCommandManager.h"
 //#include "ConsoleParameterList.h"
@@ -22,6 +23,7 @@
 #pragma comment(lib, "Helheimr.lib")
 #pragma comment(lib, "Vanaheimr.lib")
 #pragma comment(lib, "Valhalla.lib")
+#pragma comment(lib, "Alfheimr.lib")
 
 // Used for the macro NEXTRAWINPUTBLOCK
 typedef __int64 QWORD;
@@ -119,6 +121,7 @@ Framework::Framework()
 	, m_pGame( nullptr )
 //	, m_pInput( nullptr )
 	, m_pCameraManager( nullptr )
+	, m_pConsole( nullptr )
 	, m_WindowHandle( 0 )
 	, m_MainScreenID( Muspelheim::InvalidSurface )
 	, m_pRawInputBuffer( nullptr )
@@ -228,6 +231,10 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 
 			m_MessageManager->Post( Niflheim::Message::LOG_INFO, L"Shader: " + text2DShaderName + L" loaded" );
 		}
+
+		//
+		m_pConsole = new Alfheimr::Console( m_MessageManager );
+		m_pConsole->Initialize( m_Renderer, 80, 80, 50.0f );
 
 		//
 		m_pCameraManager = new Vanaheimr::CameraManager();
@@ -356,6 +363,12 @@ void Framework::Shutdown()
 	delete m_pVolstagg;
 	m_pVolstagg = nullptr;
 
+	delete m_pCameraManager;
+	m_pCameraManager = nullptr;
+
+	delete m_pConsole;
+	m_pConsole = nullptr;
+
 	Helheimr::Input::Destroy();
 	//if( m_pGame != nullptr )
 	//{
@@ -391,12 +404,12 @@ void Framework::Update()
 		ProcessPlatformInput();
 
 		// Check for the console activation/deactivation
-		//if( Helheimr::Input::GetInstance()->GetKeyUp( Helheimr::Input::KEY_TILDA ) )
-		//{
-		//	// Toggle the console
-		//	PLATFORM_ASSERT( m_pGraphics != nullptr );
-		//	m_pGraphics->ToggleConsole();
-		//}
+		if( Helheimr::Input::GetInstance()->GetKeyUp( Helheimr::Input::KEY_TILDA ) )
+		{
+			// Toggle the console
+			m_pConsole->SetVisible( m_pConsole->IsVisible() == false );
+		}
+		m_pConsole->Update( m_FrameTime.Duration() );
 
 		if( Helheimr::Input::GetInstance()->GetKeyUp( Helheimr::Input::KEY_F2 ) )
 		{
@@ -535,6 +548,8 @@ void Framework::Update()
 		glm::vec3 const & cameraPosition = pCurrentCamera->GetPosition();
 		std::swprintf( stringBuffer, Platform::kMaxStringLength, L"Camera Position: %.1f, %.1f, %.1f", cameraPosition.x, cameraPosition.y, cameraPosition.z );
 		m_Renderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 40, 2, Muspelheim::Renderer::TEXT_RIGHT );
+
+		m_pConsole->Render();
 
 		m_Renderer->EndRender();
 

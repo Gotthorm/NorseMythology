@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.14
+VisualStudioVersion = 15.0.26730.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Nildavellir", "Nildavellir\Nildavellir.vcxproj", "{7D052A48-276D-430C-A5D0-4CA6AB402961}"
 EndProject
@@ -29,6 +29,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Muspelheim", "Muspelheim\Mu
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Midgard", "Midgard\Midgard.vcxproj", "{0319AEE2-4D2A-48CE-AFFA-319850C85E33}"
 	ProjectSection(ProjectDependencies) = postProject
+		{F1E4BF01-EF7D-4331-AE9C-B167D9AB2E92} = {F1E4BF01-EF7D-4331-AE9C-B167D9AB2E92}
 		{7F2F2130-1168-4743-B8D6-330E7E965418} = {7F2F2130-1168-4743-B8D6-330E7E965418}
 		{CE36917C-A87A-4A78-AFFF-72F8C47143B3} = {CE36917C-A87A-4A78-AFFF-72F8C47143B3}
 		{2B29F3AC-B8DC-4201-9A01-32A312CBD0FA} = {2B29F3AC-B8DC-4201-9A01-32A312CBD0FA}
@@ -113,5 +114,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {63AF22EC-F695-48A2-97FF-73158C7A49A4}
 	EndGlobalSection
 EndGlobal

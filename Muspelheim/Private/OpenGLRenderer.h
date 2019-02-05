@@ -83,6 +83,9 @@ namespace Muspelheim
 		virtual bool SetSurfaceTextShader( SurfaceID surfaceID, unsigned int shaderID ) override;
 
 		//
+		virtual bool GetSurfaceFontSize( SurfaceID surfaceID, unsigned int & width, unsigned int & height ) override;
+
+		//
 		OpenGLShader* GetShader( unsigned int shaderID );
 
 	private:

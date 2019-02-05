@@ -2,95 +2,153 @@
 
 #include "Alfheimr.h"
 #include "Niflheim.h"
-#include "Vanaheimr.h"
+//#include "Vanaheimr.h"
 #include "Helheimr.h"
 #include <sstream>
+#include <memory>
 #include "ConsoleParser.h"
 #include "ConsoleCommandManager.h"
 //#include "Platform.h"
-#include "OpenGLInterface.h"
+//#include "OpenGLInterface.h"
 
 
 // TODO: This will become a console variable
 unsigned int cv_MinimumConsoleMessageLength = 0;
 
+std::wstring const consoleShaderName( L"Media/Shaders/console.overlay" );
+std::wstring const text2DShaderName( L"Media/Shaders/console.text2d" );
+
 namespace Alfheimr
 {
-	// TODO: Make this handle init errors
-	bool Console::Initialize( unsigned int width, unsigned int height, float heightPercent )
+	Console::Console( const std::weak_ptr<Niflheim::MessageManager>& messageManager ) : Niflheim::MessageClient( messageManager )
 	{
-		GLuint vertexShader = OpenGLInterface::LoadShader( "Media/Shaders/console.overlay.vs.glsl", GL_VERTEX_SHADER, true );
-		GLuint fragmentShader = OpenGLInterface::LoadShader( "Media/Shaders/console.overlay.fs.glsl", GL_FRAGMENT_SHADER, true );
+	}
+
+	// TODO: Make this handle init errors
+	bool Console::Initialize( std::weak_ptr<Muspelheim::Renderer> const & renderer, int width, unsigned int height, float heightPercent )
+	{
+		std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
+
+		if ( nullptr == pMessageManager )
+		{
+			return false;
+		}
+
+		m_Renderer = renderer;
+
+		{
+			std::shared_ptr<Muspelheim::Renderer> pRenderer = m_Renderer.lock();
+
+			if ( nullptr == pRenderer )
+			{
+				return false;
+			}
+
+			// Set up the main screen
+			if ( false == pRenderer->CreateSurface( m_MainScreenID ) )
+			{
+				pMessageManager->Post( Niflheim::Message::LOG_ERROR, L"Failed to create console render surface" );
+				return false;
+			}
+			else
+			{
+				pMessageManager->Post( Niflheim::Message::LOG_INFO, L"Console surface created" );
+
+				unsigned int shaderId = pRenderer->LoadShader( consoleShaderName );
+
+				if ( 0 == shaderId || false == pRenderer->SetSurfaceShader( m_MainScreenID, shaderId ) )
+				{
+					pMessageManager->Post( Niflheim::Message::LOG_WARN, L"Failed to load shader: " + consoleShaderName );
+				}
+
+				pMessageManager->Post( Niflheim::Message::LOG_INFO, L"Shader: " + consoleShaderName + L" loaded" );
+
+				// Set background to the color orange
+				//pRenderer->SetSurfaceColor( m_MainScreenID, glm::vec4( 0.8f, 0.3f, 0.3f, 1.0f ) );
+
+				shaderId = pRenderer->LoadShader( text2DShaderName );
+
+				if ( 0 == shaderId || false == pRenderer->SetSurfaceTextShader( m_MainScreenID, shaderId ) )
+				{
+					pMessageManager->Post( Niflheim::Message::LOG_WARN, L"Failed to load shader: " + text2DShaderName );
+				}
+
+				pMessageManager->Post( Niflheim::Message::LOG_INFO, L"Shader: " + text2DShaderName + L" loaded" );
+			}
+		}
+
+		//GLuint vertexShader = OpenGLInterface::LoadShader( "Media/Shaders/console.overlay.vs.glsl", GL_VERTEX_SHADER, true );
+		//GLuint fragmentShader = OpenGLInterface::LoadShader( "Media/Shaders/console.overlay.fs.glsl", GL_FRAGMENT_SHADER, true );
 
 		m_HeightPercent = heightPercent;
 
 		// Calculate the overlay size in clip space where height(0) => 1.0 && height(1.0) => -1.0
 		m_ClipSize = 1.0f - m_HeightPercent * 2.0f;
 
-		m_FontTextureId = Vanaheimr::KTX::load( "Media/Textures/cp437_9x16.ktx" );
+		//m_FontTextureId = Vanaheimr::KTX::load( "Media/Textures/cp437_9x16.ktx" );
 
 		// Extract the font width and height
-		glGetTexLevelParameteriv( GL_TEXTURE_2D_ARRAY, 0, GL_TEXTURE_WIDTH, &m_FontWidth );
-		glGetTexLevelParameteriv( GL_TEXTURE_2D_ARRAY, 0, GL_TEXTURE_HEIGHT, &m_FontHeight );
+		//glGetTexLevelParameteriv( GL_TEXTURE_2D_ARRAY, 0, GL_TEXTURE_WIDTH, &m_FontWidth );
+		//glGetTexLevelParameteriv( GL_TEXTURE_2D_ARRAY, 0, GL_TEXTURE_HEIGHT, &m_FontHeight );
 
 		// Set up the window dimensions.  This call may also update the buffer size.
 		SetWindowSize( width, height );
 
-		m_OverlayProgram = OpenGLInterface::CreateProgram();
-		OpenGLInterface::AttachShader( m_OverlayProgram, vertexShader );
-		OpenGLInterface::AttachShader( m_OverlayProgram, fragmentShader );
-		OpenGLInterface::LinkProgram( m_OverlayProgram );
+		//m_OverlayProgram = OpenGLInterface::CreateProgram();
+		//OpenGLInterface::AttachShader( m_OverlayProgram, vertexShader );
+		//OpenGLInterface::AttachShader( m_OverlayProgram, fragmentShader );
+		//OpenGLInterface::LinkProgram( m_OverlayProgram );
 
-		OpenGLInterface::DeleteShader( fragmentShader );
-		OpenGLInterface::DeleteShader( vertexShader );
-
-		// glCreateVertexArrays(1, &vao);
-		OpenGLInterface::GenVertexArrays( 1, &m_OverlayVertexArrayObjectId );
-		OpenGLInterface::BindVertexArray( m_OverlayVertexArrayObjectId );
-
-		vertexShader = OpenGLInterface::LoadShader( "Media/Shaders/console.text2d.vs.glsl", GL_VERTEX_SHADER, true );
-		fragmentShader = OpenGLInterface::LoadShader( "Media/Shaders/console.text2d.fs.glsl", GL_FRAGMENT_SHADER, true );
-
-		m_RenderTextProgram = OpenGLInterface::CreateProgram();
-		OpenGLInterface::AttachShader( m_RenderTextProgram, vertexShader );
-		OpenGLInterface::AttachShader( m_RenderTextProgram, fragmentShader );
-		OpenGLInterface::LinkProgram( m_RenderTextProgram );
-
-		OpenGLInterface::DeleteShader( fragmentShader );
-		OpenGLInterface::DeleteShader( vertexShader );
-
-		m_FontScalarLocationId = OpenGLInterface::GetUniformLocation( m_RenderTextProgram, "fontScalar" );
+		//OpenGLInterface::DeleteShader( fragmentShader );
+		//OpenGLInterface::DeleteShader( vertexShader );
 
 		// glCreateVertexArrays(1, &vao);
-		OpenGLInterface::GenVertexArrays( 1, &m_TextVertexArrayObjectId );
-		OpenGLInterface::BindVertexArray( m_TextVertexArrayObjectId );
+		//OpenGLInterface::GenVertexArrays( 1, &m_OverlayVertexArrayObjectId );
+		//OpenGLInterface::BindVertexArray( m_OverlayVertexArrayObjectId );
 
-		OpenGLInterface::ActiveTexture( GL_TEXTURE0 );
-		glGenTextures( 1, &m_TextBufferTextureId );
-		glBindTexture( GL_TEXTURE_2D, m_TextBufferTextureId );
-		glPixelStorei( GL_UNPACK_ALIGNMENT, 4 );
+		//vertexShader = OpenGLInterface::LoadShader( "Media/Shaders/console.text2d.vs.glsl", GL_VERTEX_SHADER, true );
+		//fragmentShader = OpenGLInterface::LoadShader( "Media/Shaders/console.text2d.fs.glsl", GL_FRAGMENT_SHADER, true );
 
-		// This call is supposedly the equivalent of calling something like this:
-		//glTexImage2D( GL_TEXTURE_2D, 0, GL_R8UI, 1024, 1024, 0, GL_RED, GL_UNSIGNED_BYTE, NULL );
-		// but I never got it working.  Some of the parameters are guess work.
-		OpenGLInterface::TexStorage2D( GL_TEXTURE_2D, 1, GL_R8UI, 1024, 1024 );
+		//m_RenderTextProgram = OpenGLInterface::CreateProgram();
+		//OpenGLInterface::AttachShader( m_RenderTextProgram, vertexShader );
+		//OpenGLInterface::AttachShader( m_RenderTextProgram, fragmentShader );
+		//OpenGLInterface::LinkProgram( m_RenderTextProgram );
 
-		OpenGLInterface::ActiveTexture( GL_TEXTURE2 );
-		glGenTextures( 1, &m_TextColorBufferTextureId );
-		glBindTexture( GL_TEXTURE_1D, m_TextColorBufferTextureId );
-		glPixelStorei( GL_UNPACK_ALIGNMENT, 4 );
+		//OpenGLInterface::DeleteShader( fragmentShader );
+		//OpenGLInterface::DeleteShader( vertexShader );
 
-		// See above comments
-		OpenGLInterface::TexStorage1D( GL_TEXTURE_1D, 1, GL_R32UI, 1024 );
+		//m_FontScalarLocationId = OpenGLInterface::GetUniformLocation( m_RenderTextProgram, "fontScalar" );
+
+		//// glCreateVertexArrays(1, &vao);
+		//OpenGLInterface::GenVertexArrays( 1, &m_TextVertexArrayObjectId );
+		//OpenGLInterface::BindVertexArray( m_TextVertexArrayObjectId );
+
+		//OpenGLInterface::ActiveTexture( GL_TEXTURE0 );
+		//glGenTextures( 1, &m_TextBufferTextureId );
+		//glBindTexture( GL_TEXTURE_2D, m_TextBufferTextureId );
+		//glPixelStorei( GL_UNPACK_ALIGNMENT, 4 );
+
+		//// This call is supposedly the equivalent of calling something like this:
+		////glTexImage2D( GL_TEXTURE_2D, 0, GL_R8UI, 1024, 1024, 0, GL_RED, GL_UNSIGNED_BYTE, NULL );
+		//// but I never got it working.  Some of the parameters are guess work.
+		//OpenGLInterface::TexStorage2D( GL_TEXTURE_2D, 1, GL_R8UI, 1024, 1024 );
+
+		//OpenGLInterface::ActiveTexture( GL_TEXTURE2 );
+		//glGenTextures( 1, &m_TextColorBufferTextureId );
+		//glBindTexture( GL_TEXTURE_1D, m_TextColorBufferTextureId );
+		//glPixelStorei( GL_UNPACK_ALIGNMENT, 4 );
+
+		//// See above comments
+		//OpenGLInterface::TexStorage1D( GL_TEXTURE_1D, 1, GL_R32UI, 1024 );
 
 		// Register for the correct messages
-		Niflheim::MessageManager::GetInstance()->Register( this, Niflheim::Message::LOG_INFO );
-		Niflheim::MessageManager::GetInstance()->Register( this, Niflheim::Message::LOG_WARN );
-		Niflheim::MessageManager::GetInstance()->Register( this, Niflheim::Message::LOG_ERROR );
+		pMessageManager->Register( this, Niflheim::Message::LOG_INFO );
+		pMessageManager->Register( this, Niflheim::Message::LOG_WARN );
+		pMessageManager->Register( this, Niflheim::Message::LOG_ERROR );
 
 		m_ConsoleTextBuffer.reserve( Niflheim::Message::MAX_STRING_LENGTH );
 
-		m_Parser = new ConsoleParser();
+		m_Parser = new ConsoleParser( pMessageManager );
 		assert( m_Parser );
 
 		ConsoleCommandManager::Create();
@@ -109,14 +167,20 @@ namespace Alfheimr
 		return true;
 	}
 
-	void Console::Shutdown()
+	Console::~Console()
 	{
 		// Deregister the message handlers
-		Niflheim::MessageManager::GetInstance()->Deregister( this, Niflheim::Message::LOG_INFO );
-		Niflheim::MessageManager::GetInstance()->Deregister( this, Niflheim::Message::LOG_WARN );
-		Niflheim::MessageManager::GetInstance()->Deregister( this, Niflheim::Message::LOG_ERROR );
+		std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
+		if ( nullptr != pMessageManager )
+		{
+			pMessageManager->Deregister( this, Niflheim::Message::LOG_INFO );
+			pMessageManager->Deregister( this, Niflheim::Message::LOG_WARN );
+			pMessageManager->Deregister( this, Niflheim::Message::LOG_ERROR );
+		}
 
 		SetVisible( false );
+
+		m_MessageManager.reset();
 
 		delete m_Parser;
 		m_Parser = nullptr;
@@ -131,10 +195,11 @@ namespace Alfheimr
 		delete[] m_ScreenTextColorBuffer;
 		m_ScreenTextColorBuffer = nullptr;
 
-		OpenGLInterface::DeleteVertexArrays( 1, &m_OverlayVertexArrayObjectId );
-		OpenGLInterface::DeleteVertexArrays( 1, &m_TextVertexArrayObjectId );
-		OpenGLInterface::DeleteProgram( m_OverlayProgram );
-		OpenGLInterface::DeleteProgram( m_RenderTextProgram );
+		m_Renderer.reset();
+		//OpenGLInterface::DeleteVertexArrays( 1, &m_OverlayVertexArrayObjectId );
+		//OpenGLInterface::DeleteVertexArrays( 1, &m_TextVertexArrayObjectId );
+		//OpenGLInterface::DeleteProgram( m_OverlayProgram );
+		//OpenGLInterface::DeleteProgram( m_RenderTextProgram );
 	}
 
 	void Console::SetCacheSize( unsigned int cacheSize )
@@ -206,20 +271,34 @@ namespace Alfheimr
 
 	void Console::UpdateBufferSize()
 	{
-		unsigned int newBufferWidth = m_WindowWidth / unsigned int( m_TextScale[ 0 ] * m_FontWidth );
-		unsigned int newBufferHeight = unsigned int( m_WindowHeight * m_HeightPercent ) / unsigned int( m_TextScale[ 1 ] * m_FontHeight );
+		std::shared_ptr<Muspelheim::Renderer> pRenderer = m_Renderer.lock();
+
+		unsigned int fontWidth, fontHeight;
+
+		pRenderer->GetSurfaceFontSize( m_MainScreenID, fontWidth, fontHeight );
+
+		//pRenderer->GetSurface( m_MainScreenID );
+
+		unsigned int newBufferWidth = m_WindowWidth / unsigned int( m_TextScale[ 0 ] * fontWidth );
+		unsigned int newBufferHeight = unsigned int( m_WindowHeight * m_HeightPercent ) / unsigned int( m_TextScale[ 1 ] * fontHeight );
 
 		// Leave one line for the console input
 		--newBufferHeight;
 
 		if( newBufferWidth != m_VirtualBufferWidth || newBufferHeight != m_VirtualBufferHeight )
 		{
-			std::wstringstream stringStream;
-			stringStream << L"Console virtual buffer size changed from (" << m_VirtualBufferWidth << ", " << m_VirtualBufferHeight << ") to (" << newBufferWidth << ", " << newBufferHeight << ")";
-			Niflheim::MessageManager::GetInstance()->Post( Niflheim::Message::LOG_INFO, stringStream.str() );
+			std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
 
-			// Clear the string stream
-			std::wstringstream().swap( stringStream );
+			std::wstringstream stringStream;
+
+			if ( nullptr != pMessageManager )
+			{
+				stringStream << L"Console virtual buffer size changed from (" << m_VirtualBufferWidth << ", " << m_VirtualBufferHeight << ") to (" << newBufferWidth << ", " << newBufferHeight << ")";
+				pMessageManager->Post( Niflheim::Message::LOG_INFO, stringStream.str() );
+
+				// Clear the string stream
+				std::wstringstream().swap( stringStream );
+			}
 
 			m_VirtualBufferWidth = newBufferWidth;
 			m_VirtualBufferHeight = newBufferHeight;
@@ -234,8 +313,11 @@ namespace Alfheimr
 			delete[] m_ScreenTextColorBuffer;
 			m_ScreenTextColorBuffer = new unsigned int[ m_BufferHeight ];
 
-			stringStream << L"Console physical buffer size changed to (" << m_BufferWidth << ", " << m_BufferHeight << ")";
-			Niflheim::MessageManager::GetInstance()->Post( Niflheim::Message::LOG_INFO, stringStream.str() );
+			if ( nullptr != pMessageManager )
+			{
+				stringStream << L"Console physical buffer size changed to (" << m_BufferWidth << ", " << m_BufferHeight << ")";
+				pMessageManager->Post( Niflheim::Message::LOG_INFO, stringStream.str() );
+			}
 
 			// To enforce our rule that the cache size is at least as large as the screen
 			if( m_CacheSize < m_VirtualBufferHeight )
@@ -249,63 +331,88 @@ namespace Alfheimr
 	{
 		if( m_IsVisible )
 		{
+			std::shared_ptr<Muspelheim::Renderer> pRenderer = m_Renderer.lock();
+
+			if ( nullptr != pRenderer )
+			{
+				//pRenderer->BeginRender( glm::mat4() );
+
+				// Render the current FPS
+				wchar_t stringBuffer[ Platform::kMaxStringLength ];
+				std::swprintf( stringBuffer, Platform::kMaxStringLength, L"Some console text" );
+				pRenderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 0, 0, Muspelheim::Renderer::TEXT_LEFT );
+
+				//std::swprintf( stringBuffer, Platform::kMaxStringLength, L"VSync: %s", ( vsync ? L"enabled" : L"disabled" ) );
+				//m_Renderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 40, 0, Muspelheim::Renderer::TEXT_RIGHT );
+
+				//glm::vec3 const & cameraForward = viewMatrix[ 2 ];
+				//std::swprintf( stringBuffer, Platform::kMaxStringLength, L"Camera Direction: %.3f, %.3f, %.3f", cameraForward.x, cameraForward.y, cameraForward.z );
+				//m_Renderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 40, 1, Muspelheim::Renderer::TEXT_RIGHT );
+
+				//glm::vec3 const & cameraPosition = pCurrentCamera->GetPosition();
+				//std::swprintf( stringBuffer, Platform::kMaxStringLength, L"Camera Position: %.1f, %.1f, %.1f", cameraPosition.x, cameraPosition.y, cameraPosition.z );
+				//m_Renderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 40, 2, Muspelheim::Renderer::TEXT_RIGHT );
+
+				//pRenderer->EndRender();
+			}
+
 			// Render the semi transparent overlay
-			OpenGLInterface::UseProgram( m_OverlayProgram );
-			OpenGLInterface::VertexAttrib1f( 1, m_ClipSize );
-			glEnable( GL_BLEND );
-			glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-			glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
-			glDisable( GL_BLEND );
+			//OpenGLInterface::UseProgram( m_OverlayProgram );
+			//OpenGLInterface::VertexAttrib1f( 1, m_ClipSize );
+			//glEnable( GL_BLEND );
+			//glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+			//glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+			//glDisable( GL_BLEND );
 
-			// Render the text
-			OpenGLInterface::UseProgram( m_RenderTextProgram );
-			OpenGLInterface::VertexAttrib1f( 1, m_ClipSize );
-			//OpenGLInterface::VertexAttrib4fv( 2, m_TextScale );
+			//// Render the text
+			//OpenGLInterface::UseProgram( m_RenderTextProgram );
+			//OpenGLInterface::VertexAttrib1f( 1, m_ClipSize );
+			////OpenGLInterface::VertexAttrib4fv( 2, m_TextScale );
 
-			OpenGLInterface::Uniform2fv( m_FontScalarLocationId, 1, m_TextScale );
-			GLenum error = glGetError();
+			//OpenGLInterface::Uniform2fv( m_FontScalarLocationId, 1, m_TextScale );
+			//GLenum error = glGetError();
 
-			// Update the screen buffer with latest version of the cache data
-			CopyCacheToRenderBuffer();
+			//// Update the screen buffer with latest version of the cache data
+			//CopyCacheToRenderBuffer();
 
-			OpenGLInterface::ActiveTexture( GL_TEXTURE0 );
+			//OpenGLInterface::ActiveTexture( GL_TEXTURE0 );
 
-			glBindTexture( GL_TEXTURE_2D, m_TextBufferTextureId );
+			//glBindTexture( GL_TEXTURE_2D, m_TextBufferTextureId );
 
-			glTexSubImage2D(
-				GL_TEXTURE_2D,			// Target to which the texture is bound
-				0,						// Level of detail number, 0 is base
-				0,						// Specifies a texel offset in the x direction within the texture array
-				0,						// Specifies a texel offset in the y direction within the texture array
-				m_BufferWidth,			// Specifies the width of the texture subimage
-				m_BufferHeight,			// Specifies the height of the texture subimage
-				GL_RED_INTEGER,			// Specifies the format of the pixel data.  GL_RED_INTEGER tells GL to keep the exact integer value rather than normalizing
-				GL_UNSIGNED_BYTE,		// Specifies the data type of the pixel data
-				m_ScreenTextBuffer		// Specifies a pointer to the image data in memory
-			);
+			//glTexSubImage2D(
+			//	GL_TEXTURE_2D,			// Target to which the texture is bound
+			//	0,						// Level of detail number, 0 is base
+			//	0,						// Specifies a texel offset in the x direction within the texture array
+			//	0,						// Specifies a texel offset in the y direction within the texture array
+			//	m_BufferWidth,			// Specifies the width of the texture subimage
+			//	m_BufferHeight,			// Specifies the height of the texture subimage
+			//	GL_RED_INTEGER,			// Specifies the format of the pixel data.  GL_RED_INTEGER tells GL to keep the exact integer value rather than normalizing
+			//	GL_UNSIGNED_BYTE,		// Specifies the data type of the pixel data
+			//	m_ScreenTextBuffer		// Specifies a pointer to the image data in memory
+			//);
 
-			OpenGLInterface::ActiveTexture( GL_TEXTURE2 );
+			//OpenGLInterface::ActiveTexture( GL_TEXTURE2 );
 
-			glBindTexture( GL_TEXTURE_1D, m_TextColorBufferTextureId );
+			//glBindTexture( GL_TEXTURE_1D, m_TextColorBufferTextureId );
 
-			glTexSubImage1D(
-				GL_TEXTURE_1D,			// Target to which the texture is bound
-				0,						// Level of detail number, 0 is base
-				0,						// Specifies a texel offset in the x direction within the texture array
-				m_BufferHeight,			// Specifies the width of the texture subimage
-				GL_RED_INTEGER,			// Specifies the format of the pixel data.  GL_RED_INTEGER tells GL to keep the exact integer value rather than normalizing
-				GL_UNSIGNED_INT,		// Specifies the data type of the pixel data
-				m_ScreenTextColorBuffer	// Specifies a pointer to the image data in memory
-			);
+			//glTexSubImage1D(
+			//	GL_TEXTURE_1D,			// Target to which the texture is bound
+			//	0,						// Level of detail number, 0 is base
+			//	0,						// Specifies a texel offset in the x direction within the texture array
+			//	m_BufferHeight,			// Specifies the width of the texture subimage
+			//	GL_RED_INTEGER,			// Specifies the format of the pixel data.  GL_RED_INTEGER tells GL to keep the exact integer value rather than normalizing
+			//	GL_UNSIGNED_INT,		// Specifies the data type of the pixel data
+			//	m_ScreenTextColorBuffer	// Specifies a pointer to the image data in memory
+			//);
 
-			OpenGLInterface::ActiveTexture( GL_TEXTURE1 );
+			//OpenGLInterface::ActiveTexture( GL_TEXTURE1 );
 
-			OpenGLInterface::BindTexture( GL_TEXTURE_2D_ARRAY, m_FontTextureId );
+			//OpenGLInterface::BindTexture( GL_TEXTURE_2D_ARRAY, m_FontTextureId );
 
-			OpenGLInterface::BindVertexArray( m_TextVertexArrayObjectId );
+			//OpenGLInterface::BindVertexArray( m_TextVertexArrayObjectId );
 
-			// Render four vertices in a triangle strip format, which equates to a square composed of two triangles
-			glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+			//// Render four vertices in a triangle strip format, which equates to a square composed of two triangles
+			//glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 		}
 	}
 
@@ -470,15 +577,20 @@ namespace Alfheimr
 		{
 			m_IsVisible = visible;
 
-			if( visible )
-			{
-				m_ScrollIndex = 0;
+			std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
 
-				Niflheim::MessageManager::GetInstance()->Register( this, Niflheim::Message::KEY_STROKES );
-			}
-			else
+			if ( nullptr != pMessageManager )
 			{
-				Niflheim::MessageManager::GetInstance()->Deregister( this, Niflheim::Message::KEY_STROKES );
+				if ( visible )
+				{
+					m_ScrollIndex = 0;
+
+					pMessageManager->Register( this, Niflheim::Message::KEY_STROKES );
+				}
+				else
+				{
+					pMessageManager->Deregister( this, Niflheim::Message::KEY_STROKES );
+				}
 			}
 		}
 	}
@@ -487,7 +599,7 @@ namespace Alfheimr
 	{
 		unsigned short keyValue = ( Helheimr::Input::MASK_KEY_VALUE & keyStroke );
 
-		bool shifted = ( Helheimr::Input::MASK_KEY_SHIFT & keyStroke ) > 0;
+		bool shifted = ( Helheimr::Input::MODIFIER_KEY_SHIFT & keyStroke ) > 0;
 
 		wchar_t character = 0;
 		if( keyValue >= Helheimr::Input::KEY_A && keyValue <= Helheimr::Input::KEY_Z )

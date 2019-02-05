@@ -379,6 +379,20 @@ namespace Muspelheim
 
 		return false;
 	}
+
+	bool OpenGLRenderer::GetSurfaceFontSize( SurfaceID surfaceID, unsigned int & width, unsigned int & height )
+	{
+		if ( surfaceID > 0 && m_Surfaces.size() >= surfaceID )
+		{
+			width = m_Surfaces[ surfaceID - 1 ]->GetFontWidth();
+			height = m_Surfaces[ surfaceID - 1 ]->GetFontHeight();
+
+			return true;
+		}
+
+		return false;
+	}
+
 	//
 	bool OpenGLRenderer::DrawSurfaceString( SurfaceID surfaceID, const std::wstring& textString, unsigned short posX, unsigned short posY, TextAlignment alignment )
 	{

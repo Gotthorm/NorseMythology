@@ -66,6 +66,9 @@ namespace Muspelheim
 		bool GetRenderBackground() { return m_RenderBackground; }
 		void SetRenderBackground( bool render ) { m_RenderBackground = render; }
 
+		unsigned int GetFontWidth() { return m_Text.GetFontWidth(); }
+		unsigned int GetFontHeight() { return m_Text.GetFontHeight(); }
+
 	private:
 		unsigned char m_Depth = 0;
 		unsigned short m_Width = 0;

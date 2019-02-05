@@ -130,6 +130,9 @@ namespace Muspelheim
 		virtual bool SetSurfaceTextShader( SurfaceID surfaceID, unsigned int shaderID ) = 0;
 
 		//
+		virtual bool GetSurfaceFontSize( SurfaceID surfaceID, unsigned int & width, unsigned int & height ) = 0;
+
+		//
 		virtual bool DrawSurfaceString( SurfaceID surfaceID, const std::wstring& textString, unsigned short posX, unsigned short posY, TextAlignment alignment ) = 0;
 
 		//
