@@ -11,7 +11,7 @@
 #include "OpenGLInterface.h"
 #include <math.h>
 #include <string>
-#include "Niflheim.h"
+#include "MessageManager.h"
 #include <codecvt>
 #include <sstream>
 
@@ -88,7 +88,7 @@ bool Graphics::InitializeSubSystems()
 
 	if( GetClientRect( window, &rect ) == FALSE )
 	{
-		Niflheim::MessageManager::GetInstance()->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Failed to extract the initial window size" ) );
+		MessageManager::GetInstance()->Post( Message::LOG_ERROR, std::wstring( L"Failed to extract the initial window size" ) );
 	}
 
 	unsigned int width = rect.right - rect.left;
@@ -96,7 +96,7 @@ bool Graphics::InitializeSubSystems()
 
 	if( m_Console.Initialize( width, height, 0.75f ) == false )
 	{
-		Niflheim::MessageManager::GetInstance()->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Failed to initialize the console system" ) );
+		MessageManager::GetInstance()->Post( Message::LOG_ERROR, std::wstring( L"Failed to initialize the console system" ) );
 	}
 	else
 	{
@@ -143,7 +143,7 @@ void Graphics::SetWindowSize( unsigned short width, unsigned short height )
 
 	std::wstringstream s;
 	s << L"SetWindowSize( " << width << L", " << height << L" )";
-	Niflheim::MessageManager::GetInstance()->Post( Niflheim::Message::LOG_INFO, s.str() );
+	MessageManager::GetInstance()->Post( Message::LOG_INFO, s.str() );
 
 	m_Console.SetWindowSize( width, height );
 }
@@ -290,5 +290,5 @@ void Graphics::ToggleConsole()
 
 void Graphics::UpdateConsole( float timeElapsed )
 {
-	m_Console.Update( timeElapsed );
+	//m_Console.Update( timeElapsed );
 }

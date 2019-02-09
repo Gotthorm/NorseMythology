@@ -7,6 +7,7 @@
 //#include "TCHAR.H"
 #include "Camera.h"
 //#include "Input.h"
+#include "MessageManager.h"
 
 
 Game::Game() : m_pCurrentCamera( NULL )//, m_pInput( NULL )
@@ -70,16 +71,15 @@ void Game::Shutdown()
 }
 
 #include <iostream> 
-#include "Vanaheimr.h"
-#include "Niflheim.h"
+//#include "Vanaheimr.h"
+//#include "Niflheim.h"
 
 void Game::Update()
 {
-	Niflheim::Message myMessage;
+	Message myMessage;
 	myMessage.floatData = 1.2345f;
 
-	Niflheim::MessageManager::Create();
-	Niflheim::MessageManager::GetInstance()->Update();
+	MessageManager::GetInstance()->Update();
 
 	//m_pInput->Update();
 

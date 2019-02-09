@@ -4,8 +4,9 @@
 #define _GRAPHICS_HPP_
 
 //
+#include <memory>
 #include "Text2D.h"
-#include "Alfheimr.h"
+#include "Console.h"
 #include <gl\GL.h>
 
 class Camera;
@@ -63,7 +64,7 @@ private:
 
 	Text2D m_Text2D;
 
-	Alfheimr::Console m_Console;
+	Console m_Console;
 
 	Camera* m_pCurrentCamera;
 };

@@ -3,15 +3,14 @@
 #ifndef _FRAMEWORK_H_
 #define _FRAMEWORK_H_
 
+#include <memory>
 #include "Platform.h"
 
 // Forward declarations
 class Graphics;
 class Game;
 class Input;
-namespace Niflheim {
-	class Logger;
-}
+class Logger;
 
 /// \brief Encapsulation all of the engine's subsystems.
 ///
@@ -68,7 +67,7 @@ private:
 	Graphics* m_pGraphics = nullptr;
 	Game* m_pGame = nullptr;
 	Input* m_pInput = nullptr;
-	Niflheim::Logger* m_pLogger = nullptr;
+	Logger* m_pLogger = nullptr;
 
 	Platform::WindowHandle m_hWindow = 0;
 
