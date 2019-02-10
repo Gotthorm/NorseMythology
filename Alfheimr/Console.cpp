@@ -2,6 +2,7 @@
 
 #include "Alfheimr.h"
 #include "Niflheim.h"
+#include "Muspelheim.h"
 //#include "Vanaheimr.h"
 #include "Helheimr.h"
 #include <sstream>
@@ -16,7 +17,7 @@
 unsigned int cv_MinimumConsoleMessageLength = 0;
 
 std::wstring const consoleShaderName( L"Media/Shaders/console.overlay" );
-std::wstring const text2DShaderName( L"Media/Shaders/console.text2d" );
+std::wstring const text2DShaderName( L"Media/Shaders/text2d" );
 
 namespace Alfheimr
 {
@@ -64,7 +65,9 @@ namespace Alfheimr
 				pMessageManager->Post( Niflheim::Message::LOG_INFO, L"Shader: " + consoleShaderName + L" loaded" );
 
 				// Set background to the color orange
-				//pRenderer->SetSurfaceColor( m_MainScreenID, glm::vec4( 0.8f, 0.3f, 0.3f, 1.0f ) );
+				pRenderer->SetSurfaceColor( m_MainScreenID, glm::vec4( 0.8f, 0.3f, 0.3f, 0.7f ) );
+
+				pRenderer->SetSurfaceVisible( m_MainScreenID, false );
 
 				shaderId = pRenderer->LoadShader( text2DShaderName );
 
@@ -195,7 +198,14 @@ namespace Alfheimr
 		delete[] m_ScreenTextColorBuffer;
 		m_ScreenTextColorBuffer = nullptr;
 
+		std::shared_ptr<Muspelheim::Renderer> pRenderer = m_Renderer.lock();
+		if ( nullptr != pRenderer )
+		{
+			pRenderer->DestroySurface( m_MainScreenID );
+			pRenderer.reset();
+		}
 		m_Renderer.reset();
+
 		//OpenGLInterface::DeleteVertexArrays( 1, &m_OverlayVertexArrayObjectId );
 		//OpenGLInterface::DeleteVertexArrays( 1, &m_TextVertexArrayObjectId );
 		//OpenGLInterface::DeleteProgram( m_OverlayProgram );
@@ -335,12 +345,15 @@ namespace Alfheimr
 
 			if ( nullptr != pRenderer )
 			{
+				// Update the screen buffer with latest version of the cache data
+				RenderText( pRenderer );
+
 				//pRenderer->BeginRender( glm::mat4() );
 
 				// Render the current FPS
-				wchar_t stringBuffer[ Platform::kMaxStringLength ];
-				std::swprintf( stringBuffer, Platform::kMaxStringLength, L"Some console text" );
-				pRenderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 0, 0, Muspelheim::Renderer::TEXT_LEFT );
+				//wchar_t stringBuffer[ Platform::kMaxStringLength ];
+				//std::swprintf( stringBuffer, Platform::kMaxStringLength, L"Some console text" );
+				//pRenderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 10, 10, Muspelheim::Renderer::TEXT_LEFT );
 
 				//std::swprintf( stringBuffer, Platform::kMaxStringLength, L"VSync: %s", ( vsync ? L"enabled" : L"disabled" ) );
 				//m_Renderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 40, 0, Muspelheim::Renderer::TEXT_RIGHT );
@@ -577,11 +590,18 @@ namespace Alfheimr
 		{
 			m_IsVisible = visible;
 
+			std::shared_ptr<Muspelheim::Renderer> pRenderer = m_Renderer.lock();
+
+			if ( nullptr != pRenderer )
+			{
+				pRenderer->SetSurfaceVisible( m_MainScreenID, m_IsVisible );
+			}
+
 			std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
 
 			if ( nullptr != pMessageManager )
 			{
-				if ( visible )
+				if ( m_IsVisible )
 				{
 					m_ScrollIndex = 0;
 
@@ -765,6 +785,34 @@ namespace Alfheimr
 					SetTextScale( widthScale, heightScale );
 				}
 			}
+		}
+	}
+
+	void Console::RenderText( std::shared_ptr<Muspelheim::Renderer> const & renderer )
+	{
+		unsigned int cacheIndex = m_CacheIndex;
+
+		//
+		unsigned int startIndex = m_ScrollIndex;
+		if ( m_ScrollIndex > cacheIndex )
+		{
+			cacheIndex = m_CacheSize - ( m_ScrollIndex - cacheIndex );
+		}
+		else
+		{
+			cacheIndex -= m_ScrollIndex;
+		}
+
+		for ( int index = ( m_VirtualBufferHeight - 1 ); index >= 0; --index )
+		{
+			// Determine cache line index
+			if ( cacheIndex == 0 )
+			{
+				cacheIndex = m_CacheSize;
+			}
+			--cacheIndex;
+
+			renderer->DrawSurfaceString( m_MainScreenID, m_Cache[ cacheIndex ].messageString, 0, index, Muspelheim::Renderer::TEXT_LEFT );
 		}
 	}
 }

@@ -1,8 +1,11 @@
 #version 450 core
 
-out vec4 color;
+out vec4 fsColor;
+
+// Input from the vertex shader
+in vec4 vsColor;
 
 void main(void)
 {
-	color = vec4(0.0, 0.0, 0.0, 0.7);
+	fsColor = vsColor;
 }

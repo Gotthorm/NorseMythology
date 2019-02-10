@@ -296,6 +296,24 @@ namespace Muspelheim
 		return false;
 	}
 
+	// 
+	bool OpenGLRenderer::DestroySurface( SurfaceID surfaceID )
+	{
+		if ( surfaceID > 0 && m_Surfaces.size() >= surfaceID )
+		{
+			--surfaceID;
+
+			m_Surfaces[ surfaceID ].reset();
+			
+			m_Surfaces.erase( m_Surfaces.begin() + surfaceID );
+
+			return true;
+		}
+
+		return false;
+
+	}
+
 	//
 	bool OpenGLRenderer::SetSurfaceDepth( SurfaceID surfaceID, unsigned char depth )
 	{
@@ -341,6 +359,32 @@ namespace Muspelheim
 		if( surfaceID > 0 && m_Surfaces.size() >= surfaceID )
 		{
 			m_Surfaces[ surfaceID - 1 ]->SetColor( color );
+
+			return true;
+		}
+
+		return false;
+	}
+
+	//
+	bool OpenGLRenderer::GetSurfaceVisible( SurfaceID surfaceID, bool& visible )
+	{
+		if ( surfaceID > 0 && m_Surfaces.size() >= surfaceID )
+		{
+			visible = m_Surfaces[ surfaceID - 1 ]->GetIsVisible();
+
+			return true;
+		}
+
+		return false;
+	}
+
+	//
+	bool OpenGLRenderer::SetSurfaceVisible( SurfaceID surfaceID, bool visible )
+	{
+		if ( surfaceID > 0 && m_Surfaces.size() >= surfaceID )
+		{
+			m_Surfaces[ surfaceID - 1 ]->SetIsVisible( visible );
 
 			return true;
 		}

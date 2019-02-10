@@ -55,6 +55,9 @@ namespace Muspelheim
 		//
 		virtual bool CreateSurface( SurfaceID& surfaceID ) override;
 
+		//
+		virtual bool DestroySurface( SurfaceID surfaceID ) override;
+
 		// 
 		virtual bool GetSurfaceDepth( SurfaceID surfaceID, unsigned char& depth ) override;
 
@@ -66,6 +69,12 @@ namespace Muspelheim
 
 		//
 		virtual bool SetSurfaceColor( SurfaceID surfaceID, const glm::vec4& color ) override;
+
+		//
+		virtual bool GetSurfaceVisible( SurfaceID surfaceID, bool& visible ) override;
+
+		//
+		virtual bool SetSurfaceVisible( SurfaceID surfaceID, bool visible ) override;
 
 		//
 		virtual bool DrawSurfaceString( SurfaceID surfaceID, const std::wstring& textString, unsigned short posX, unsigned short posY, TextAlignment alignment ) override;

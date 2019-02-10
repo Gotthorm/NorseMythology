@@ -81,39 +81,57 @@ namespace Muspelheim
 	//
 	void OpenGLSurface::RenderAll( const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix )
 	{
-		if( m_RenderBackground )
+		// Only render this surface if it is supposed to be visible
+		if( m_Visible )
 		{
-			glDisable( GL_DEPTH_TEST );
-
-			// Render background
-			if( m_Shader && m_Shader->Use() )
+			// Test current alpha value
+			if ( 0.0f < m_Color[3] )
 			{
-				OpenGLInterface::VertexAttrib4fv( 1, glm::value_ptr( m_Color ) );
+				bool const transparent = ( 1.0f > m_Color[ 3 ] );
 
-				glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+				glDisable( GL_DEPTH_TEST );
+
+				if( transparent )
+				{
+					glEnable( GL_BLEND );
+					glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+				}
+
+				// Render background
+				if( m_Shader && m_Shader->Use() )
+				{
+					OpenGLInterface::VertexAttrib4fv( 1, glm::value_ptr( m_Color ) );
+					OpenGLInterface::VertexAttrib1f( 2, -0.5f );
+
+					glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
+				}
+
+				if( transparent )
+				{
+					glDisable( GL_BLEND );
+				}
+
+				glEnable( GL_DEPTH_TEST );
 			}
 
-			glEnable( GL_DEPTH_TEST );
+			// Turn on any lights if any
+			glEnable( GL_LIGHT0 );
+
+			// Render all objects
+			for ( std::shared_ptr<OpenGLRenderObject> renderObject : m_RenderQueue )
+			{
+				renderObject.get()->Draw( viewMatrix, projectionMatrix );
+
+				// Do I need to call reset on each entry?
+				renderObject.reset();
+			}
+
+			// Clear the render queue for next frame
+			m_RenderQueue.clear();
+
+			// Render text overlays
+			m_Text.Render();
 		}
-
-		// Turn on any lights if any
-		glEnable( GL_LIGHT0 );
-
-		// Render all objects
-		for( std::shared_ptr<OpenGLRenderObject> renderObject : m_RenderQueue )
-		{
-			renderObject.get()->Draw( viewMatrix, projectionMatrix );
-
-			// Do I need to call reset on each entry?
-			renderObject.reset();
-		}
-
-		// Clear the render queue for next frame
-		m_RenderQueue.clear();
-
-		// Render text overlays
-
-		m_Text.Render();
 	}
 
 	//

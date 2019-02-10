@@ -53,6 +53,9 @@ namespace Platform
 
 		/// The maximum number of threads that can be utilized by the application
 		int numberOfThreads;
+
+		long width;
+		long height;
 	};
 
 	unsigned int GetTime();

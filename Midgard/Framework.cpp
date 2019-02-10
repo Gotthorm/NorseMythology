@@ -219,9 +219,6 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 
 			m_MessageManager->Post( Niflheim::Message::LOG_INFO, L"Shader: " + surfaceShaderName + L" loaded" );
 
-			// Set background to the color orange
-			m_Renderer->SetSurfaceColor( m_MainScreenID, glm::vec4( 0.8f, 0.3f, 0.3f, 1.0f ) );
-
 			shaderId = m_Renderer->LoadShader( text2DShaderName );
 			
 			if ( 0 == shaderId || false == m_Renderer->SetSurfaceTextShader( m_MainScreenID, shaderId ) )
@@ -234,7 +231,7 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 
 		//
 		m_pConsole = new Alfheimr::Console( m_MessageManager );
-		m_pConsole->Initialize( m_Renderer, 80, 80, 50.0f );
+		m_pConsole->Initialize( m_Renderer, launchInfo.width, launchInfo.height, 0.8f );
 
 		//
 		m_pCameraManager = new Vanaheimr::CameraManager();

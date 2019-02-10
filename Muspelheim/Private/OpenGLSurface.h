@@ -63,8 +63,12 @@ namespace Muspelheim
 		std::shared_ptr<LightObject> CreateLightObject();
 
 		//
-		bool GetRenderBackground() { return m_RenderBackground; }
-		void SetRenderBackground( bool render ) { m_RenderBackground = render; }
+		//bool GetRenderBackgroundEnabled() { return m_RenderBackground; }
+		//void SetRenderBackgroundEnabled( bool render ) { m_RenderBackground = render; }
+
+		//
+		bool GetIsVisible() { return m_Visible; }
+		void SetIsVisible( bool visible ) { m_Visible = visible; }
 
 		unsigned int GetFontWidth() { return m_Text.GetFontWidth(); }
 		unsigned int GetFontHeight() { return m_Text.GetFontHeight(); }
@@ -76,10 +80,14 @@ namespace Muspelheim
 
 		// Flag to control whether actual surface is to be rendered or not
 		// When rendered, it will use m_Color
-		bool m_RenderBackground = false;
+		//bool m_RenderBackground = false;
 
-		// The color of the actual surface when rendered
-		glm::vec4 m_Color = { 0.0f, 0.0f, 0.0f, 1.0f };
+		// Flag for disabling the rendering of this surface
+		bool m_Visible = true;
+
+		// The color of the surface background
+		// When the alpha value is zero the background will not be rendered
+		glm::vec4 m_Color = { 0.0f, 0.0f, 0.0f, 0.0f };
 
 		// The text object for rendering text onto the surface
 		OpenGLText m_Text;

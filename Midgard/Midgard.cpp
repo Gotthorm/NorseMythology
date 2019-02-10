@@ -72,6 +72,13 @@ int APIENTRY _tWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpC
 		// Check that our window creation was successful
 		if( hWindow != NULL )
 		{
+			RECT rect;
+			if ( GetClientRect( hWindow, &rect ) )
+			{
+				launchInfo.width = rect.right - rect.left;
+				launchInfo.height = rect.bottom - rect.top;
+			}
+
 			// Initialize the game and shutdown if failure
 			if( Framework::Create() && Framework::GetInstance()->Init( hWindow, launchInfo ) )
 			{

@@ -10,10 +10,12 @@
 #include <string>
 #include <vector>
 #include "Niflheim.h"
-#include "Muspelheim.h"
+//#include "Muspelheim.h"
 
 class ConsoleParser;
 class ConsoleParameterList;
+
+namespace Muspelheim { class Renderer; }
 
 namespace Alfheimr
 {
@@ -104,6 +106,7 @@ namespace Alfheimr
 		Console( const Console & ) = delete;
 
 		void CopyCacheToRenderBuffer();
+		void RenderText( std::shared_ptr<Muspelheim::Renderer> const & renderer );
 
 		void UpdateBufferSize();
 

@@ -111,6 +111,9 @@ namespace Muspelheim
 		//
 		virtual bool CreateSurface( SurfaceID& surfaceID ) = 0;
 
+		//
+		virtual bool DestroySurface( SurfaceID surfaceID ) = 0;
+
 		// 
 		virtual bool GetSurfaceDepth( SurfaceID surfaceID, unsigned char& depth ) = 0;
 
@@ -122,6 +125,12 @@ namespace Muspelheim
 
 		//
 		virtual bool SetSurfaceColor( SurfaceID surfaceID, const glm::vec4& color ) = 0;
+
+		//
+		virtual bool GetSurfaceVisible( SurfaceID surfaceID, bool& visible ) = 0;
+
+		//
+		virtual bool SetSurfaceVisible( SurfaceID surfaceID, bool visible ) = 0;
 
 		//
 		virtual bool SetSurfaceShader( SurfaceID surfaceID, unsigned int shaderID ) = 0;
