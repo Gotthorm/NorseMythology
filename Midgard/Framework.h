@@ -12,11 +12,10 @@ namespace Muspelheim { class Renderer; }
 namespace Niflheim { class MessageManager; class Logger;  }
 namespace Vanaheimr { class CameraManager; }
 namespace Alfheimr { class Console; }
+namespace Helheimr { class Input; }
 class Game;
-//class Input;
 class Loki;
 class Volstagg;
-class FPS;
 
 /// \brief Encapsulation all of the engine's subsystems.
 ///
@@ -70,6 +69,7 @@ private:
 	Alfheimr::Console* m_pConsole;
 	std::shared_ptr<Muspelheim::Renderer> m_Renderer;
 	std::shared_ptr<Niflheim::MessageManager> m_MessageManager;
+	std::shared_ptr<Helheimr::Input> m_Input;
 
 	// The main window identifier
 	Platform::WindowHandle m_WindowHandle;

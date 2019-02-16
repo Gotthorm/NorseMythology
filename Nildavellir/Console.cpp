@@ -16,7 +16,13 @@
 // Static
 //const unsigned int kDefaultCacheSize = 10;
 
-Console::Console() : cursor_x(0), cursor_y(0), m_IsVisible(false), m_CacheSize(0), m_CacheIndex(0), screen_buffer(NULL)
+Console::Console() 
+	: cursor_x(0)
+	, cursor_y(0)
+	, m_IsVisible(false)
+	, m_CacheSize(0)
+	, m_CacheIndex(0)
+	, screen_buffer(nullptr)
 {
 }
 

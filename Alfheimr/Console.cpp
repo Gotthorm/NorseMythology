@@ -3,14 +3,13 @@
 #include "Alfheimr.h"
 #include "Niflheim.h"
 #include "Muspelheim.h"
-//#include "Vanaheimr.h"
+#include "Vanaheimr.h"
 #include "Helheimr.h"
-#include <sstream>
+//#include <sstream>
 #include <memory>
 #include "ConsoleParser.h"
 #include "ConsoleCommandManager.h"
 //#include "Platform.h"
-//#include "OpenGLInterface.h"
 
 
 // TODO: This will become a console variable
@@ -21,8 +20,54 @@ std::wstring const text2DShaderName( L"Media/Shaders/text2d" );
 
 namespace Alfheimr
 {
-	Console::Console( const std::weak_ptr<Niflheim::MessageManager>& messageManager ) : Niflheim::MessageClient( messageManager )
+	Console::Console( const std::weak_ptr<Niflheim::MessageManager>& messageManager ) 
+		: Niflheim::MessageClient( messageManager )
+		, m_MaximumLineCount( 0 )
+		, m_LineBuffer( 100 )
 	{
+	}
+
+	Console::~Console()
+	{
+		// Deregister the message handlers
+		std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
+		if ( nullptr != pMessageManager )
+		{
+			pMessageManager->Deregister( this, Niflheim::Message::LOG_INFO );
+			pMessageManager->Deregister( this, Niflheim::Message::LOG_WARN );
+			pMessageManager->Deregister( this, Niflheim::Message::LOG_ERROR );
+			pMessageManager->Deregister( this, Niflheim::Message::KEY_STROKES );
+		}
+
+		SetVisible( false );
+
+		m_MessageManager.reset();
+
+		delete m_Parser;
+		m_Parser = nullptr;
+
+		ConsoleCommandManager::Destroy();
+
+		//m_Cache.clear();
+
+		delete[] m_ScreenTextBuffer;
+		m_ScreenTextBuffer = nullptr;
+
+		delete[] m_ScreenTextColorBuffer;
+		m_ScreenTextColorBuffer = nullptr;
+
+		std::shared_ptr<Muspelheim::Renderer> pRenderer = m_Renderer.lock();
+		if ( nullptr != pRenderer )
+		{
+			pRenderer->DestroySurface( m_MainScreenID );
+			pRenderer.reset();
+		}
+		m_Renderer.reset();
+
+		//OpenGLInterface::DeleteVertexArrays( 1, &m_OverlayVertexArrayObjectId );
+		//OpenGLInterface::DeleteVertexArrays( 1, &m_TextVertexArrayObjectId );
+		//OpenGLInterface::DeleteProgram( m_OverlayProgram );
+		//OpenGLInterface::DeleteProgram( m_RenderTextProgram );
 	}
 
 	// TODO: Make this handle init errors
@@ -36,6 +81,9 @@ namespace Alfheimr
 		}
 
 		m_Renderer = renderer;
+
+		unsigned int fontWidth = 0;
+		unsigned int fontHeight = 0;
 
 		{
 			std::shared_ptr<Muspelheim::Renderer> pRenderer = m_Renderer.lock();
@@ -78,76 +126,25 @@ namespace Alfheimr
 
 				pMessageManager->Post( Niflheim::Message::LOG_INFO, L"Shader: " + text2DShaderName + L" loaded" );
 			}
-		}
 
-		//GLuint vertexShader = OpenGLInterface::LoadShader( "Media/Shaders/console.overlay.vs.glsl", GL_VERTEX_SHADER, true );
-		//GLuint fragmentShader = OpenGLInterface::LoadShader( "Media/Shaders/console.overlay.fs.glsl", GL_FRAGMENT_SHADER, true );
+			pRenderer->GetSurfaceFontSize( m_MainScreenID, fontWidth, fontHeight );
+		}
 
 		m_HeightPercent = heightPercent;
 
 		// Calculate the overlay size in clip space where height(0) => 1.0 && height(1.0) => -1.0
 		m_ClipSize = 1.0f - m_HeightPercent * 2.0f;
 
-		//m_FontTextureId = Vanaheimr::KTX::load( "Media/Textures/cp437_9x16.ktx" );
-
-		// Extract the font width and height
-		//glGetTexLevelParameteriv( GL_TEXTURE_2D_ARRAY, 0, GL_TEXTURE_WIDTH, &m_FontWidth );
-		//glGetTexLevelParameteriv( GL_TEXTURE_2D_ARRAY, 0, GL_TEXTURE_HEIGHT, &m_FontHeight );
-
 		// Set up the window dimensions.  This call may also update the buffer size.
 		SetWindowSize( width, height );
 
-		//m_OverlayProgram = OpenGLInterface::CreateProgram();
-		//OpenGLInterface::AttachShader( m_OverlayProgram, vertexShader );
-		//OpenGLInterface::AttachShader( m_OverlayProgram, fragmentShader );
-		//OpenGLInterface::LinkProgram( m_OverlayProgram );
-
-		//OpenGLInterface::DeleteShader( fragmentShader );
-		//OpenGLInterface::DeleteShader( vertexShader );
-
-		// glCreateVertexArrays(1, &vao);
-		//OpenGLInterface::GenVertexArrays( 1, &m_OverlayVertexArrayObjectId );
-		//OpenGLInterface::BindVertexArray( m_OverlayVertexArrayObjectId );
-
-		//vertexShader = OpenGLInterface::LoadShader( "Media/Shaders/console.text2d.vs.glsl", GL_VERTEX_SHADER, true );
-		//fragmentShader = OpenGLInterface::LoadShader( "Media/Shaders/console.text2d.fs.glsl", GL_FRAGMENT_SHADER, true );
-
-		//m_RenderTextProgram = OpenGLInterface::CreateProgram();
-		//OpenGLInterface::AttachShader( m_RenderTextProgram, vertexShader );
-		//OpenGLInterface::AttachShader( m_RenderTextProgram, fragmentShader );
-		//OpenGLInterface::LinkProgram( m_RenderTextProgram );
-
-		//OpenGLInterface::DeleteShader( fragmentShader );
-		//OpenGLInterface::DeleteShader( vertexShader );
-
-		//m_FontScalarLocationId = OpenGLInterface::GetUniformLocation( m_RenderTextProgram, "fontScalar" );
-
-		//// glCreateVertexArrays(1, &vao);
-		//OpenGLInterface::GenVertexArrays( 1, &m_TextVertexArrayObjectId );
-		//OpenGLInterface::BindVertexArray( m_TextVertexArrayObjectId );
-
-		//OpenGLInterface::ActiveTexture( GL_TEXTURE0 );
-		//glGenTextures( 1, &m_TextBufferTextureId );
-		//glBindTexture( GL_TEXTURE_2D, m_TextBufferTextureId );
-		//glPixelStorei( GL_UNPACK_ALIGNMENT, 4 );
-
-		//// This call is supposedly the equivalent of calling something like this:
-		////glTexImage2D( GL_TEXTURE_2D, 0, GL_R8UI, 1024, 1024, 0, GL_RED, GL_UNSIGNED_BYTE, NULL );
-		//// but I never got it working.  Some of the parameters are guess work.
-		//OpenGLInterface::TexStorage2D( GL_TEXTURE_2D, 1, GL_R8UI, 1024, 1024 );
-
-		//OpenGLInterface::ActiveTexture( GL_TEXTURE2 );
-		//glGenTextures( 1, &m_TextColorBufferTextureId );
-		//glBindTexture( GL_TEXTURE_1D, m_TextColorBufferTextureId );
-		//glPixelStorei( GL_UNPACK_ALIGNMENT, 4 );
-
-		//// See above comments
-		//OpenGLInterface::TexStorage1D( GL_TEXTURE_1D, 1, GL_R32UI, 1024 );
+		cv_MinimumConsoleMessageLength = width / fontWidth;
 
 		// Register for the correct messages
 		pMessageManager->Register( this, Niflheim::Message::LOG_INFO );
 		pMessageManager->Register( this, Niflheim::Message::LOG_WARN );
 		pMessageManager->Register( this, Niflheim::Message::LOG_ERROR );
+		pMessageManager->Register( this, Niflheim::Message::KEY_STROKES );
 
 		m_ConsoleTextBuffer.reserve( Niflheim::Message::MAX_STRING_LENGTH );
 
@@ -163,108 +160,30 @@ namespace Alfheimr
 		//ConsoleCommandManager::FartRegisterCommand( L"set_text_size", ConsoleParameter::ParameterType::FLOAT, ConsoleParameter::ParameterType::FLOAT );
 
 		//ConsoleCommandManager::GetInstance()->RegisterCommand( L"set_text_size", std::bind( &Console::SetTextScale_Callback, this, std::placeholders::_1 ), ConsoleParameterList( 2, ConsoleParameter::ParameterType::FLOAT, ConsoleParameter::ParameterType::FLOAT ) );
-		ConsoleCommandManager::GetInstance()->RegisterCommand( L"set_text_size", std::bind( &Console::SetTextScale, this, std::placeholders::_1, std::placeholders::_2 ), ConsoleParameterList( 2, ConsoleParameter::ParameterType::FLOAT, ConsoleParameter::ParameterType::FLOAT ) );
+		//ConsoleCommandManager::GetInstance()->RegisterCommand( L"set_text_size", std::bind( &Console::SetTextScale, this, std::placeholders::_1, std::placeholders::_2 ), ConsoleParameterList( 2, ConsoleParameter::ParameterType::FLOAT, ConsoleParameter::ParameterType::FLOAT ) );
 
 		//ConsoleCommandManager::GetInstance()->RegisterCommand( L"set_text_size", L"Some sort of description", &Console::SetTextScale_Callback );
 
 		return true;
 	}
 
-	Console::~Console()
+	void Console::SetMaximumLineCount( unsigned int lineCount )
 	{
-		// Deregister the message handlers
-		std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
-		if ( nullptr != pMessageManager )
+		// 
+		if ( lineCount != m_MaximumLineCount )
 		{
-			pMessageManager->Deregister( this, Niflheim::Message::LOG_INFO );
-			pMessageManager->Deregister( this, Niflheim::Message::LOG_WARN );
-			pMessageManager->Deregister( this, Niflheim::Message::LOG_ERROR );
-		}
-
-		SetVisible( false );
-
-		m_MessageManager.reset();
-
-		delete m_Parser;
-		m_Parser = nullptr;
-
-		ConsoleCommandManager::Destroy();
-
-		m_Cache.clear();
-
-		delete[] m_ScreenTextBuffer;
-		m_ScreenTextBuffer = nullptr;
-
-		delete[] m_ScreenTextColorBuffer;
-		m_ScreenTextColorBuffer = nullptr;
-
-		std::shared_ptr<Muspelheim::Renderer> pRenderer = m_Renderer.lock();
-		if ( nullptr != pRenderer )
-		{
-			pRenderer->DestroySurface( m_MainScreenID );
-			pRenderer.reset();
-		}
-		m_Renderer.reset();
-
-		//OpenGLInterface::DeleteVertexArrays( 1, &m_OverlayVertexArrayObjectId );
-		//OpenGLInterface::DeleteVertexArrays( 1, &m_TextVertexArrayObjectId );
-		//OpenGLInterface::DeleteProgram( m_OverlayProgram );
-		//OpenGLInterface::DeleteProgram( m_RenderTextProgram );
-	}
-
-	void Console::SetCacheSize( unsigned int cacheSize )
-	{
-		if( cacheSize != m_CacheSize )
-		{
-			std::vector<CacheEntry> tempCache;
-
-			// Make a copy of the current cache
-			if( m_Cache.size() > 0 )
+			while ( lineCount < m_MaximumLineCount )
 			{
-				tempCache.swap( m_Cache );
+				m_LineBuffer.Pop();
 			}
 
-			// Store the old cache attributes for the copying of existing data
-			unsigned int oldIndex = m_CacheIndex;
-			unsigned int oldSize = m_CacheSize;
-
-			// The new cache size cannot be smaller than the buffer height so clamp it here
-			if( cacheSize < m_VirtualBufferHeight )
-			{
-				cacheSize = m_VirtualBufferHeight;
-			}
-
-			// Reinitialize the cache
-			m_Cache.resize( cacheSize );
-			m_CacheSize = cacheSize;
-			m_CacheIndex = 0;
-
-			m_ScrollIndex = 0;
-			m_MaxScrollIndex = cacheSize - m_VirtualBufferHeight;
-
-			// Copy the contents of the old cache into the new cache
-			for( unsigned int index = 0; index < cacheSize; ++index )
-			{
-				// I am not sure if this is needed on the entries that will be swapped, but just in case
-				// we will call this on all entries in the new cache
-				m_Cache[ index ].messageString.reserve( Niflheim::Message::MAX_STRING_LENGTH );
-
-				// Copy the existing string from the old cache
-				if( index < oldSize )
-				{
-					// We will be reset the cache index so the index we copy from will be the oldest entry in the old cache
-					m_Cache[ index ].messageString.swap( tempCache[ oldIndex ].messageString );
-					m_Cache[ index ].colorValue = tempCache[ oldIndex ].colorValue;
-
-					// Move to the next oldest entry in the old cache
-					oldIndex = ( oldIndex + 1 ) % oldSize;
-				}
-			}
+			lineCount = m_MaximumLineCount;
 		}
 	}
 
 	void Console::SetTextScale( float widthScale, float heightScale )
 	{
+
 		m_TextScale[ 0 ] = widthScale;
 		m_TextScale[ 1 ] = heightScale;
 
@@ -287,8 +206,7 @@ namespace Alfheimr
 
 		pRenderer->GetSurfaceFontSize( m_MainScreenID, fontWidth, fontHeight );
 
-		//pRenderer->GetSurface( m_MainScreenID );
-
+		// Determine what the current display dimensions are in character units
 		unsigned int newBufferWidth = m_WindowWidth / unsigned int( m_TextScale[ 0 ] * fontWidth );
 		unsigned int newBufferHeight = unsigned int( m_WindowHeight * m_HeightPercent ) / unsigned int( m_TextScale[ 1 ] * fontHeight );
 
@@ -297,17 +215,14 @@ namespace Alfheimr
 
 		if( newBufferWidth != m_VirtualBufferWidth || newBufferHeight != m_VirtualBufferHeight )
 		{
-			std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
+			std::wstring message;
 
-			std::wstringstream stringStream;
+			std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
 
 			if ( nullptr != pMessageManager )
 			{
-				stringStream << L"Console virtual buffer size changed from (" << m_VirtualBufferWidth << ", " << m_VirtualBufferHeight << ") to (" << newBufferWidth << ", " << newBufferHeight << ")";
-				pMessageManager->Post( Niflheim::Message::LOG_INFO, stringStream.str() );
-
-				// Clear the string stream
-				std::wstringstream().swap( stringStream );
+				message = L"Console virtual buffer size changed from (" + std::to_wstring( m_VirtualBufferWidth ) + L") to (" + std::to_wstring( newBufferWidth ) + L", " + std::to_wstring( newBufferHeight ) + L")";
+				pMessageManager->Post( Niflheim::Message::LOG_INFO, message );
 			}
 
 			m_VirtualBufferWidth = newBufferWidth;
@@ -325,21 +240,27 @@ namespace Alfheimr
 
 			if ( nullptr != pMessageManager )
 			{
-				stringStream << L"Console physical buffer size changed to (" << m_BufferWidth << ", " << m_BufferHeight << ")";
-				pMessageManager->Post( Niflheim::Message::LOG_INFO, stringStream.str() );
+				message = L"Console physical buffer size changed to (" + std::to_wstring( m_BufferWidth ) + L", " + std::to_wstring( m_BufferHeight ) + L")";
+				pMessageManager->Post( Niflheim::Message::LOG_INFO, message );
 			}
 
 			// To enforce our rule that the cache size is at least as large as the screen
-			if( m_CacheSize < m_VirtualBufferHeight )
+			if( m_MaximumLineCount < m_VirtualBufferHeight )
 			{
-				SetCacheSize( m_VirtualBufferHeight );
+				SetMaximumLineCount( m_VirtualBufferHeight );
+			}
+
+			m_MaxScrollIndex = m_LineBuffer.Size() - m_VirtualBufferHeight + 2;
+			if ( m_MaxScrollIndex < 0 )
+			{
+				m_MaxScrollIndex = 0;
 			}
 		}
 	}
 
 	void Console::Render()
 	{
-		if( m_IsVisible )
+		if( IsVisible() )
 		{
 			std::shared_ptr<Muspelheim::Renderer> pRenderer = m_Renderer.lock();
 
@@ -347,200 +268,7 @@ namespace Alfheimr
 			{
 				// Update the screen buffer with latest version of the cache data
 				RenderText( pRenderer );
-
-				//pRenderer->BeginRender( glm::mat4() );
-
-				// Render the current FPS
-				//wchar_t stringBuffer[ Platform::kMaxStringLength ];
-				//std::swprintf( stringBuffer, Platform::kMaxStringLength, L"Some console text" );
-				//pRenderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 10, 10, Muspelheim::Renderer::TEXT_LEFT );
-
-				//std::swprintf( stringBuffer, Platform::kMaxStringLength, L"VSync: %s", ( vsync ? L"enabled" : L"disabled" ) );
-				//m_Renderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 40, 0, Muspelheim::Renderer::TEXT_RIGHT );
-
-				//glm::vec3 const & cameraForward = viewMatrix[ 2 ];
-				//std::swprintf( stringBuffer, Platform::kMaxStringLength, L"Camera Direction: %.3f, %.3f, %.3f", cameraForward.x, cameraForward.y, cameraForward.z );
-				//m_Renderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 40, 1, Muspelheim::Renderer::TEXT_RIGHT );
-
-				//glm::vec3 const & cameraPosition = pCurrentCamera->GetPosition();
-				//std::swprintf( stringBuffer, Platform::kMaxStringLength, L"Camera Position: %.1f, %.1f, %.1f", cameraPosition.x, cameraPosition.y, cameraPosition.z );
-				//m_Renderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 40, 2, Muspelheim::Renderer::TEXT_RIGHT );
-
-				//pRenderer->EndRender();
 			}
-
-			// Render the semi transparent overlay
-			//OpenGLInterface::UseProgram( m_OverlayProgram );
-			//OpenGLInterface::VertexAttrib1f( 1, m_ClipSize );
-			//glEnable( GL_BLEND );
-			//glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-			//glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
-			//glDisable( GL_BLEND );
-
-			//// Render the text
-			//OpenGLInterface::UseProgram( m_RenderTextProgram );
-			//OpenGLInterface::VertexAttrib1f( 1, m_ClipSize );
-			////OpenGLInterface::VertexAttrib4fv( 2, m_TextScale );
-
-			//OpenGLInterface::Uniform2fv( m_FontScalarLocationId, 1, m_TextScale );
-			//GLenum error = glGetError();
-
-			//// Update the screen buffer with latest version of the cache data
-			//CopyCacheToRenderBuffer();
-
-			//OpenGLInterface::ActiveTexture( GL_TEXTURE0 );
-
-			//glBindTexture( GL_TEXTURE_2D, m_TextBufferTextureId );
-
-			//glTexSubImage2D(
-			//	GL_TEXTURE_2D,			// Target to which the texture is bound
-			//	0,						// Level of detail number, 0 is base
-			//	0,						// Specifies a texel offset in the x direction within the texture array
-			//	0,						// Specifies a texel offset in the y direction within the texture array
-			//	m_BufferWidth,			// Specifies the width of the texture subimage
-			//	m_BufferHeight,			// Specifies the height of the texture subimage
-			//	GL_RED_INTEGER,			// Specifies the format of the pixel data.  GL_RED_INTEGER tells GL to keep the exact integer value rather than normalizing
-			//	GL_UNSIGNED_BYTE,		// Specifies the data type of the pixel data
-			//	m_ScreenTextBuffer		// Specifies a pointer to the image data in memory
-			//);
-
-			//OpenGLInterface::ActiveTexture( GL_TEXTURE2 );
-
-			//glBindTexture( GL_TEXTURE_1D, m_TextColorBufferTextureId );
-
-			//glTexSubImage1D(
-			//	GL_TEXTURE_1D,			// Target to which the texture is bound
-			//	0,						// Level of detail number, 0 is base
-			//	0,						// Specifies a texel offset in the x direction within the texture array
-			//	m_BufferHeight,			// Specifies the width of the texture subimage
-			//	GL_RED_INTEGER,			// Specifies the format of the pixel data.  GL_RED_INTEGER tells GL to keep the exact integer value rather than normalizing
-			//	GL_UNSIGNED_INT,		// Specifies the data type of the pixel data
-			//	m_ScreenTextColorBuffer	// Specifies a pointer to the image data in memory
-			//);
-
-			//OpenGLInterface::ActiveTexture( GL_TEXTURE1 );
-
-			//OpenGLInterface::BindTexture( GL_TEXTURE_2D_ARRAY, m_FontTextureId );
-
-			//OpenGLInterface::BindVertexArray( m_TextVertexArrayObjectId );
-
-			//// Render four vertices in a triangle strip format, which equates to a square composed of two triangles
-			//glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
-		}
-	}
-
-	std::string ConvertWideCharToChar( const std::wstring& source )
-	{
-		size_t sourceLength = source.length();
-
-		std::string results;
-		results.reserve( sourceLength );
-
-		for( unsigned int index = 0; index < source.length(); ++index )
-		{
-			wchar_t code = source[ index ];
-
-			if( code == '\0' )
-				break;
-
-			if( code < 128 )
-			{
-				results += char( code );
-			}
-			else
-			{
-				results += '?';
-				if( code >= 0xD800 && code <= 0xD8FF )
-				{
-					// lead surrogate, skip the next code unit, which is the trail
-					++index;
-				}
-			}
-		}
-
-		return results;
-	}
-
-	void Console::CopyCacheToRenderBuffer()
-	{
-		if( m_Dirty )
-		{
-			// Fill the render buffer with the latest version of the cache
-
-			// Clear the buffers
-			memset( m_ScreenTextBuffer, 0, m_BufferWidth * m_BufferHeight * sizeof( char ) );
-			memset( m_ScreenTextColorBuffer, 0xFF, m_BufferHeight * sizeof( unsigned int ) );
-
-			unsigned int cacheIndex = m_CacheIndex;
-
-			//
-			unsigned int startIndex = m_ScrollIndex;
-			if( m_ScrollIndex > cacheIndex )
-			{
-				cacheIndex = m_CacheSize - ( m_ScrollIndex - cacheIndex );
-			}
-			else
-			{
-				cacheIndex -= m_ScrollIndex;
-			}
-
-			for( int index = ( m_VirtualBufferHeight - 1 ); index >= 0; --index )
-			{
-				// Determine cache line index
-				if( cacheIndex == 0 )
-				{
-					cacheIndex = m_CacheSize;
-				}
-				--cacheIndex;
-
-				// Convert cached line from wchar to char text and copy into the render buffer
-				std::string convertedString = ConvertWideCharToChar( m_Cache[ cacheIndex ].messageString );
-
-				// For debugging the console window dimensions, etc
-				// This will pad non empty lines to a minimum length
-				if( cv_MinimumConsoleMessageLength > 0 )
-				{
-					size_t currentLength = convertedString.length();
-
-					// We do not want to pad empty entries in the buffer
-					if( currentLength > 0 )
-					{
-						while( currentLength < cv_MinimumConsoleMessageLength )
-						{
-							convertedString += ( '0' + currentLength % 10 );
-							++currentLength;
-						}
-					}
-				}
-
-				// Handle wrapped lines
-				size_t stringLength = convertedString.length();
-				char* dst = m_ScreenTextBuffer + index * m_BufferWidth;
-				while( stringLength > m_VirtualBufferWidth )
-				{
-					size_t subIndex = ( ( stringLength - 1 ) / m_VirtualBufferWidth ) * m_VirtualBufferWidth;
-					int subLength = stringLength % m_VirtualBufferWidth;
-					if( subLength == 0 )
-					{
-						subLength = m_VirtualBufferWidth;
-					}
-					memcpy( dst, convertedString.substr( subIndex ).c_str(), subLength );
-					m_ScreenTextColorBuffer[ index ] = m_Cache[ cacheIndex ].colorValue;
-					stringLength -= subLength;
-					if( --index < 0 )
-					{
-						return;
-					}
-					dst = m_ScreenTextBuffer + index * m_BufferWidth;
-				}
-
-				memcpy( dst, convertedString.c_str(), stringLength );
-				m_ScreenTextColorBuffer[ index ] = m_Cache[ cacheIndex ].colorValue;
-			}
-
-			std::string convertedString = ConvertWideCharToChar( m_ConsoleTextBuffer );
-			memcpy( m_ScreenTextBuffer + m_VirtualBufferHeight * m_BufferWidth, convertedString.c_str(), convertedString.length() );
-			m_ScreenTextColorBuffer[ m_VirtualBufferHeight ] = m_ColorTable[ 3 ];
 		}
 	}
 
@@ -556,23 +284,70 @@ namespace Alfheimr
 		}
 	}
 
-	void Console::Update( float timeElapsed )
+	bool Console::ProcessVisibilityToggle( unsigned int key )
 	{
-		// When active we will process user input for the window
-		if( m_IsVisible )
+		// Check for the console activation/deactivation
+		if ( Helheimr::Input::KEY_TILDA == key )
 		{
-			if( m_ScrollIndex < m_MaxScrollIndex && Helheimr::Input::GetInstance()->GetKeyUp( Helheimr::Input::KEY_ARROW_UP ) )
+			// Toggle the console
+			SetVisible( IsVisible() == false );
+
+			return true;
+		}
+
+		return false;
+	}
+
+	bool Console::ProcessControlInput( unsigned int key )
+	{
+		bool processed = false;
+
+		// When active we will process user input for the window
+		if ( IsVisible() )
+		{
+			processed = true;
+
+			if ( Helheimr::Input::KEY_ARROW_UP == key )
 			{
-				if( ++m_ScrollIndex > m_MaxScrollIndex )
-				{
-					m_ScrollIndex = m_MaxScrollIndex;
-				}
+				++m_ScrollIndex;
 			}
-			if( m_ScrollIndex > 0 && Helheimr::Input::GetInstance()->GetKeyUp( Helheimr::Input::KEY_ARROW_DOWN ) )
+			else if ( Helheimr::Input::KEY_ARROW_DOWN == key )
 			{
 				--m_ScrollIndex;
 			}
-			if( m_ScrollIndex > 0 && Helheimr::Input::GetInstance()->GetKeyUp( Helheimr::Input::KEY_END ) )
+			else if ( Helheimr::Input::KEY_END == key )
+			{
+				m_ScrollIndex = 0;
+			}
+			//if( Helheimr::Input::KEY_HOME == key )
+			//{
+			//	m_ScrollIndex = m_MaxScrollIndex;
+			//}
+			else
+			{
+				processed = false;
+			}
+
+			int const maxScrollIndex = m_LineBuffer.Size() - m_VirtualBufferHeight + 2;
+
+			if ( Helheimr::Input::KEY_ARROW_UP == key )
+			{
+				++m_ScrollIndex;
+			}
+			else if ( Helheimr::Input::KEY_ARROW_DOWN == key )
+			{
+				--m_ScrollIndex;
+			}
+
+			if ( Helheimr::Input::KEY_END == key )
+			{
+				m_ScrollIndex = 0;
+			}
+			else if ( m_ScrollIndex > maxScrollIndex )
+			{
+				m_ScrollIndex = maxScrollIndex;
+			}
+			else if ( m_ScrollIndex < 0 )
 			{
 				m_ScrollIndex = 0;
 			}
@@ -582,6 +357,124 @@ namespace Alfheimr
 			//	m_ScrollIndex = m_MaxScrollIndex;
 			//}
 		}
+
+		return processed;
+	}
+
+	void Console::ProcessTextInput( unsigned int keyValue, bool shifted )
+	{
+		// The text processing only occurs when we the console is visible
+		if ( IsVisible() )
+		{
+			wchar_t character = 0;
+			if ( keyValue >= Helheimr::Input::KEY_A && keyValue <= Helheimr::Input::KEY_Z )
+			{
+				character = ( shifted ? L'A' : L'a' ) + ( keyValue - Helheimr::Input::KEY_A );
+			}
+			else if ( keyValue >= Helheimr::Input::KEY_0 && keyValue <= Helheimr::Input::KEY_9 )
+			{
+				if ( shifted )
+				{
+					switch ( keyValue )
+					{
+					case Helheimr::Input::KEY_1:
+						character = L'!';
+						break;
+					case Helheimr::Input::KEY_2:
+						character = L'@';
+						break;
+					case Helheimr::Input::KEY_3:
+						character = L'#';
+						break;
+					case Helheimr::Input::KEY_4:
+						character = L'$';
+						break;
+					case Helheimr::Input::KEY_5:
+						character = L'%';
+						break;
+					case Helheimr::Input::KEY_6:
+						character = L'^';
+						break;
+					case Helheimr::Input::KEY_7:
+						character = L'&';
+						break;
+					case Helheimr::Input::KEY_8:
+						character = L'*';
+						break;
+					case Helheimr::Input::KEY_9:
+						character = L'(';
+						break;
+					case Helheimr::Input::KEY_0:
+						character = L')';
+						break;
+					}
+				}
+				else
+				{
+					character = L'0' + ( keyValue - Helheimr::Input::KEY_0 );
+				}
+			}
+			else if ( keyValue >= Helheimr::Input::KEY_NUMPAD_0 && keyValue <= Helheimr::Input::KEY_NUMPAD_9 )
+			{
+				character = L'0' + ( keyValue - Helheimr::Input::KEY_NUMPAD_0 );
+			}
+			else if ( keyValue == Helheimr::Input::KEY_SPACE )
+			{
+				character = L' ';
+			}
+			else if ( keyValue == Helheimr::Input::KEY_BACKSPACE )
+			{
+				if ( m_ConsoleTextBuffer.length() > 0 )
+				{
+					m_ConsoleTextBuffer.pop_back();
+				}
+			}
+			else if ( keyValue == Helheimr::Input::KEY_SEMICOLON )
+			{
+				character = shifted ? L':' : L';';
+			}
+			else if ( keyValue == Helheimr::Input::KEY_EQUALS )
+			{
+				character = shifted ? L'+' : L'=';
+			}
+			else if ( keyValue == Helheimr::Input::KEY_COMMA )
+			{
+				character = shifted ? L'<' : L',';
+			}
+			else if ( keyValue == Helheimr::Input::KEY_MINUS )
+			{
+				character = shifted ? L'_' : L'-';
+			}
+			else if ( keyValue == Helheimr::Input::KEY_PERIOD )
+			{
+				character = shifted ? L'>' : L'.';
+			}
+			else if ( keyValue == Helheimr::Input::KEY_FORWARD_SLASH )
+			{
+				character = shifted ? L'?' : L'/';
+			}
+			else if ( keyValue == Helheimr::Input::KEY_SINGLE_QUOTE )
+			{
+				character = shifted ? L'"' : L'\'';
+			}
+
+			if ( character != 0 )
+			{
+				m_ConsoleTextBuffer += character;
+			}
+			else if ( keyValue == Helheimr::Input::KEY_RETURN )
+			{
+				// Send the command line string to the parser
+				m_Parser->Execute( m_ConsoleTextBuffer );
+
+				// Clear the string
+				m_ConsoleTextBuffer.clear();
+			}
+		}
+	}
+
+	void Console::Update( std::shared_ptr<Helheimr::Input> const & input, float timeElapsed )
+	{
 	}
 
 	void Console::SetVisible( bool visible )
@@ -604,12 +497,6 @@ namespace Alfheimr
 				if ( m_IsVisible )
 				{
 					m_ScrollIndex = 0;
-
-					pMessageManager->Register( this, Niflheim::Message::KEY_STROKES );
-				}
-				else
-				{
-					pMessageManager->Deregister( this, Niflheim::Message::KEY_STROKES );
 				}
 			}
 		}
@@ -621,109 +508,18 @@ namespace Alfheimr
 
 		bool shifted = ( Helheimr::Input::MODIFIER_KEY_SHIFT & keyStroke ) > 0;
 
-		wchar_t character = 0;
-		if( keyValue >= Helheimr::Input::KEY_A && keyValue <= Helheimr::Input::KEY_Z )
+		// We will ignore key releases to support key repeat
+		bool keyPressed = ( Helheimr::Input::MODIFIER_KEY_PRESS & keyStroke ) != 0;
+
+		if ( keyPressed )
 		{
-			character = ( shifted ? L'A' : L'a' ) + ( keyValue - Helheimr::Input::KEY_A );
-		}
-		else if( keyValue >= Helheimr::Input::KEY_0 && keyValue <= Helheimr::Input::KEY_9 )
-		{
-			if( shifted )
+			if ( false == ProcessVisibilityToggle( keyValue ) )
 			{
-				switch( keyValue )
+				if ( false == ProcessControlInput( keyValue ) )
 				{
-				case Helheimr::Input::KEY_1:
-					character = L'!';
-					break;
-				case Helheimr::Input::KEY_2:
-					character = L'@';
-					break;
-				case Helheimr::Input::KEY_3:
-					character = L'#';
-					break;
-				case Helheimr::Input::KEY_4:
-					character = L'$';
-					break;
-				case Helheimr::Input::KEY_5:
-					character = L'%';
-					break;
-				case Helheimr::Input::KEY_6:
-					character = L'^';
-					break;
-				case Helheimr::Input::KEY_7:
-					character = L'&';
-					break;
-				case Helheimr::Input::KEY_8:
-					character = L'*';
-					break;
-				case Helheimr::Input::KEY_9:
-					character = L'(';
-					break;
-				case Helheimr::Input::KEY_0:
-					character = L')';
-					break;
+					ProcessTextInput( keyValue, shifted );
 				}
 			}
-			else
-			{
-				character = L'0' + ( keyValue - Helheimr::Input::KEY_0 );
-			}
-		}
-		else if( keyValue >= Helheimr::Input::KEY_NUMPAD_0 && keyValue <= Helheimr::Input::KEY_NUMPAD_9 )
-		{
-			character = L'0' + ( keyValue - Helheimr::Input::KEY_NUMPAD_0 );
-		}
-		else if( keyValue == Helheimr::Input::KEY_SPACE )
-		{
-			character = L' ';
-		}
-		else if( keyValue == Helheimr::Input::KEY_BACKSPACE )
-		{
-			if( m_ConsoleTextBuffer.length() > 0 )
-			{
-				m_ConsoleTextBuffer.pop_back();
-			}
-		}
-		else if( keyValue == Helheimr::Input::KEY_SEMICOLON )
-		{
-			character = shifted ? L':' : L';';
-		}
-		else if( keyValue == Helheimr::Input::KEY_EQUALS )
-		{
-			character = shifted ? L'+' : L'=';
-		}
-		else if( keyValue == Helheimr::Input::KEY_COMMA )
-		{
-			character = shifted ? L'<' : L',';
-		}
-		else if( keyValue == Helheimr::Input::KEY_MINUS )
-		{
-			character = shifted ? L'_' : L'-';
-		}
-		else if( keyValue == Helheimr::Input::KEY_PERIOD )
-		{
-			character = shifted ? L'>' : L'.';
-		}
-		else if( keyValue == Helheimr::Input::KEY_FORWARD_SLASH )
-		{
-			character = shifted ? L'?' : L'/';
-		}
-		else if( keyValue == Helheimr::Input::KEY_SINGLE_QUOTE )
-		{
-			character = shifted ? L'"' : L'\'';
-		}
-
-		if( character != 0 )
-		{
-			m_ConsoleTextBuffer += character;
-		}
-		else if( keyValue == Helheimr::Input::KEY_RETURN )
-		{
-			// Send the command line string to the parser
-			m_Parser->Execute( m_ConsoleTextBuffer );
-
-			// Clear the string
-			m_ConsoleTextBuffer.clear();
 		}
 	}
 
@@ -749,20 +545,13 @@ namespace Alfheimr
 
 		assert( logMessage );
 
-		// Write to the cache string entry
-		m_Cache[ m_CacheIndex ].messageString.assign( *logMessage, 0, Niflheim::Message::MAX_STRING_LENGTH );
-
-		// Set cache entry color?
-		m_Cache[ m_CacheIndex ].colorValue = colorValue;
-
-		// Update the index to the next available line in the cache
-		m_CacheIndex = ( m_CacheIndex + 1 ) % m_CacheSize;
-
-		// If a scroll is in progress, we adjust it so that the text doesnt appear to scroll
-		if( m_ScrollIndex > 0 )
+		if ( m_LineBuffer.Full() )
 		{
-			m_ScrollIndex = ( m_ScrollIndex + 1 ) % m_CacheSize;
+			m_LineBuffer.Pop();
 		}
+		m_LineBuffer.Push( *logMessage );
+
+		++m_ScrollIndex;
 
 		m_Dirty = true;
 	}
@@ -790,29 +579,36 @@ namespace Alfheimr
 
 	void Console::RenderText( std::shared_ptr<Muspelheim::Renderer> const & renderer )
 	{
-		unsigned int cacheIndex = m_CacheIndex;
-
-		//
-		unsigned int startIndex = m_ScrollIndex;
-		if ( m_ScrollIndex > cacheIndex )
+		int const startIndex = ( m_VirtualBufferHeight - 3 );
+		int const endIndex = 0;
+		int const lineBufferSize = m_LineBuffer.Size() - 1;
+		int lineIndex = m_ScrollIndex;
+		for ( int index = startIndex; index >= endIndex; --index )
 		{
-			cacheIndex = m_CacheSize - ( m_ScrollIndex - cacheIndex );
-		}
-		else
-		{
-			cacheIndex -= m_ScrollIndex;
+			std::wstring const & outputString = m_LineBuffer[ lineBufferSize - lineIndex ];
+			++lineIndex;
+
+			// For debugging the console window dimensions, etc
+			// This will pad non empty lines to a minimum length
+			//if ( cv_MinimumConsoleMessageLength > 0 )
+			//{
+			//	// TODO: This returns the reserve size, not the actual string length
+			//	size_t currentLength = outputString.length();
+
+			//	// We do not want to pad empty entries in the buffer
+			//	if ( currentLength > 0 )
+			//	{
+			//		while ( currentLength < cv_MinimumConsoleMessageLength )
+			//		{
+			//			outputString += ( '0' + currentLength % 10 );
+			//			++currentLength;
+			//		}
+			//	}
+			//}
+
+			renderer->DrawSurfaceString( m_MainScreenID, outputString, 0, index, Muspelheim::Renderer::TEXT_LEFT );
 		}
 
-		for ( int index = ( m_VirtualBufferHeight - 1 ); index >= 0; --index )
-		{
-			// Determine cache line index
-			if ( cacheIndex == 0 )
-			{
-				cacheIndex = m_CacheSize;
-			}
-			--cacheIndex;
-
-			renderer->DrawSurfaceString( m_MainScreenID, m_Cache[ cacheIndex ].messageString, 0, index, Muspelheim::Renderer::TEXT_LEFT );
-		}
+		renderer->DrawSurfaceString( m_MainScreenID, m_ConsoleTextBuffer, 0, startIndex + 1, Muspelheim::Renderer::TEXT_LEFT );
 	}
 }

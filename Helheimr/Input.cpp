@@ -39,10 +39,14 @@ namespace Helheimr
 		m_NewKeyStateBuffer[ keyValue ] = keyRelease ? 0 : 1;
 
 		// Broadcast key strokes
-		if( keyRelease )
+		if( 0 != keyValue )
 		{
 			unsigned int inputData = keyValue;
 
+			if ( false == keyRelease )
+			{
+				inputData |= MODIFIER_KEY_PRESS;
+			}
 			if( GetKeyDown( KEY_SHIFT ) || GetKeyDown( KEY_CAPS_LOCK ) )
 			{
 				inputData |= MODIFIER_KEY_SHIFT;

@@ -9,13 +9,15 @@
 
 #include <string>
 #include <vector>
+#include <queue>
 #include "Niflheim.h"
-//#include "Muspelheim.h"
+#include "Vanaheimr.h"
 
 class ConsoleParser;
 class ConsoleParameterList;
 
 namespace Muspelheim { class Renderer; }
+namespace Helheimr { class Input; }
 
 namespace Alfheimr
 {
@@ -42,11 +44,6 @@ namespace Alfheimr
 		/// \return Currently always returns true, needs to be fixed.
 		bool Initialize( std::weak_ptr<Muspelheim::Renderer> const & renderer, int width, unsigned int height, float heightPercent );
 
-		/// \brief Close the console window
-		///
-		/// Closes the console window and cleans up all internal data
-		//void Shutdown();
-
 		// Override MessageClient::ReceiveMessage
 		virtual void ReceiveMessage( const Niflheim::Message& message ) override;
 
@@ -56,7 +53,7 @@ namespace Alfheimr
 		/// The value set here will be the number of full lines without taking into account any wrapping.
 		/// You can not set this size smaller than the height of the console.  If you do it will be clamped to the console line height.
 		/// \param cacheSize The number of text lines that will be stored in the cache.
-		void SetCacheSize( unsigned int cacheSize );
+		void SetMaximumLineCount( unsigned int lineCount );
 
 		/// \brief Notify the console of the current parent window size.
 		///
@@ -96,7 +93,7 @@ namespace Alfheimr
 		///
 		/// Update the console with the amount of time that has elapsed in seconds, since the last update.
 		/// \param timeElapsed The amount of time in seconds since the last update.
-		void Update( float timeElapsed );
+		void Update( std::shared_ptr<Helheimr::Input> const & input, float timeElapsed );
 
 	private:
 		// Remove the default assignment operator
@@ -105,10 +102,16 @@ namespace Alfheimr
 		// Remove the copy constructor
 		Console( const Console & ) = delete;
 
-		void CopyCacheToRenderBuffer();
+		//void CopyCacheToRenderBuffer();
 		void RenderText( std::shared_ptr<Muspelheim::Renderer> const & renderer );
 
 		void UpdateBufferSize();
+
+		bool ProcessVisibilityToggle( unsigned int key );
+
+		bool ProcessControlInput( unsigned int keyStroke );
+
+		void ProcessTextInput( unsigned int keyValue, bool shifted );
 
 		void ProcessKeystroke( unsigned int keyStroke );
 
@@ -118,15 +121,16 @@ namespace Alfheimr
 
 		bool m_IsVisible = false;
 
-		struct CacheEntry
-		{
-			std::wstring messageString;
-			unsigned int colorValue;
-		};
-		std::vector<CacheEntry> m_Cache;
+		//struct CacheEntry
+		//{
+		//	std::wstring messageString;
+		//	unsigned int colorValue;
+		//};
+		//std::vector<CacheEntry> m_Cache;
 
-		unsigned int m_CacheIndex = 0;
-		unsigned int m_CacheSize = 0;
+		Vanaheimr::RingBuffer<std::wstring> m_LineBuffer;
+
+		unsigned int m_MaximumLineCount;
 
 		unsigned int m_BufferWidth = 0;
 		unsigned int m_BufferHeight = 0;
@@ -171,11 +175,13 @@ namespace Alfheimr
 		// Color constants: White, Yellow, Red, Blue
 		unsigned int m_ColorTable[ 4 ] = { 0xFFFFFFFF, 0xFFFF00FF, 0xFF0000FF, 0x01BCFFFF };
 
+		// TODO: Update these incorrect comments or refactor code
 		// A dynamic index that tracks how many lines above the base position the current view is set to
 		// When this value is non-zero the window will not auto-scroll when new text lines are posted,
 		// unless the currently viewed lines have reached the limit of the cache and are being removed.
-		unsigned int m_ScrollIndex = 0;
-		unsigned int m_MaxScrollIndex = 0;
+		int m_ScrollIndex = 0;
+
+		int m_MaxScrollIndex = 0;
 
 		// The main screen (surface) identifier
 		unsigned char m_MainScreenID;

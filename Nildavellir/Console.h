@@ -17,7 +17,7 @@ public:
 	virtual ~Console();
 
 	// Create the console using the given height percent of the window [0.0 > heightPercent <= 1.0]%
-	bool Initialize(unsigned int width, unsigned int height, float heightPercent);
+	bool Initialize( unsigned int width, unsigned int height, float heightPercent );
 
 	void Shutdown();
 
@@ -25,12 +25,11 @@ public:
 	virtual void ReceiveMessage( const Message& message );
 
 	// Set the history size of the console window data.
-	// You cannot set this size smaller than the height of the console
-	// Smaller values will be clamped to the current height.
-	void SetCacheSize(unsigned int cacheSize);
+	// The given line count will be the maximum number of lines stored
+	void SetMaximumLineCount( unsigned int lineCount );
 
 	// Set the current window dimensions
-	void SetWindowSize(unsigned int width, unsigned int height);
+	void SetWindowSize( unsigned int width, unsigned int height );
 
 	//bool Init(unsigned int width, unsigned int height, unsigned int cacheSize);
 	void Render();
@@ -55,7 +54,7 @@ private:
 	bool m_Dirty;
 	GLfloat m_ClipSize;
 	float m_HeightPercent;
-	unsigned int m_CacheSize;
+	unsigned int m_MaximumLineCount;
 	unsigned int m_FontHeight;
 	unsigned int m_FontWidth;
 

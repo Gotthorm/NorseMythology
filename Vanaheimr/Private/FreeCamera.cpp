@@ -25,7 +25,7 @@ namespace Vanaheimr
 		SetPosition( glm::vec3( 100.0f, -150.0f, -500.0f ) );
 	}
 
-	void FreeCamera::Update( float timeElapsed, Helheimr::Input* pInput )
+	void FreeCamera::Update( float timeElapsed, std::shared_ptr<Helheimr::Input> const & input )
 	{
 		viewMatrix = glm::mat4();
 
@@ -33,7 +33,7 @@ namespace Vanaheimr
 		{
 			int deltaX;
 			int deltaY;
-			if ( pInput->GetMouse( deltaX, deltaY ) )
+			if ( input->GetMouse( deltaX, deltaY ) )
 			{
 				m_Yaw += deltaX * timeElapsed;
 				m_Pitch += deltaY * timeElapsed;
@@ -65,19 +65,19 @@ namespace Vanaheimr
 		glm::vec3 upVector = glm::vec3( viewMatrix[ 0 ][ 1 ], viewMatrix[ 1 ][ 1 ], viewMatrix[ 2 ][ 1 ] );
 		glm::vec3 leftVector = glm::vec3( viewMatrix[ 0 ][ 0 ], viewMatrix[ 1 ][ 0 ], viewMatrix[ 2 ][ 0 ] );
 
-		if ( pInput->GetKeyDown( Helheimr::Input::KEY_W ) )
+		if ( input->GetKeyDown( Helheimr::Input::KEY_W ) )
 		{
 			positionVector += forwardVector * 100.0f * timeElapsed;
 		}
-		else if ( pInput->GetKeyDown( Helheimr::Input::KEY_S ) )
+		else if ( input->GetKeyDown( Helheimr::Input::KEY_S ) )
 		{
 			positionVector -= forwardVector * 100.0f * timeElapsed;
 		}
-		if ( pInput->GetKeyDown( Helheimr::Input::KEY_A ) )
+		if ( input->GetKeyDown( Helheimr::Input::KEY_A ) )
 		{
 			positionVector += leftVector * 100.0f * timeElapsed;
 		}
-		else if ( pInput->GetKeyDown( Helheimr::Input::KEY_D ) )
+		else if ( input->GetKeyDown( Helheimr::Input::KEY_D ) )
 		{
 			positionVector -= leftVector * 100.0f * timeElapsed;
 		}

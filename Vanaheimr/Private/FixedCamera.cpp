@@ -11,7 +11,7 @@ namespace Vanaheimr
 		SetName( name );
 	}
 
-	void FixedCamera::Update( float timeElapsed, Helheimr::Input* input )
+	void FixedCamera::Update( float timeElapsed, std::shared_ptr<Helheimr::Input> const & input )
 	{
 
 	}

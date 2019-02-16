@@ -12,7 +12,7 @@ namespace Vanaheimr
 		FreeCamera( const std::wstring& name );
 		virtual ~FreeCamera() = default;
 
-		virtual void Update( float timeElapsed, Helheimr::Input* input ) override;
+		virtual void Update( float timeElapsed, std::shared_ptr<Helheimr::Input> const & input ) override;
 
 		virtual glm::mat4 GetMatrix() const override;
 

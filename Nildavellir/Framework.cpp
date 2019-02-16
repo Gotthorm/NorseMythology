@@ -89,6 +89,12 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		m_CurrentFPS = 0;
 
 		m_hWindow = hWindow;
+
+		for ( int index = 0; index < 50; ++index )
+		{
+			std::wstring padString( L"XXXXXXXXXX " + std::to_wstring( index ) );
+			MessageManager::GetInstance()->Post( Message::LOG_INFO, padString );
+		}
 	}
 
 	// Set the initialized flag as true and return it as the results

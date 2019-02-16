@@ -7,12 +7,11 @@
 #endif 
 
 #include <memory>
-#include "Singleton.h"
 #include "Niflheim.h"
 
 namespace Helheimr
 {
-	class EXPORT Input : public Singleton<Input>
+	class EXPORT Input
 	{
 	public:
 		enum KeyCode
@@ -112,12 +111,6 @@ namespace Helheimr
 		void SetMouseSpeed( float speed ) { m_MouseSpeed = speed; }
 
 	private:
-		// Remove the default assignment operator
-		Input & operator =( const Input & ) = delete;
-
-		// Remove the copy constructor
-		Input( const Input & ) = delete;
-
 		//
 		void Shutdown();
 
@@ -135,8 +128,5 @@ namespace Helheimr
 #pragma warning( disable : 4251)
 		std::weak_ptr<Niflheim::MessageManager> m_MessageManager;
 #pragma warning( pop ) 
-
-		// Provide friend access to Singleton<Input> specialization
-		friend Singleton<Input>;
 	};
 }

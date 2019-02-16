@@ -29,7 +29,7 @@ namespace Vanaheimr
 		return ( cameraIndex > 0 && cameraIndex <= m_Cameras.size() ) ? m_Cameras[ cameraIndex - 1 ].first : nullptr;
 	}
 
-	void CameraManager::Update( float timeElapsed, Helheimr::Input* input )
+	void CameraManager::Update( float timeElapsed, std::shared_ptr<Helheimr::Input> const & input )
 	{
 		// Capture or release the mouse based on current state of right mouse button and window focus?
 

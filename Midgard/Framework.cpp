@@ -119,7 +119,6 @@ std::wstring const avatarDataName( L"Media/Objects/Dragon.sbm" );
 Framework::Framework()
 	: m_pLogger( nullptr )
 	, m_pGame( nullptr )
-//	, m_pInput( nullptr )
 	, m_pCameraManager( nullptr )
 	, m_pConsole( nullptr )
 	, m_WindowHandle( 0 )
@@ -162,9 +161,10 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		m_MessageManager->Post( Niflheim::Message::LOG_INFO, m_Renderer->GetVersionInformation() );
 
 		// Initialize the input system
-		// TODO: Can we remove the singleton?
-		Helheimr::Input::Create();
-		if( false == Helheimr::Input::GetInstance()->Init() )
+		m_Input = std::make_shared<Helheimr::Input>();
+		PLATFORM_ASSERT( nullptr != m_Input );
+
+		if( nullptr == m_Input || false == m_Input->Init() )
 		{
 			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, L"Failed to initialize the input system" );
 			return false;
@@ -198,6 +198,8 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 			}
 
 			m_MessageManager->Post( Niflheim::Message::LOG_INFO, L"Input system initialized" );
+		
+			m_Input->AddMessaging( m_MessageManager );
 		}
 
 		// Set up the main screen
@@ -232,6 +234,8 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		//
 		m_pConsole = new Alfheimr::Console( m_MessageManager );
 		m_pConsole->Initialize( m_Renderer, launchInfo.width, launchInfo.height, 0.8f );
+
+		//m_pConsole->SetMaximumLineCount( 100 );
 
 		//
 		m_pCameraManager = new Vanaheimr::CameraManager();
@@ -335,6 +339,14 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		//m_pGame->EnableMouseCapture( false );
 
 		m_WindowHandle = hWindow;
+
+		m_MessageManager->Post( Niflheim::Message::LOG_INFO, L"This is a story about a boy and a girl who grew up on the opposite sides of a space station, somewhere in orbit around the planet Jupiter on the frozen moon of Titan." );
+
+		for ( int index = 0; index < 50; ++index )
+		{
+			std::wstring padString(L"XXXXXXXXXX " + std::to_wstring( index ) );
+			m_MessageManager->Post( Niflheim::Message::LOG_INFO, padString );
+		}
 	}
 
 	//Vanaheimr::Object3D newObject;
@@ -366,7 +378,7 @@ void Framework::Shutdown()
 	delete m_pConsole;
 	m_pConsole = nullptr;
 
-	Helheimr::Input::Destroy();
+	m_Input.reset();
 	//if( m_pGame != nullptr )
 	//{
 	//	m_pGame->Shutdown();
@@ -400,21 +412,15 @@ void Framework::Update()
 
 		ProcessPlatformInput();
 
-		// Check for the console activation/deactivation
-		if( Helheimr::Input::GetInstance()->GetKeyUp( Helheimr::Input::KEY_TILDA ) )
-		{
-			// Toggle the console
-			m_pConsole->SetVisible( m_pConsole->IsVisible() == false );
-		}
-		m_pConsole->Update( m_FrameTime.Duration() );
+		m_pConsole->Update( m_Input, m_FrameTime.Duration() );
 
-		if( Helheimr::Input::GetInstance()->GetKeyUp( Helheimr::Input::KEY_F2 ) )
+		if( m_Input->GetKeyUp( Helheimr::Input::KEY_F2 ) )
 		{
 			// Toggle the vsync
 			PLATFORM_ASSERT( nullptr != m_Renderer );
 			bool const enable = ( false == m_Renderer->GetVSyncEnabled() );
 			m_Renderer->SetVSyncEnabled( enable );
-			Helheimr::Input::GetInstance()->SetMouseSpeed( enable ? VSyncMouseSpeed : DefaultMouseSpeed );
+			m_Input->SetMouseSpeed( enable ? VSyncMouseSpeed : DefaultMouseSpeed );
 		}
 
 		// Update the game
@@ -426,7 +432,7 @@ void Framework::Update()
 		//m_Loki3->Update();
 		//m_Loki4->Update();
 		m_pVolstagg->Update();
-		m_pCameraManager->Update( m_FrameTime.Duration(), Helheimr::Input::GetInstance() );
+		m_pCameraManager->Update( m_FrameTime.Duration(), m_Input );
 
 		//PLATFORM_ASSERT( m_Renderer != nullptr );
 		//m_pGraphics->UpdateConsole( timeElapsed / 1000.0f );
@@ -445,13 +451,13 @@ void Framework::Update()
 		////static float currentYaw = 0;
 		////static float currentPitch = 0;
 
-		//if( Helheimr::Input::GetInstance()->GetKeyDown( Helheimr::Input::KEY_MOUSE_RIGHT ) )
+		//if( m_Input->GetKeyDown( Helheimr::Input::KEY_MOUSE_RIGHT ) )
 		//{
 		//	float mouseSpeed = 0.01f * timeElapsed;
 
 		//	int deltaX;
 		//	int deltaY;
-		//	Helheimr::Input::GetInstance()->GetMouse( deltaX, deltaY );
+		//	m_Input->GetMouse( deltaX, deltaY );
 
 		//	float targetPitch = (float)deltaY;
 		//	float targetYaw = (float)-deltaX;
@@ -469,19 +475,19 @@ void Framework::Update()
 
 		//}
 		//float arrowSpeed = 0.001f * timeElapsed;
-		//if( Helheimr::Input::GetInstance()->GetKeyDown( Helheimr::Input::KEY_ARROW_DOWN ) )
+		//if( m_Input->GetKeyDown( Helheimr::Input::KEY_ARROW_DOWN ) )
 		//{
 		//	internetCamera.pitch( arrowSpeed );
 		//}
-		//else if( Helheimr::Input::GetInstance()->GetKeyDown( Helheimr::Input::KEY_ARROW_UP ) )
+		//else if( m_Input->GetKeyDown( Helheimr::Input::KEY_ARROW_UP ) )
 		//{
 		//	internetCamera.pitch( -arrowSpeed );
 		//}
-		//if( Helheimr::Input::GetInstance()->GetKeyDown( Helheimr::Input::KEY_ARROW_LEFT ) )
+		//if( m_Input->GetKeyDown( Helheimr::Input::KEY_ARROW_LEFT ) )
 		//{
 		//	internetCamera.yaw( arrowSpeed );
 		//}
-		//else if( Helheimr::Input::GetInstance()->GetKeyDown( Helheimr::Input::KEY_ARROW_RIGHT ) )
+		//else if( m_Input->GetKeyDown( Helheimr::Input::KEY_ARROW_RIGHT ) )
 		//{
 		//	internetCamera.yaw( -arrowSpeed );
 		//}
@@ -501,22 +507,22 @@ void Framework::Update()
 
 		//float MovementIncrement = 0.01f;
 
-		//if( Helheimr::Input::GetInstance()->GetKeyDown( Helheimr::Input::KEY_W ) )
+		//if( m_Input->GetKeyDown( Helheimr::Input::KEY_W ) )
 		//{
 		//	//internetCamera.translate( glm::vec3( 0, 0, -MovementIncrement ) );
 		//	position = position + ( forward * MovementIncrement );
 		//}
-		//else if( Helheimr::Input::GetInstance()->GetKeyDown( Helheimr::Input::KEY_S ) )
+		//else if( m_Input->GetKeyDown( Helheimr::Input::KEY_S ) )
 		//{
 		//	//internetCamera.translate( glm::vec3( 0, 0, MovementIncrement ) );
 		//	position = position - ( forward * MovementIncrement );
 		//}
-		//if( Helheimr::Input::GetInstance()->GetKeyDown( Helheimr::Input::KEY_A ) )
+		//if( m_Input->GetKeyDown( Helheimr::Input::KEY_A ) )
 		//{
 		//	//internetCamera.translate( glm::vec3( -MovementIncrement, 0, 0 ) );
 		//	position = position - ( right * MovementIncrement );
 		//}
-		//else if( Helheimr::Input::GetInstance()->GetKeyDown( Helheimr::Input::KEY_D ) )
+		//else if( m_Input->GetKeyDown( Helheimr::Input::KEY_D ) )
 		//{
 		//	//internetCamera.translate( glm::vec3( MovementIncrement, 0, 0 ) );
 		//	position = position + ( right * MovementIncrement );
@@ -551,7 +557,7 @@ void Framework::Update()
 		m_Renderer->EndRender();
 
 		// Clear input key releases and post message buffer
-		Helheimr::Input::GetInstance()->AdvanceFrame();
+		m_Input->AdvanceFrame();
 
 		// Pump the message manager to broadcast all cached messages
 		m_MessageManager->Update();
@@ -698,7 +704,7 @@ void Framework::ProcessPlatformInput()
 					{
 						// It seems the way we are handling input has intercepted the regular generation of the WM_CLOSE event (alt-F4)
 						// So we intercept that key combination here and manually post the message.
-						if ( pRawInput->data.keyboard.VKey == Helheimr::Input::KEY_F4 && Helheimr::Input::GetInstance()->GetKeyDown( Helheimr::Input::KEY_ALT ) )
+						if ( pRawInput->data.keyboard.VKey == Helheimr::Input::KEY_F4 && m_Input->GetKeyDown( Helheimr::Input::KEY_ALT ) )
 						{
 							PostMessage( m_WindowHandle, WM_CLOSE, 0, 0 );
 						}
@@ -709,7 +715,10 @@ void Framework::ProcessPlatformInput()
 			pRawInput = NEXTRAWINPUTBLOCK( pRawInput );
 		}
 
-		Helheimr::Input::GetInstance()->ProcessEvent( inputEventData );
+		if ( inputEventData != 0 )
+		{
+			m_Input->ProcessEvent( inputEventData );
+		}
 	}
 }
 

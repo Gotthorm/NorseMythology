@@ -131,6 +131,8 @@ namespace Muspelheim
 
 			// Render text overlays
 			m_Text.Render();
+
+			m_Text.Clear();
 		}
 	}
 

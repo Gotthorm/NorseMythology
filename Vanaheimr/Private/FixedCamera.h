@@ -14,7 +14,7 @@ namespace Vanaheimr
 		FixedCamera( const std::wstring& name );
 		virtual ~FixedCamera() = default;
 
-		virtual void Update( float timeElapsed, Helheimr::Input* input );
+		virtual void Update( float timeElapsed, std::shared_ptr<Helheimr::Input> const & input );
 	};
 }
 
