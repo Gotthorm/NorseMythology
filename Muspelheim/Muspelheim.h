@@ -149,6 +149,9 @@ namespace Muspelheim
 
 		//
 		virtual std::shared_ptr<LightObject> CreateSurfaceLightObject( SurfaceID surfaceID ) = 0;
+
+		//
+		virtual bool SetSurfaceClipping( SurfaceID surfaceID, float x, float y, float width, float height ) = 0;
 	};
 }
 

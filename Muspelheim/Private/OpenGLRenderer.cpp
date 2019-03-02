@@ -479,4 +479,15 @@ namespace Muspelheim
 
 		return nullptr;
 	}
+
+	bool OpenGLRenderer::SetSurfaceClipping( SurfaceID surfaceID, float x, float y, float width, float height )
+	{
+		if ( surfaceID > 0 && m_Surfaces.size() >= surfaceID )
+		{
+			m_Surfaces[ surfaceID - 1 ]->SetClipping( x, y, width, height );
+		}
+
+		return false;
+	}
+
 }

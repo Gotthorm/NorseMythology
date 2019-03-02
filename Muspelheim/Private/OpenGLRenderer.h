@@ -53,6 +53,11 @@ namespace Muspelheim
 		virtual void SetVSyncEnabled( bool enable ) override;
 
 		//
+		OpenGLShader* GetShader( unsigned int shaderID );
+
+		// ########## Surfaces ##########
+
+		//
 		virtual bool CreateSurface( SurfaceID& surfaceID ) override;
 
 		//
@@ -95,7 +100,7 @@ namespace Muspelheim
 		virtual bool GetSurfaceFontSize( SurfaceID surfaceID, unsigned int & width, unsigned int & height ) override;
 
 		//
-		OpenGLShader* GetShader( unsigned int shaderID );
+		virtual bool SetSurfaceClipping( SurfaceID surfaceID, float x, float y, float width, float height ) override;
 
 	private:
 		//

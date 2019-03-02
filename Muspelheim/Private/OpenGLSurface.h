@@ -73,6 +73,10 @@ namespace Muspelheim
 		unsigned int GetFontWidth() { return m_Text.GetFontWidth(); }
 		unsigned int GetFontHeight() { return m_Text.GetFontHeight(); }
 
+		// Parameters are percentage values [0 <=> 1]
+		// Full screen (default) would be (0, 0, 1, 1)
+		void SetClipping( float leftX, float topY, float rightX, float bottomY );
+
 	private:
 		unsigned char m_Depth = 0;
 		unsigned short m_Width = 0;
@@ -88,6 +92,12 @@ namespace Muspelheim
 		// The color of the surface background
 		// When the alpha value is zero the background will not be rendered
 		glm::vec4 m_Color = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+		// The vertical clip value used when rendering the background [ 0.0 <=> -1.0 ]
+		// The value is the percentage from the vertical center of the screen to the bottom
+		// 1.0, -1.0 is full screen
+		// 1.0, -0.5 is 75% vertical beginning at the top of the screen
+		glm::vec4 m_ClipSize = { -1.0f, -1.0f, 1.0f, 1.0f };
 
 		// The text object for rendering text onto the surface
 		OpenGLText m_Text;

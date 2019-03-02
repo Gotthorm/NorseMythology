@@ -96,8 +96,8 @@ namespace Muspelheim
 
 			const GLfloat color[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-			//OpenGLInterface::VertexAttrib1f( 1, -1.0f );
-			OpenGLInterface::VertexAttrib1f( 1, -0.5f );
+			OpenGLInterface::VertexAttrib1f( 1, -1.0f );
+			//OpenGLInterface::VertexAttrib1f( 1, -0.5f );
 			OpenGLInterface::VertexAttrib4fv( 2, color );
 
 			OpenGLInterface::ActiveTexture( GL_TEXTURE0 );

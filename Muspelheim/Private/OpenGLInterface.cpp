@@ -188,13 +188,13 @@ GLuint OpenGLInterface::LoadShader( const std::wstring& filename, GLenum shader_
 		else
 		{
 			// Failed shader alloc
-			OutputDebugStringA("Failed shader alloc\n");
+			OutputDebugString(L"Failed shader alloc\n");
 		}
 	}
 	else
 	{
 		// Failed to open shader text file
-		OutputDebugStringA("Failed to open shader file\n");
+		OutputDebugString( (L"Failed to open shader file: " + filename + L"\n").c_str() );
 	}
 		
 	return result;

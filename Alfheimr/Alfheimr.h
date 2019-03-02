@@ -29,7 +29,7 @@ namespace Alfheimr
 	{
 	public:
 		// 
-		Console( const std::weak_ptr<Niflheim::MessageManager>& messageManager );
+		Console( const std::weak_ptr<Niflheim::MessageManager>& messageManager, std::weak_ptr<Muspelheim::Renderer> const & renderer );
 
 		// 
 		virtual ~Console();
@@ -38,11 +38,11 @@ namespace Alfheimr
 		///
 		/// Create and activate the console window.  
 		/// The console will immediately begin receiving messages after this call. 
-		/// \param width The desired width of the console window.  This would typically be the width of the parent window.
-		/// \param height The desired height of the console window.  This would typically be the height of the parent window.
-		/// \param heightPercent The vertical percentage of the given height that will be used by this console window. [0.0 > heightPercent <= 1.0]%
-		/// \return Currently always returns true, needs to be fixed.
-		bool Initialize( std::weak_ptr<Muspelheim::Renderer> const & renderer, int width, unsigned int height, float heightPercent );
+		/// \param width The width of the parent window.
+		/// \param height The height of the parent window.
+		/// \param verticalClipSize The vertical percentage of the parent's height that will be used by this console window. [0.0 > verticalClipSize <= 1.0]%
+		/// \return Returns a boolean indicating whether the console has been successfully initialized.
+		bool Initialize( int width, unsigned int height, float verticalClipSize );
 
 		// Override MessageClient::ReceiveMessage
 		virtual void ReceiveMessage( const Niflheim::Message& message ) override;
@@ -51,7 +51,7 @@ namespace Alfheimr
 		///
 		/// This sets the number of lines that are cached in the console window.
 		/// The value set here will be the number of full lines without taking into account any wrapping.
-		/// You can not set this size smaller than the height of the console.  If you do it will be clamped to the console line height.
+		/// Setting the size smaller than the height of the console will cause the given size to be clamped to the console line height.
 		/// \param cacheSize The number of text lines that will be stored in the cache.
 		void SetMaximumLineCount( unsigned int lineCount );
 
@@ -59,9 +59,9 @@ namespace Alfheimr
 		///
 		/// Call this whenever the parent window changes dimensions.
 		/// The values used are typically the dimension of the parent windows client area dimensions.
-		/// \param width
-		/// \param height
-		void SetWindowSize( unsigned int width, unsigned int height );
+		/// \param width The width of the parent window.
+		/// \param height The height of the parent window.
+		void UpdateWindowSize( unsigned int width, unsigned int height );
 
 		/// \brief Set the text scale
 		///
@@ -119,6 +119,8 @@ namespace Alfheimr
 
 		void SetTextScale_Callback( const ConsoleParameterList& paramList );
 
+		void ValidateScrollIndex();
+
 		bool m_IsVisible = false;
 
 		//struct CacheEntry
@@ -130,10 +132,6 @@ namespace Alfheimr
 
 		Vanaheimr::RingBuffer<std::wstring> m_LineBuffer;
 
-		unsigned int m_MaximumLineCount;
-
-		unsigned int m_BufferWidth = 0;
-		unsigned int m_BufferHeight = 0;
 		unsigned int m_VirtualBufferWidth = 0;
 		unsigned int m_VirtualBufferHeight = 0;
 
@@ -162,11 +160,11 @@ namespace Alfheimr
 
 		// This 2D buffer holds all of the text that is currently being displayed.
 		// Each render frame it is copied to a texture to be processed by a shader.
-		char* m_ScreenTextBuffer = nullptr;
+		//char* m_ScreenTextBuffer = nullptr;
 
 		// This 1D buffer holds a list of the colors of each line in the m_ScreenTextBuffer buffer.
 		// Each render frame it is copied to a texture to be processed by a shader.
-		unsigned int* m_ScreenTextColorBuffer = nullptr;
+		//unsigned int* m_ScreenTextColorBuffer = nullptr;
 
 		//
 		ConsoleParser* m_Parser = nullptr;
@@ -181,7 +179,8 @@ namespace Alfheimr
 		// unless the currently viewed lines have reached the limit of the cache and are being removed.
 		int m_ScrollIndex = 0;
 
-		int m_MaxScrollIndex = 0;
+		// The number of lines that are wrapping which are currently visible 
+		int m_LineWrapCount = 0;
 
 		// The main screen (surface) identifier
 		unsigned char m_MainScreenID;

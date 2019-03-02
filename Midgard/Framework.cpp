@@ -232,8 +232,8 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		}
 
 		//
-		m_pConsole = new Alfheimr::Console( m_MessageManager );
-		m_pConsole->Initialize( m_Renderer, launchInfo.width, launchInfo.height, 0.8f );
+		m_pConsole = new Alfheimr::Console( m_MessageManager, m_Renderer );
+		m_pConsole->Initialize( launchInfo.width, launchInfo.height, 0.80f );
 
 		//m_pConsole->SetMaximumLineCount( 100 );
 
@@ -339,14 +339,6 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		//m_pGame->EnableMouseCapture( false );
 
 		m_WindowHandle = hWindow;
-
-		m_MessageManager->Post( Niflheim::Message::LOG_INFO, L"This is a story about a boy and a girl who grew up on the opposite sides of a space station, somewhere in orbit around the planet Jupiter on the frozen moon of Titan." );
-
-		for ( int index = 0; index < 50; ++index )
-		{
-			std::wstring padString(L"XXXXXXXXXX " + std::to_wstring( index ) );
-			m_MessageManager->Post( Niflheim::Message::LOG_INFO, padString );
-		}
 	}
 
 	//Vanaheimr::Object3D newObject;
@@ -529,6 +521,22 @@ void Framework::Update()
 		//}
 
 		//glm::mat4 viewMatrix99 = glm::lookAt( position, position + forward, glm::vec3(0,1,0) );
+
+#if 0
+		static float debugElapsedTime = 0.0f;
+		static int tickCount = 0;
+		if ( tickCount < 50 )
+		{
+			debugElapsedTime += m_FrameTime.Duration();
+			if ( debugElapsedTime > 0.25f )
+			{
+				debugElapsedTime -= 0.25f;
+				std::wstring padString( L"Tick " + std::to_wstring( tickCount ) );
+				m_MessageManager->Post( Niflheim::Message::LOG_INFO, padString );
+				++tickCount;
+			}
+		}
+#endif
 
 		// ####################################################
 

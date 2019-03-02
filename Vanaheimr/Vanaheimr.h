@@ -122,7 +122,15 @@ namespace Vanaheimr
 
 		void Push( T item )
 		{
-			m_Buffer[ m_HeadIndex ] = item;
+			if ( m_Buffer.size() <= m_HeadIndex )
+			{
+				m_Buffer.push_back( item );
+			}
+			else
+			{
+				m_Buffer[ m_HeadIndex ] = item;
+			}
+			
 			if ( m_Full ) m_TailIndex = ( m_TailIndex + 1 ) % m_MaxSize;
 			m_HeadIndex = ( m_HeadIndex + 1 ) % m_MaxSize;
 			m_Full = m_HeadIndex == m_TailIndex;
@@ -165,11 +173,12 @@ namespace Vanaheimr
 		void Resize( size_t size )
 		{
 			while ( Size() > size ) Pop();
-			std::vector<T> tempBuffer( size );
+			std::vector<T> tempBuffer( Size() );
 			while ( Size() > 0 ) tempBuffer.push_back( Pop() );
 			m_TailIndex = 0;
 			m_HeadIndex = tempBuffer.size();
 			m_Buffer.swap( tempBuffer );
+			m_MaxSize = size;
 		}
 
 		T const & operator[] ( int index )
@@ -182,7 +191,7 @@ namespace Vanaheimr
 		std::vector<T> m_Buffer;
 		size_t m_HeadIndex = 0;
 		size_t m_TailIndex = 0;
-		size_t const m_MaxSize;
+		size_t m_MaxSize;
 		bool m_Full = false;
 	};
 }

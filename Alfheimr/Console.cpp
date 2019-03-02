@@ -17,13 +17,16 @@ unsigned int cv_MinimumConsoleMessageLength = 0;
 
 std::wstring const consoleShaderName( L"Media/Shaders/console.overlay" );
 std::wstring const text2DShaderName( L"Media/Shaders/text2d" );
+float const minimumClipSize = 0.1f;
+float const maximumClipSize = 1.0f;
+unsigned int defaultLineBufferSize = 100;
 
 namespace Alfheimr
 {
-	Console::Console( const std::weak_ptr<Niflheim::MessageManager>& messageManager ) 
+	Console::Console( const std::weak_ptr<Niflheim::MessageManager>& messageManager, std::weak_ptr<Muspelheim::Renderer> const & renderer )
 		: Niflheim::MessageClient( messageManager )
-		, m_MaximumLineCount( 0 )
-		, m_LineBuffer( 100 )
+		, m_Renderer( renderer )
+		, m_LineBuffer( defaultLineBufferSize )
 	{
 	}
 
@@ -48,14 +51,6 @@ namespace Alfheimr
 
 		ConsoleCommandManager::Destroy();
 
-		//m_Cache.clear();
-
-		delete[] m_ScreenTextBuffer;
-		m_ScreenTextBuffer = nullptr;
-
-		delete[] m_ScreenTextColorBuffer;
-		m_ScreenTextColorBuffer = nullptr;
-
 		std::shared_ptr<Muspelheim::Renderer> pRenderer = m_Renderer.lock();
 		if ( nullptr != pRenderer )
 		{
@@ -63,15 +58,9 @@ namespace Alfheimr
 			pRenderer.reset();
 		}
 		m_Renderer.reset();
-
-		//OpenGLInterface::DeleteVertexArrays( 1, &m_OverlayVertexArrayObjectId );
-		//OpenGLInterface::DeleteVertexArrays( 1, &m_TextVertexArrayObjectId );
-		//OpenGLInterface::DeleteProgram( m_OverlayProgram );
-		//OpenGLInterface::DeleteProgram( m_RenderTextProgram );
 	}
 
-	// TODO: Make this handle init errors
-	bool Console::Initialize( std::weak_ptr<Muspelheim::Renderer> const & renderer, int width, unsigned int height, float heightPercent )
+	bool Console::Initialize( int windowWidth, unsigned int windowHeight, float verticalClipSize )
 	{
 		std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
 
@@ -80,19 +69,17 @@ namespace Alfheimr
 			return false;
 		}
 
-		m_Renderer = renderer;
+		std::shared_ptr<Muspelheim::Renderer> pRenderer = m_Renderer.lock();
+
+		if ( nullptr == pRenderer )
+		{
+			return false;
+		}
 
 		unsigned int fontWidth = 0;
 		unsigned int fontHeight = 0;
 
 		{
-			std::shared_ptr<Muspelheim::Renderer> pRenderer = m_Renderer.lock();
-
-			if ( nullptr == pRenderer )
-			{
-				return false;
-			}
-
 			// Set up the main screen
 			if ( false == pRenderer->CreateSurface( m_MainScreenID ) )
 			{
@@ -130,15 +117,26 @@ namespace Alfheimr
 			pRenderer->GetSurfaceFontSize( m_MainScreenID, fontWidth, fontHeight );
 		}
 
-		m_HeightPercent = heightPercent;
+		// Enforce some valid boundaries
+		if ( minimumClipSize > verticalClipSize )
+		{
+			pMessageManager->Post( Niflheim::Message::LOG_WARN, L"Console window clip height was clamped from: " + std::to_wstring( verticalClipSize ) + L" to " + std::to_wstring( minimumClipSize ) );
+			verticalClipSize = minimumClipSize;
+		}
+		else if( maximumClipSize < verticalClipSize )
+		{
+			pMessageManager->Post( Niflheim::Message::LOG_WARN, L"Console window clip height was clamped from: " + std::to_wstring( verticalClipSize ) + L" to " + std::to_wstring( maximumClipSize ) );
+			verticalClipSize = maximumClipSize;
+		}
 
-		// Calculate the overlay size in clip space where height(0) => 1.0 && height(1.0) => -1.0
-		m_ClipSize = 1.0f - m_HeightPercent * 2.0f;
+		pMessageManager->Post( Niflheim::Message::LOG_INFO, L"Console window clip height set to: " + std::to_wstring( verticalClipSize ) );
+		m_HeightPercent = verticalClipSize;
+		pRenderer->SetSurfaceClipping( m_MainScreenID, 0.0f, 0.0f, 1.0f, m_HeightPercent );
 
 		// Set up the window dimensions.  This call may also update the buffer size.
-		SetWindowSize( width, height );
+		UpdateWindowSize( windowWidth, windowHeight );
 
-		cv_MinimumConsoleMessageLength = width / fontWidth;
+		cv_MinimumConsoleMessageLength = windowWidth / fontWidth;
 
 		// Register for the correct messages
 		pMessageManager->Register( this, Niflheim::Message::LOG_INFO );
@@ -169,15 +167,9 @@ namespace Alfheimr
 
 	void Console::SetMaximumLineCount( unsigned int lineCount )
 	{
-		// 
-		if ( lineCount != m_MaximumLineCount )
+		if ( lineCount != m_LineBuffer.Size() )
 		{
-			while ( lineCount < m_MaximumLineCount )
-			{
-				m_LineBuffer.Pop();
-			}
-
-			lineCount = m_MaximumLineCount;
+			m_LineBuffer.Resize( lineCount );
 		}
 	}
 
@@ -190,7 +182,7 @@ namespace Alfheimr
 		UpdateBufferSize();
 	}
 
-	void Console::SetWindowSize( unsigned int width, unsigned int height )
+	void Console::UpdateWindowSize( unsigned int width, unsigned int height )
 	{
 		m_WindowWidth = width;
 		m_WindowHeight = height;
@@ -208,7 +200,7 @@ namespace Alfheimr
 
 		// Determine what the current display dimensions are in character units
 		unsigned int newBufferWidth = m_WindowWidth / unsigned int( m_TextScale[ 0 ] * fontWidth );
-		unsigned int newBufferHeight = unsigned int( m_WindowHeight * m_HeightPercent ) / unsigned int( m_TextScale[ 1 ] * fontHeight );
+		unsigned int newBufferHeight = static_cast<unsigned int>( 0.1f + (( m_WindowHeight * m_HeightPercent ) / ( m_TextScale[ 1 ] * fontHeight )));
 
 		// Leave one line for the console input
 		--newBufferHeight;
@@ -228,32 +220,10 @@ namespace Alfheimr
 			m_VirtualBufferWidth = newBufferWidth;
 			m_VirtualBufferHeight = newBufferHeight;
 
-			// The physical buffer width must be 16 byte aligned, so we round up the buffer size to the next multiple of 16
-			m_BufferWidth = ( m_VirtualBufferWidth + 0x0F ) & ~0x0F;
-			m_BufferHeight = m_VirtualBufferHeight + 1;	// Add the console input line 
-
-			delete[] m_ScreenTextBuffer;
-			m_ScreenTextBuffer = new char[ m_BufferWidth * m_BufferHeight ];
-
-			delete[] m_ScreenTextColorBuffer;
-			m_ScreenTextColorBuffer = new unsigned int[ m_BufferHeight ];
-
-			if ( nullptr != pMessageManager )
-			{
-				message = L"Console physical buffer size changed to (" + std::to_wstring( m_BufferWidth ) + L", " + std::to_wstring( m_BufferHeight ) + L")";
-				pMessageManager->Post( Niflheim::Message::LOG_INFO, message );
-			}
-
 			// To enforce our rule that the cache size is at least as large as the screen
-			if( m_MaximumLineCount < m_VirtualBufferHeight )
+			if( m_LineBuffer.Capacity() < m_VirtualBufferHeight )
 			{
 				SetMaximumLineCount( m_VirtualBufferHeight );
-			}
-
-			m_MaxScrollIndex = m_LineBuffer.Size() - m_VirtualBufferHeight + 2;
-			if ( m_MaxScrollIndex < 0 )
-			{
-				m_MaxScrollIndex = 0;
 			}
 		}
 	}
@@ -328,34 +298,7 @@ namespace Alfheimr
 				processed = false;
 			}
 
-			int const maxScrollIndex = m_LineBuffer.Size() - m_VirtualBufferHeight + 2;
-
-			if ( Helheimr::Input::KEY_ARROW_UP == key )
-			{
-				++m_ScrollIndex;
-			}
-			else if ( Helheimr::Input::KEY_ARROW_DOWN == key )
-			{
-				--m_ScrollIndex;
-			}
-
-			if ( Helheimr::Input::KEY_END == key )
-			{
-				m_ScrollIndex = 0;
-			}
-			else if ( m_ScrollIndex > maxScrollIndex )
-			{
-				m_ScrollIndex = maxScrollIndex;
-			}
-			else if ( m_ScrollIndex < 0 )
-			{
-				m_ScrollIndex = 0;
-			}
-			// TODO: Broken
-			//if( Input::GetInstance()->GetKeyUp( Input::KEY_HOME ) )
-			//{
-			//	m_ScrollIndex = m_MaxScrollIndex;
-			//}
+			ValidateScrollIndex();
 		}
 
 		return processed;
@@ -549,9 +492,16 @@ namespace Alfheimr
 		{
 			m_LineBuffer.Pop();
 		}
-		m_LineBuffer.Push( *logMessage );
 
-		++m_ScrollIndex;
+		// The log message strings are padded so we only want to extract the actual valid string contents
+		m_LineBuffer.Push( logMessage->c_str() );
+
+		if ( 0 < m_ScrollIndex )
+		{
+			++m_ScrollIndex;
+		}
+
+		ValidateScrollIndex();
 
 		m_Dirty = true;
 	}
@@ -579,36 +529,79 @@ namespace Alfheimr
 
 	void Console::RenderText( std::shared_ptr<Muspelheim::Renderer> const & renderer )
 	{
-		int const startIndex = ( m_VirtualBufferHeight - 3 );
-		int const endIndex = 0;
+		// The virtual screen of text we are writing to is m_VirtualBufferWidth by m_VirtualBufferHeight characters
+		// The x value range of [0 <=> m_VirtualBufferWidth - 1] maps left to right with 0 being the left most character
+		// The y value range of [0 <=> m_VirtualBufferHeight] maps top to bottom with 0 being the top most line
+
 		int const lineBufferSize = m_LineBuffer.Size() - 1;
 		int lineIndex = m_ScrollIndex;
-		for ( int index = startIndex; index >= endIndex; --index )
+		std::wstring bufferString;
+		int remainingCharacters = 0;
+		m_LineWrapCount = 0;
+		for ( int index = m_VirtualBufferHeight - 1; index >= 0; --index )
 		{
-			std::wstring const & outputString = m_LineBuffer[ lineBufferSize - lineIndex ];
-			++lineIndex;
+			if ( lineBufferSize < lineIndex )
+			{
+				break;
+			}
 
-			// For debugging the console window dimensions, etc
-			// This will pad non empty lines to a minimum length
-			//if ( cv_MinimumConsoleMessageLength > 0 )
-			//{
-			//	// TODO: This returns the reserve size, not the actual string length
-			//	size_t currentLength = outputString.length();
+			if ( remainingCharacters == 0 )
+			{
+				// Grab a copy of a new string
+				bufferString = m_LineBuffer[ lineBufferSize - lineIndex ];
+				remainingCharacters = bufferString.length();
+			}
 
-			//	// We do not want to pad empty entries in the buffer
-			//	if ( currentLength > 0 )
-			//	{
-			//		while ( currentLength < cv_MinimumConsoleMessageLength )
-			//		{
-			//			outputString += ( '0' + currentLength % 10 );
-			//			++currentLength;
-			//		}
-			//	}
-			//}
+			std::wstring outputString;
+
+			int const bufferSize = bufferString.size();
+
+			if ( bufferSize > m_VirtualBufferWidth )
+			{
+				int remainder = bufferSize % m_VirtualBufferWidth;
+				int multiples = bufferSize / m_VirtualBufferWidth;
+
+				if ( 0 < remainder )
+				{
+					outputString = bufferString.substr( bufferSize - remainder );
+					remainingCharacters -= remainder;
+				}
+				else
+				{
+					outputString = bufferString.substr( bufferSize - m_VirtualBufferWidth );
+					remainingCharacters = bufferSize - m_VirtualBufferWidth;
+				}
+				bufferString = bufferString.substr( 0, remainingCharacters );
+				++m_LineWrapCount;
+			}
+			else
+			{
+				outputString = bufferString.substr( 0, m_VirtualBufferWidth );
+				remainingCharacters = 0;
+				++lineIndex;
+			}
 
 			renderer->DrawSurfaceString( m_MainScreenID, outputString, 0, index, Muspelheim::Renderer::TEXT_LEFT );
 		}
 
-		renderer->DrawSurfaceString( m_MainScreenID, m_ConsoleTextBuffer, 0, startIndex + 1, Muspelheim::Renderer::TEXT_LEFT );
+		renderer->DrawSurfaceString( m_MainScreenID, m_ConsoleTextBuffer, 0, m_VirtualBufferHeight, Muspelheim::Renderer::TEXT_LEFT );
+	}
+
+	void Console::ValidateScrollIndex()
+	{
+		int maxScrollIndex = m_LineBuffer.Size() + m_LineWrapCount - ( m_VirtualBufferHeight + 1 );
+		if ( maxScrollIndex < 0 )
+		{
+			maxScrollIndex = 0;
+		}
+
+		if ( m_ScrollIndex > maxScrollIndex )
+		{
+			m_ScrollIndex = maxScrollIndex;
+		}
+		else if ( m_ScrollIndex < 0 )
+		{
+			m_ScrollIndex = 0;
+		}
 	}
 }

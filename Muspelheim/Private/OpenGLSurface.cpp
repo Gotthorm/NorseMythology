@@ -101,7 +101,7 @@ namespace Muspelheim
 				if( m_Shader && m_Shader->Use() )
 				{
 					OpenGLInterface::VertexAttrib4fv( 1, glm::value_ptr( m_Color ) );
-					OpenGLInterface::VertexAttrib1f( 2, -0.5f );
+					OpenGLInterface::VertexAttrib4fv( 2, glm::value_ptr( m_ClipSize ) );
 
 					glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 				}
@@ -147,6 +147,29 @@ namespace Muspelheim
 		return true;
 	}
 
+	float CenterJustify( float value )
+	{
+		if ( 0.0f > value )
+		{
+			value = 0.0f;
+		}
+		else if ( 1.0f < value )
+		{
+			value = 1.0f;
+		}
+
+		return (value - 0.5f) * 2.0f;
+	}
+
+	void OpenGLSurface::SetClipping( float leftX, float topY, float rightX, float bottomY )
+	{
+		// Convert values from left/top justified to center justified
+		m_ClipSize[ 0 ] = CenterJustify( leftX );
+		m_ClipSize[ 1 ] = CenterJustify( 1 - bottomY );
+		m_ClipSize[ 2 ] = CenterJustify( rightX );
+		m_ClipSize[ 3 ] = CenterJustify( 1 - topY );
+	}
+
 	bool OpenGLSurface::DrawString( const std::wstring& textString, unsigned short posX, unsigned short posY, Renderer::TextAlignment alignment )
 	{
 		// TODO: Refactor this to handle invalid data and also the case of TEXT_MIDDLE
@@ -187,6 +210,7 @@ namespace Muspelheim
 	{
 
 	}
+
 	std::shared_ptr<LightObject> OpenGLSurface::CreateLightObject()
 	{
 		// Ask the renderer for a new light, which may fail is we have reached the maximum
