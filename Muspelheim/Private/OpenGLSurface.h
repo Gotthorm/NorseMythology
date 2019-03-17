@@ -56,6 +56,9 @@ namespace Muspelheim
 		bool DrawString( const std::wstring& textString, unsigned short posX, unsigned short posY, Renderer::TextAlignment alignment );
 
 		//
+		bool DrawStringBuffer( wchar_t const * pTextBuffer, unsigned int size );
+
+		//
 		std::shared_ptr<RenderObject> CreateRenderObject();
 
 		//
@@ -76,6 +79,8 @@ namespace Muspelheim
 		// Parameters are percentage values [0 <=> 1]
 		// Full screen (default) would be (0, 0, 1, 1)
 		void SetClipping( float leftX, float topY, float rightX, float bottomY );
+
+		void SetTextScale( float widthScale, float heightScale );
 
 	private:
 		unsigned char m_Depth = 0;

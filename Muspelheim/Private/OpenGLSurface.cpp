@@ -190,6 +190,11 @@ namespace Muspelheim
 		return m_Text.DrawString( textString, alignedX, posY );
 	}
 
+	bool OpenGLSurface::DrawStringBuffer( wchar_t const * pTextBuffer, unsigned int size )
+	{
+		return m_Text.DrawStringBuffer( pTextBuffer, size );
+	}
+
 	std::shared_ptr<RenderObject> OpenGLSurface::CreateRenderObject()
 	{
 		PLATFORM_ASSERT( m_RenderObjects.size() < USHRT_MAX );
@@ -219,4 +224,8 @@ namespace Muspelheim
 		return nullptr;
 	}
 
+	void OpenGLSurface::SetTextScale( float widthScale, float heightScale )
+	{
+		m_Text.SetScale( widthScale, heightScale );
+	}
 }

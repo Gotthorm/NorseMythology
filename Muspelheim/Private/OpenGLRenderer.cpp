@@ -449,6 +449,16 @@ namespace Muspelheim
 	}
 
 	//
+	bool OpenGLRenderer::DrawSurfaceStringBuffer( SurfaceID surfaceID, wchar_t const * pTextBuffer, unsigned int size )
+	{
+		if ( surfaceID > 0 && m_Surfaces.size() >= surfaceID )
+		{
+			return m_Surfaces[ surfaceID - 1 ]->DrawStringBuffer( pTextBuffer, size );
+		}
+
+		return false;
+	}
+	//
 	std::shared_ptr<RenderObject> OpenGLRenderer::CreateSurfaceRenderObject( SurfaceID surfaceID )
 	{
 		if( surfaceID > 0 && m_Surfaces.size() >= surfaceID )
@@ -485,9 +495,22 @@ namespace Muspelheim
 		if ( surfaceID > 0 && m_Surfaces.size() >= surfaceID )
 		{
 			m_Surfaces[ surfaceID - 1 ]->SetClipping( x, y, width, height );
+
+			return true;
 		}
 
 		return false;
 	}
 
+	bool OpenGLRenderer::SetSurfaceTextScale( SurfaceID surfaceID, float widthScale, float heightScale )
+	{
+		if ( surfaceID > 0 && m_Surfaces.size() >= surfaceID )
+		{
+			m_Surfaces[ surfaceID - 1 ]->SetTextScale( widthScale, heightScale );
+
+			return true;
+		}
+
+		return false;
+	}
 }

@@ -145,6 +145,9 @@ namespace Muspelheim
 		virtual bool DrawSurfaceString( SurfaceID surfaceID, const std::wstring& textString, unsigned short posX, unsigned short posY, TextAlignment alignment ) = 0;
 
 		//
+		virtual bool DrawSurfaceStringBuffer( SurfaceID surfaceID, wchar_t const * pTextBuffer, unsigned int size ) = 0;
+
+		//
 		virtual std::shared_ptr<RenderObject> CreateSurfaceRenderObject( SurfaceID surfaceID ) = 0;
 
 		//
@@ -152,6 +155,9 @@ namespace Muspelheim
 
 		//
 		virtual bool SetSurfaceClipping( SurfaceID surfaceID, float x, float y, float width, float height ) = 0;
+	
+		//
+		virtual bool SetSurfaceTextScale( SurfaceID surfaceID, float widthScale, float heightScale ) = 0;
 	};
 }
 

@@ -235,6 +235,9 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		m_pConsole = new Alfheimr::Console( m_MessageManager, m_Renderer );
 		m_pConsole->Initialize( launchInfo.width, launchInfo.height, 0.80f );
 
+		// For testing
+		//m_pConsole->SetTextScale( 3.0f, 3.0f );
+
 		//m_pConsole->SetMaximumLineCount( 100 );
 
 		//

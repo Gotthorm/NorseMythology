@@ -15,19 +15,22 @@ layout (binding = 1) uniform isampler2DArray font_texture;
 // Input from the vertex shader
 in vec4 vs_color;
 
+// Default font scale is 100% unless overriden by the caller
+uniform vec2 fontScalar = vec2(1.0, 1.0);
+
 void main(void)
 {
 	// Get integer fragment coordinate
 	ivec2 frag_coord = ivec2(gl_FragCoord.xy);
 
 	// Get size of font
-	ivec2 char_size = textureSize(font_texture, 0).xy;
+	ivec2 char_size = ivec2(textureSize(font_texture, 0).xy * fontScalar);
 
 	// Find location in text buffer
 	ivec2 char_location = frag_coord / char_size;
 
 	// Find texel within character
-	ivec2 texel_coord = frag_coord % char_size;
+	ivec2 texel_coord = ivec2((frag_coord % char_size) / fontScalar);
 
 	// Fetch character index
 	int character = texelFetch(text_buffer, char_location, 0).x;

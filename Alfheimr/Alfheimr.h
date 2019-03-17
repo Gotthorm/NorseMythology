@@ -70,7 +70,8 @@ namespace Alfheimr
 		/// When you change these values the console will adjust the number of characters displayed both vertically and horizontally to match the new dimensions.
 		/// \param widthScale
 		/// \param heightScale
-		void SetTextScale( float widthScale, float heightScale );
+		/// \return Returns a boolean indicating whether the call was successful.
+		bool SetTextScale( float widthScale, float heightScale );
 
 		/// \brief Render the console window
 		///
@@ -123,14 +124,26 @@ namespace Alfheimr
 
 		bool m_IsVisible = false;
 
-		//struct CacheEntry
-		//{
-		//	std::wstring messageString;
-		//	unsigned int colorValue;
-		//};
-		//std::vector<CacheEntry> m_Cache;
+		struct CacheEntry
+		{
+			CacheEntry( std::wstring const & messageString, unsigned int colorValue, unsigned int wrapCount )
+				: m_MessageString( messageString )
+				, m_ColorValue( colorValue )
+				, m_WrapCount( wrapCount )
+			{}
 
-		Vanaheimr::RingBuffer<std::wstring> m_LineBuffer;
+			CacheEntry()
+				: m_MessageString( L"" )
+				, m_ColorValue( 0 )
+				, m_WrapCount( 1 )
+			{}
+
+			std::wstring m_MessageString;
+			unsigned int m_ColorValue;
+			unsigned int m_WrapCount;
+		};
+		Vanaheimr::RingBuffer<CacheEntry> m_LineBuffer;
+		unsigned int m_VirtualTotalLineCount = 0;
 
 		unsigned int m_VirtualBufferWidth = 0;
 		unsigned int m_VirtualBufferHeight = 0;
@@ -141,22 +154,13 @@ namespace Alfheimr
 		// The default scalars for the text font
 		float m_TextScale[ 2 ] = { 1.0f, 1.0f };
 
-		int m_FontScalarLocationId = -1;
+		//int m_FontScalarLocationId = -1;
 
 		bool m_Dirty = false;
 		float m_ClipSize = 0.0f;
 		float m_HeightPercent = 0.0f;
 		//int m_FontHeight = 0;
 		//int m_FontWidth = 0;
-
-		unsigned int m_OverlayProgram;
-		unsigned int m_RenderTextProgram;
-
-		unsigned int m_TextBufferTextureId;
-		unsigned int m_TextColorBufferTextureId;
-		unsigned int m_FontTextureId;
-		unsigned int m_OverlayVertexArrayObjectId;
-		unsigned int m_TextVertexArrayObjectId;
 
 		// This 2D buffer holds all of the text that is currently being displayed.
 		// Each render frame it is copied to a texture to be processed by a shader.
@@ -185,7 +189,13 @@ namespace Alfheimr
 		// The main screen (surface) identifier
 		unsigned char m_MainScreenID;
 
+		// The command line text buffer
 		std::wstring m_ConsoleTextBuffer;
+
+		// A text buffer that represents the entire text surface
+		// The dimensions match the physical dimensions of the parent window
+		// This buffer does not understand wrapping so data must be wrapped for it by the client that writes into it.
+		std::vector<wchar_t> m_ScreenTextBuffer;
 
 		std::weak_ptr<Muspelheim::Renderer> m_Renderer;
 	};

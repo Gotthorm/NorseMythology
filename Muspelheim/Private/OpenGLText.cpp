@@ -12,7 +12,8 @@ namespace Muspelheim
 {
 	OpenGLText::~OpenGLText()
 	{
-		delete [] m_ScreenBuffer;
+		delete [] m_pScreenBuffer;
+		m_pScreenBuffer = nullptr;
 		glDeleteTextures( 1, &font_texture );
 		glDeleteTextures( 1, &text_buffer );
 		OpenGLInterface::DeleteVertexArrays( 1, &vao );
@@ -24,7 +25,11 @@ namespace Muspelheim
 		if( m_Shader == nullptr )
 		{
 			m_Shader = shader;
-			return true;
+
+			m_FontScalarLocationId = m_Shader->GetUniformVariableLocation( L"fontScalar" );
+			//m_FontScalarLocationId = OpenGLInterface::GetUniformLocation( m_Shader, "fontScalar" );
+
+			return (0 <= m_FontScalarLocationId);
 		}
 
 		return false;
@@ -73,19 +78,26 @@ namespace Muspelheim
 	bool OpenGLText::SetSize( unsigned short width, unsigned int height )
 	{
 		// TODO: make this work after init also
-		if( m_ScreenBuffer != nullptr )
+		if( nullptr != m_pScreenBuffer )
 		{
 			return false;
 			// delete {[] m_ScreenBuffer;
 		}
 
-		m_ScreenBuffer = new char[ width * height ];
-		memset( m_ScreenBuffer, 0, width * height );
+		if ( 0 < width && 0 < height )
+		{
+			m_BufferSize = width * height;
+			m_BufferWidth = width;
+			m_BufferHeight = height;
 
-		m_BufferWidth = width;
-		m_BufferHeight = height;
+			m_pScreenBuffer = new char[ m_BufferSize ];
+			PLATFORM_ASSERT( m_pScreenBuffer );
+			Clear();
 
-		return true;
+			return true;
+		}
+
+		return false;
 	}
 
 	void OpenGLText::Render()
@@ -100,11 +112,13 @@ namespace Muspelheim
 			//OpenGLInterface::VertexAttrib1f( 1, -0.5f );
 			OpenGLInterface::VertexAttrib4fv( 2, color );
 
+			OpenGLInterface::Uniform2fv( m_FontScalarLocationId, 1, m_FontScale );
+
 			OpenGLInterface::ActiveTexture( GL_TEXTURE0 );
 			glBindTexture( GL_TEXTURE_2D, text_buffer );
 			if( m_Dirty )
 			{
-				glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, m_BufferWidth, m_BufferHeight, GL_RED_INTEGER, GL_UNSIGNED_BYTE, m_ScreenBuffer );
+				glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, m_BufferWidth, m_BufferHeight, GL_RED_INTEGER, GL_UNSIGNED_BYTE, m_pScreenBuffer );
 				m_Dirty = false;
 			}
 			OpenGLInterface::ActiveTexture( GL_TEXTURE1 );
@@ -121,43 +135,11 @@ namespace Muspelheim
 		}
 	}
 
-	// TODO: This is meant to be temporary
-	//void Text::CopyWideCharBufferToCharBuffer( const wchar_t* source, char* target )
-	//{
-	//	if( source && target )
-	//	{
-	//		for( unsigned int index = 0; index < Platform::kMaxStringLength; ++index )
-	//		{
-	//			wchar_t code = source[ index ];
-	//
-	//			if( code == '\0' )
-	//				break;
-	//
-	//			if( code < 128 )
-	//			{
-	//				*target = char( code );
-	//			}
-	//			else
-	//			{
-	//				*target = '?';
-	//				if( code >= 0xD800 && code <= 0xD8FF )
-	//				{
-	//					// lead surrogate, skip the next code unit, which is the trail
-	//					++index;
-	//				}
-	//			}
-	//			++target;
-	//		}
-	//
-	//		*target = '\0';
-	//	}
-	//}
-
 	bool OpenGLText::DrawString( const std::wstring& str, unsigned short posX, unsigned short posY )
 	{
-		if( m_ScreenBuffer )
+		if( nullptr != m_pScreenBuffer )
 		{
-			char* dst = m_ScreenBuffer + posY * m_BufferWidth + posX;
+			char* dst = m_pScreenBuffer + posY * m_BufferWidth + posX;
 
 			// Convert the wide chars to regular
 			using convert_type = std::codecvt_utf8<wchar_t>;
@@ -167,6 +149,43 @@ namespace Muspelheim
 			strcpy( dst, convertedString.c_str() );
 
 			return m_Dirty = true;
+		}
+
+		return false;
+	}
+
+	bool OpenGLText::DrawStringBuffer( wchar_t const * pSourceText, unsigned int size )
+	{
+		if ( nullptr != m_pScreenBuffer && nullptr != pSourceText && 0 < size )
+		{
+			unsigned int const copySize = ( size < m_BufferSize ) ? size : m_BufferSize;
+
+			char * pTarget = m_pScreenBuffer;
+
+			for( unsigned int index = 0; index < copySize; ++index )
+			{
+				wchar_t code = pSourceText[ index ];
+			
+				//if( code == '\0' )
+				//	break;
+			
+				if( code < 128 )
+				{
+					*pTarget = char( code );
+				}
+				else
+				{
+					*pTarget = '?';
+					if( code >= 0xD800 && code <= 0xD8FF )
+					{
+						// lead surrogate, skip the next code unit, which is the trail
+						++index;
+					}
+				}
+				++pTarget;
+			}
+
+			return true;
 		}
 
 		return false;
@@ -231,12 +250,18 @@ namespace Muspelheim
 
 	void OpenGLText::Clear()
 	{
-		if( m_ScreenBuffer )
+		if( m_pScreenBuffer )
 		{
-			memset( m_ScreenBuffer, 0, m_BufferWidth * m_BufferHeight );
+			memset( m_pScreenBuffer, 0, m_BufferSize );
 			m_Dirty = true;
 			//cursor_x = 0;
 			//cursor_y = 0;
 		}
+	}
+
+	void OpenGLText::SetScale( float scaleX, float scaleY )
+	{
+		m_FontScale[ 0 ] = scaleX;
+		m_FontScale[ 1 ] = scaleY;
 	}
 }

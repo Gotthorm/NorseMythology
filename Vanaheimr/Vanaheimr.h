@@ -181,7 +181,7 @@ namespace Vanaheimr
 			m_MaxSize = size;
 		}
 
-		T const & operator[] ( int index )
+		T & operator[] ( int index )
 		{
 			if ( index >= Size() ) throw;
 			return m_Buffer[ ( m_TailIndex + index ) % m_MaxSize ];

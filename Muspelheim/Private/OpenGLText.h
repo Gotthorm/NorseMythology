@@ -27,12 +27,16 @@ namespace Muspelheim
 
 		bool DrawString( const std::wstring& str, unsigned short posX, unsigned short posY );
 
+		bool DrawStringBuffer( wchar_t const * pSourceText, unsigned int size );
+
 		//bool MoveCursor( unsigned short posX, unsigned short posY ) override;
 
 		void Clear();
 
 		GLuint GetFontWidth() { return static_cast<GLuint>( m_FontWidth ); }
 		GLuint GetFontHeight() { return static_cast<GLuint>( m_FontHeight ); }
+
+		void SetScale( float scaleX, float scaleY );
 
 	private:
 		bool SetSize( unsigned short width, unsigned int height );
@@ -44,6 +48,10 @@ namespace Muspelheim
 		GLint		m_FontWidth = 0;
 		GLint		m_FontHeight = 0;
 
+		GLint		m_FontScalarLocationId = -1;
+
+		GLfloat		m_FontScale[ 2 ] = { 1.0f, 1.0f };
+
 		//GLuint      text_program = 0;
 		OpenGLShader* m_Shader = nullptr;
 		//char *      screen_buffer = nullptr;;
@@ -52,8 +60,9 @@ namespace Muspelheim
 
 		bool m_Dirty = true;
 
-		char* m_ScreenBuffer = nullptr;
+		char* m_pScreenBuffer = nullptr;
 		unsigned short m_BufferWidth = 0;
 		unsigned short m_BufferHeight = 0;
+		unsigned int m_BufferSize = 0;
 	};
 }
