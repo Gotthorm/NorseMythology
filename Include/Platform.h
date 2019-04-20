@@ -17,11 +17,13 @@
 // String constant macro
 //#define PLATFORM_STRING_CONST(x) _T(x)
 
-// Assert macro which only works in debug builds
+// Assert macros which only works in debug builds
 #ifdef _DEBUG
 #define PLATFORM_ASSERT(x) assert(x)
+#define PLATFORM_VERIFY(x) assert(x)
 #else
 #define PLATFORM_ASSERT(x)
+#define PLATFORM_VERIFY(x) x
 #endif
 
 //

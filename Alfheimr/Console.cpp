@@ -5,11 +5,9 @@
 #include "Muspelheim.h"
 #include "Vanaheimr.h"
 #include "Helheimr.h"
-//#include <sstream>
 #include <memory>
 #include "ConsoleParser.h"
 #include "ConsoleCommandManager.h"
-//#include "Platform.h"
 
 
 // TODO: This will become a console variable
@@ -123,7 +121,7 @@ namespace Alfheimr
 			pMessageManager->Post( Niflheim::Message::LOG_WARN, L"Console window clip height was clamped from: " + std::to_wstring( verticalClipSize ) + L" to " + std::to_wstring( minimumClipSize ) );
 			verticalClipSize = minimumClipSize;
 		}
-		else if( maximumClipSize < verticalClipSize )
+		else if ( maximumClipSize < verticalClipSize )
 		{
 			pMessageManager->Post( Niflheim::Message::LOG_WARN, L"Console window clip height was clamped from: " + std::to_wstring( verticalClipSize ) + L" to " + std::to_wstring( maximumClipSize ) );
 			verticalClipSize = maximumClipSize;
@@ -151,48 +149,79 @@ namespace Alfheimr
 
 		ConsoleCommandManager::Create();
 
-		//REGISTER_COMMAND2( L"set_text_size", Console::SetTextScale, ConsoleParameter::ParameterType::FLOAT, ConsoleParameter::ParameterType::FLOAT );
-
-		//ConsoleCommandManager::GetInstance()->TestRegisterCommand( L"set_text_size", std::bind( &Console::SetTextScale_Callback, this, std::placeholders::_1 ), ConsoleParameter::ParameterType::FLOAT, ConsoleParameter::ParameterType::FLOAT );
-
-		//ConsoleCommandManager::FartRegisterCommand( L"set_text_size", ConsoleParameter::ParameterType::FLOAT, ConsoleParameter::ParameterType::FLOAT );
-
-		//ConsoleCommandManager::GetInstance()->RegisterCommand( L"set_text_size", std::bind( &Console::SetTextScale_Callback, this, std::placeholders::_1 ), ConsoleParameterList( 2, ConsoleParameter::ParameterType::FLOAT, ConsoleParameter::ParameterType::FLOAT ) );
-		//ConsoleCommandManager::GetInstance()->RegisterCommand( L"set_text_size", std::bind( &Console::SetTextScale, this, std::placeholders::_1, std::placeholders::_2 ), ConsoleParameterList( 2, ConsoleParameter::ParameterType::FLOAT, ConsoleParameter::ParameterType::FLOAT ) );
-
-		//ConsoleCommandManager::GetInstance()->RegisterCommand( L"set_text_size", L"Some sort of description", &Console::SetTextScale_Callback );
+		ConsoleCommandManager::GetInstance()->RegisterCommand( L"text_scale", std::bind( &Console::TextScale_Callback, this, std::placeholders::_1 ), ConsoleParameterList( 2, ConsoleParameter::ParameterType::FLOAT, ConsoleParameter::ParameterType::FLOAT ) );
+		ConsoleCommandManager::GetInstance()->RegisterCommand( L"max_line_count", std::bind( &Console::MaxLineCount_Callback, this, std::placeholders::_1 ), ConsoleParameterList( 1, ConsoleParameter::ParameterType::UINT ) );
+		ConsoleCommandManager::GetInstance()->RegisterCommand( L"vsync", std::bind( &Console::VSync_Callback, this, std::placeholders::_1 ), ConsoleParameterList( 1, ConsoleParameter::ParameterType::BOOL ) );
 
 		return true;
 	}
 
-	void Console::SetMaximumLineCount( unsigned int lineCount )
+	bool Console::SetMaximumLineCount( unsigned int lineCount )
 	{
 		if ( lineCount != m_LineBuffer.Size() )
 		{
 			m_LineBuffer.Resize( lineCount );
 		}
+
+		return true;
+	}
+
+	bool Console::GetMaximumLineCount( unsigned int & lineCount )
+	{
+		lineCount = m_LineBuffer.Capacity();
+		return true;
+	}
+
+	bool Console::GetTextScale( float & widthScale, float & heightScale )
+	{
+		widthScale = m_TextScale[ 0 ];
+		heightScale = m_TextScale[ 1 ];
+
+		return true;
 	}
 
 	bool Console::SetTextScale( float widthScale, float heightScale )
 	{
-		if ( m_TextScale[ 0 ] != widthScale || m_TextScale[ 1 ] != heightScale )
+		bool completed = false;
+
+		// Scale must be non zero and positive
+		if ( 0.0f < widthScale && 0.0f < heightScale )
 		{
-			m_TextScale[ 0 ] = widthScale;
-			m_TextScale[ 1 ] = heightScale;
+			// If both of the values havent changed, there is nothing for us to do
+			completed = ( m_TextScale[ 0 ] == widthScale && m_TextScale[ 1 ] == heightScale );
 
-			std::shared_ptr<Muspelheim::Renderer> pRenderer = m_Renderer.lock();
-
-			if ( nullptr != pRenderer )
+			if ( false == completed )
 			{
-				pRenderer->SetSurfaceTextScale( m_MainScreenID,  widthScale, heightScale );
+				m_TextScale[ 0 ] = widthScale;
+				m_TextScale[ 1 ] = heightScale;
 
-				UpdateBufferSize();
+				std::shared_ptr<Muspelheim::Renderer> pRenderer = m_Renderer.lock();
 
-				return true;
+				if ( nullptr == pRenderer || false == pRenderer->SetSurfaceTextScale( m_MainScreenID, widthScale, heightScale ) )
+				{
+					std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
+					if ( nullptr != pMessageManager )
+					{
+						pMessageManager->Post( Niflheim::Message::LOG_ERROR, L"Render system call failed for SetTextScale" );
+					}
+				}
+				else
+				{
+					UpdateBufferSize();
+					completed = true;
+				}
+			}
+		}
+		else
+		{
+			std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
+			if ( nullptr != pMessageManager )
+			{
+				pMessageManager->Post( Niflheim::Message::LOG_WARN, L"SetTextScale ignored, non positive parameter detected" );
 			}
 		}
 
-		return false;
+		return completed;
 	}
 
 	void Console::UpdateWindowSize( unsigned int width, unsigned int height )
@@ -216,12 +245,12 @@ namespace Alfheimr
 
 		// Determine what the current display dimensions are in character units
 		unsigned int newBufferWidth = m_WindowWidth / unsigned int( m_TextScale[ 0 ] * fontWidth );
-		unsigned int newBufferHeight = static_cast<unsigned int>( 0.1f + (( m_WindowHeight * m_HeightPercent ) / ( m_TextScale[ 1 ] * fontHeight )));
+		unsigned int newBufferHeight = static_cast< unsigned int >( 0.1f + ( ( m_WindowHeight * m_HeightPercent ) / ( m_TextScale[ 1 ] * fontHeight ) ) );
 
 		// Leave one line for the console input
 		--newBufferHeight;
 
-		if( newBufferWidth != m_VirtualBufferWidth || newBufferHeight != m_VirtualBufferHeight )
+		if ( newBufferWidth != m_VirtualBufferWidth || newBufferHeight != m_VirtualBufferHeight )
 		{
 			std::wstring message;
 
@@ -237,7 +266,7 @@ namespace Alfheimr
 			m_VirtualBufferHeight = newBufferHeight;
 
 			// To enforce our rule that the cache size is at least as large as the screen
-			if( m_LineBuffer.Capacity() < m_VirtualBufferHeight )
+			if ( m_LineBuffer.Capacity() < m_VirtualBufferHeight )
 			{
 				SetMaximumLineCount( m_VirtualBufferHeight );
 			}
@@ -253,7 +282,7 @@ namespace Alfheimr
 
 	void Console::Render()
 	{
-		if( IsVisible() )
+		if ( IsVisible() )
 		{
 			std::shared_ptr<Muspelheim::Renderer> pRenderer = m_Renderer.lock();
 
@@ -267,7 +296,7 @@ namespace Alfheimr
 
 	void Console::ReceiveMessage( const Niflheim::Message& message )
 	{
-		if( message.Type == Niflheim::Message::KEY_STROKES )
+		if ( message.Type == Niflheim::Message::KEY_STROKES )
 		{
 			ProcessKeystroke( message.uintData );
 		}
@@ -447,7 +476,7 @@ namespace Alfheimr
 
 	void Console::SetVisible( bool visible )
 	{
-		if( m_IsVisible != visible )
+		if ( m_IsVisible != visible )
 		{
 			m_IsVisible = visible;
 
@@ -495,7 +524,7 @@ namespace Alfheimr
 	{
 		unsigned int colorValue;
 
-		switch( type )
+		switch ( type )
 		{
 		case Niflheim::Message::LOG_INFO:
 			colorValue = m_ColorTable[ 0 ]; // White
@@ -532,22 +561,130 @@ namespace Alfheimr
 		m_Dirty = true;
 	}
 
-	void Console::SetTextScale_Callback( const ConsoleParameterList& paramList )
+	void Console::TextScale_Callback( const ConsoleParameterList& paramList )
 	{
-		if( paramList.GetCount() == 2 )
+		if ( 0 == paramList.GetCount() )
 		{
-			if( paramList.GetParameterType( 0 ) == ConsoleParameter::ParameterType::FLOAT && paramList.GetParameterType( 1 ) == ConsoleParameter::ParameterType::FLOAT )
+			float widthScale;
+			float heightScale;
+
+			std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
+
+			if ( GetTextScale( widthScale, heightScale ) )
 			{
-				TypedConsoleParameter<float>* param1 = dynamic_cast<TypedConsoleParameter<float>*>( paramList.GetParameterValue( 0 ) );
-				TypedConsoleParameter<float>* param2 = dynamic_cast<TypedConsoleParameter<float>*>( paramList.GetParameterValue( 1 ) );
+				if ( nullptr != pMessageManager )
+				{
+					pMessageManager->Post( Niflheim::Message::LOG_INFO, L" " + std::to_wstring( widthScale ) + L" " + std::to_wstring( heightScale ) );
+				}
+			}
+		}
+		else if ( paramList.GetCount() == 2 )
+		{
+			if ( paramList.GetParameterType( 0 ) == ConsoleParameter::ParameterType::FLOAT && paramList.GetParameterType( 1 ) == ConsoleParameter::ParameterType::FLOAT )
+			{
+				TypedConsoleParameter<float>* param1 = dynamic_cast< TypedConsoleParameter<float>* >( paramList.GetParameterValue( 0 ) );
+				TypedConsoleParameter<float>* param2 = dynamic_cast< TypedConsoleParameter<float>* >( paramList.GetParameterValue( 1 ) );
 				assert( param1 != nullptr && param2 != nullptr );
 
-				if( param1 != nullptr && param2 != nullptr )
+				if ( param1 != nullptr && param2 != nullptr )
 				{
 					float widthScale = param1->GetData();
 					float heightScale = param2->GetData();
 
 					SetTextScale( widthScale, heightScale );
+				}
+			}
+		}
+		else
+		{
+			std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
+			if ( nullptr != pMessageManager )
+			{
+				pMessageManager->Post( Niflheim::Message::LOG_ERROR, L"Syntax error : Invalid parameter count" );
+			}
+		}
+	}
+
+	void Console::MaxLineCount_Callback( const ConsoleParameterList& paramList )
+	{
+		if ( 0 == paramList.GetCount() )
+		{
+			unsigned int lineCount;
+
+			std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
+
+			if ( GetMaximumLineCount( lineCount ) )
+			{
+				if ( nullptr != pMessageManager )
+				{
+					pMessageManager->Post( Niflheim::Message::LOG_INFO, L" " + std::to_wstring( lineCount ) );
+				}
+			}
+		}
+		else if ( paramList.GetCount() == 1 )
+		{
+			if ( paramList.GetParameterType( 0 ) == ConsoleParameter::ParameterType::UINT )
+			{
+				TypedConsoleParameter<unsigned int>* param1 = dynamic_cast< TypedConsoleParameter<unsigned int>* >( paramList.GetParameterValue( 0 ) );
+				assert( param1 != nullptr );
+
+				if ( param1 != nullptr )
+				{
+					unsigned int lineCount = param1->GetData();
+
+					SetMaximumLineCount( lineCount );
+				}
+			}
+		}
+		else
+		{
+			std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
+			if ( nullptr != pMessageManager )
+			{
+				pMessageManager->Post( Niflheim::Message::LOG_ERROR, L"Syntax error : Invalid parameter count" );
+			}
+		}
+	}
+
+	void Console::VSync_Callback( const ConsoleParameterList& paramList )
+	{
+		std::shared_ptr<Muspelheim::Renderer> pRenderer = m_Renderer.lock();
+
+		if ( nullptr != pRenderer )
+		{
+			if ( 0 == paramList.GetCount() )
+			{
+				bool const enabled = pRenderer->GetVSyncEnabled();
+
+				std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
+
+				if ( nullptr != pMessageManager )
+				{
+					std::wstring const booleanString = enabled ? L"true" : L"false";
+					pMessageManager->Post( Niflheim::Message::LOG_INFO, L" " + booleanString );
+				}
+			}
+			else if ( paramList.GetCount() == 1 )
+			{
+				if ( paramList.GetParameterType( 0 ) == ConsoleParameter::ParameterType::BOOL )
+				{
+					TypedConsoleParameter<bool>* param1 = dynamic_cast< TypedConsoleParameter<bool>* >( paramList.GetParameterValue( 0 ) );
+					assert( param1 != nullptr );
+
+					if ( param1 != nullptr )
+					{
+						bool const enabled = param1->GetData();
+
+						pRenderer->SetVSyncEnabled( enabled );
+					}
+				}
+			}
+			else
+			{
+				std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
+				if ( nullptr != pMessageManager )
+				{
+					pMessageManager->Post( Niflheim::Message::LOG_ERROR, L"Syntax error : Invalid parameter count" );
 				}
 			}
 		}

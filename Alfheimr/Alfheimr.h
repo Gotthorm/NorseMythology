@@ -47,13 +47,16 @@ namespace Alfheimr
 		// Override MessageClient::ReceiveMessage
 		virtual void ReceiveMessage( const Niflheim::Message& message ) override;
 
+		bool GetMaximumLineCount( unsigned int & lineCount );
+
 		/// \brief Set the console cache size
 		///
 		/// This sets the number of lines that are cached in the console window.
 		/// The value set here will be the number of full lines without taking into account any wrapping.
 		/// Setting the size smaller than the height of the console will cause the given size to be clamped to the console line height.
 		/// \param cacheSize The number of text lines that will be stored in the cache.
-		void SetMaximumLineCount( unsigned int lineCount );
+		/// \return Returns a boolean indicating whether the call was successful.
+		bool SetMaximumLineCount( unsigned int lineCount );
 
 		/// \brief Notify the console of the current parent window size.
 		///
@@ -62,6 +65,8 @@ namespace Alfheimr
 		/// \param width The width of the parent window.
 		/// \param height The height of the parent window.
 		void UpdateWindowSize( unsigned int width, unsigned int height );
+
+		bool GetTextScale( float & widthScale, float & heightScale );
 
 		/// \brief Set the text scale
 		///
@@ -118,7 +123,9 @@ namespace Alfheimr
 
 		void ProcessLogMessage( Niflheim::Message::MessageType type, std::wstring* logMessage );
 
-		void SetTextScale_Callback( const ConsoleParameterList& paramList );
+		void TextScale_Callback( const ConsoleParameterList& paramList );
+		void MaxLineCount_Callback( const ConsoleParameterList& paramList );
+		void VSync_Callback( const ConsoleParameterList& paramList );
 
 		void ValidateScrollIndex();
 

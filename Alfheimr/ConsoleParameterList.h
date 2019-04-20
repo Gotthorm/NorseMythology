@@ -24,6 +24,7 @@ public:
 		INT,
 		FLOAT,
 		UINT,
+		BOOL,
 	};
 
 	ConsoleParameter( ParameterType type ) : m_Type( type ) {}
@@ -65,9 +66,12 @@ public:
 	unsigned int GetCount() const { return unsigned int(m_List.size()); }
 
 	bool SetParameterValue( unsigned int index, int param );
+	bool SetParameterValue( unsigned int index, bool param );
 	bool SetParameterValue( unsigned int index, float param );
 	//bool SetParameterValue( unsigned int index, const std::string* param );
 	bool SetParameterValue( unsigned int index, unsigned int param );
+
+	void Clear();
 
 private:
 	std::vector<ConsoleParameter*> m_List;

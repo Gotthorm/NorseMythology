@@ -235,11 +235,6 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		m_pConsole = new Alfheimr::Console( m_MessageManager, m_Renderer );
 		m_pConsole->Initialize( launchInfo.width, launchInfo.height, 0.80f );
 
-		// For testing
-		//m_pConsole->SetTextScale( 3.0f, 3.0f );
-
-		//m_pConsole->SetMaximumLineCount( 100 );
-
 		//
 		m_pCameraManager = new Vanaheimr::CameraManager();
 		PLATFORM_ASSERT( nullptr != m_pCameraManager );
@@ -409,14 +404,14 @@ void Framework::Update()
 
 		m_pConsole->Update( m_Input, m_FrameTime.Duration() );
 
-		if( m_Input->GetKeyUp( Helheimr::Input::KEY_F2 ) )
-		{
-			// Toggle the vsync
-			PLATFORM_ASSERT( nullptr != m_Renderer );
-			bool const enable = ( false == m_Renderer->GetVSyncEnabled() );
-			m_Renderer->SetVSyncEnabled( enable );
-			m_Input->SetMouseSpeed( enable ? VSyncMouseSpeed : DefaultMouseSpeed );
-		}
+		//if( m_Input->GetKeyUp( Helheimr::Input::KEY_F2 ) )
+		//{
+		//	// Toggle the vsync
+		//	PLATFORM_ASSERT( nullptr != m_Renderer );
+		//	bool const enable = ( false == m_Renderer->GetVSyncEnabled() );
+		//	m_Renderer->SetVSyncEnabled( enable );
+		//	m_Input->SetMouseSpeed( enable ? VSyncMouseSpeed : DefaultMouseSpeed );
+		//}
 
 		// Update the game
 		//PLATFORM_ASSERT( m_pGame != nullptr );

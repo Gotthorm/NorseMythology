@@ -22,8 +22,14 @@ ConsoleParameterList::ConsoleParameterList( int paramCount, ConsoleParameter::Pa
 		case ConsoleParameter::ParameterType::INT:
 			m_List.push_back( new TypedConsoleParameter<int>( ConsoleParameter::ParameterType::INT, 0 ) );
 			break;
+		case ConsoleParameter::ParameterType::UINT:
+			m_List.push_back( new TypedConsoleParameter<unsigned int>( ConsoleParameter::ParameterType::UINT, 0U ) );
+			break;
 		case ConsoleParameter::ParameterType::FLOAT:
 			m_List.push_back( new TypedConsoleParameter<float>( ConsoleParameter::ParameterType::FLOAT, 0.0f ) );
+			break;
+		case ConsoleParameter::ParameterType::BOOL:
+			m_List.push_back( new TypedConsoleParameter<bool>( ConsoleParameter::ParameterType::BOOL, false ) );
 			break;
 		case ConsoleParameter::ParameterType::INVALID:
 		default:
@@ -62,6 +68,22 @@ bool ConsoleParameterList::SetParameterValue( unsigned int index, int value )
 		TypedConsoleParameter<int>* param = dynamic_cast<TypedConsoleParameter<int>*>(m_List[ index ]);
 
 		if( param != nullptr )
+		{
+			param->SetData( value );
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool ConsoleParameterList::SetParameterValue( unsigned int index, bool value )
+{
+	if ( index < m_List.size() )
+	{
+		TypedConsoleParameter<bool>* param = dynamic_cast<TypedConsoleParameter<bool>*>( m_List[ index ] );
+
+		if ( param != nullptr )
 		{
 			param->SetData( value );
 			return true;
@@ -114,4 +136,9 @@ bool ConsoleParameterList::SetParameterValue( unsigned int index, unsigned int v
 	}
 
 	return false;
+}
+
+void ConsoleParameterList::Clear()
+{
+	m_List.clear();
 }

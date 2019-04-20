@@ -53,13 +53,13 @@ void ConsoleParser::Execute( const std::wstring& commandLine )
 				pMessageManager->Post( Niflheim::Message::LOG_WARN, stringStream.str() );
 			}
 
-			if( tokenCount >= paramCount )
+			if ( tokenCount >= paramCount )
 			{
-				for( int paramIndex = 0; paramIndex < paramCount; ++paramIndex )
+				for ( int paramIndex = 0; paramIndex < paramCount; ++paramIndex )
 				{
 					try
 					{
-						switch( paramList.GetParameterType( paramIndex ) )
+						switch ( paramList.GetParameterType( paramIndex ) )
 						{
 						case ConsoleParameter::ParameterType::FLOAT:
 						{
@@ -79,13 +79,31 @@ void ConsoleParser::Execute( const std::wstring& commandLine )
 							paramList.SetParameterValue( paramIndex, uintParam );
 							break;
 						}
+						case ConsoleParameter::ParameterType::BOOL:
+						{
+							std::wstring stringValue = tokenList[ paramIndex ];
+							std::transform( stringValue.begin(), stringValue.end(), stringValue.begin(), ::tolower );
+							if ( 0 == stringValue.compare( L"true" ) || 0 == stringValue.compare( L"1" ) )
+							{
+								paramList.SetParameterValue( paramIndex, true );
+							}
+							else if ( 0 == stringValue.compare( L"false" ) || 0 == stringValue.compare( L"0" ) )
+							{
+								paramList.SetParameterValue( paramIndex, false );
+							}
+							else
+							{
+								throw std::invalid_argument( "Invalid boolean" );
+							}
+							break;
+						}
 						default:
 							break;
 						}
 					}
-					catch( std::invalid_argument )
+					catch ( std::invalid_argument )
 					{
-						if( nullptr != pMessageManager )
+						if ( nullptr != pMessageManager )
 						{
 							std::wstring errorMessage = L"Invalid argument: ";
 							errorMessage += tokenList[ paramIndex ];
@@ -94,20 +112,32 @@ void ConsoleParser::Execute( const std::wstring& commandLine )
 						return;
 					}
 				}
+			}
 
-				if( ConsoleCommandManager::GetInstance()->ExecuteCommand( commandToken, paramList ) )
+			// When there is zero tokens we treat the call as a "get" instead of a "set"
+			if ( 0 == tokenCount )
+			{
+				paramList.Clear();
+				paramCount = 0;
+			}
+
+			if( tokenCount >= paramCount )
+			{
+				if ( nullptr != pMessageManager )
 				{
-					if ( nullptr != pMessageManager )
+					std::wstringstream stringStream;
+					stringStream << L"Executed Console Command: \"" << commandToken;
+					for ( std::wstring token : tokenList )
 					{
-						std::wstringstream stringStream;
-						stringStream << L"Executed Console Command: \"" << commandToken;
-						for ( int paramIndex = 0; paramIndex < paramCount; ++paramIndex )
-						{
-							stringStream << L" " << tokenList[ paramIndex ];
-						}
-						stringStream << "\"";
-						pMessageManager->Post( Niflheim::Message::LOG_INFO, stringStream.str() );
+						stringStream << L" " << token;
 					}
+					stringStream << "\"";
+					pMessageManager->Post( Niflheim::Message::LOG_INFO, stringStream.str() );
+				}
+
+				if( false == ConsoleCommandManager::GetInstance()->ExecuteCommand( commandToken, paramList ) )
+				{
+					pMessageManager->Post( Niflheim::Message::LOG_ERROR, L"Console system command execute error" );
 				}
 			}
 			else
