@@ -17,7 +17,8 @@ std::wstring const consoleShaderName( L"Media/Shaders/console.overlay" );
 std::wstring const text2DShaderName( L"Media/Shaders/text2d" );
 float const minimumClipSize = 0.1f;
 float const maximumClipSize = 1.0f;
-unsigned int const defaultLineBufferSize = 100;
+unsigned int const defaultLineBufferSize = 1000;
+unsigned int const defaultHistoryBufferSize = 100;
 
 namespace Alfheimr
 {
@@ -30,6 +31,7 @@ namespace Alfheimr
 		: Niflheim::MessageClient( messageManager )
 		, m_Renderer( renderer )
 		, m_LineBuffer( defaultLineBufferSize )
+		, m_ConsoleTextHistory( defaultHistoryBufferSize )
 	{
 	}
 
@@ -270,6 +272,8 @@ namespace Alfheimr
 			m_VirtualBufferWidth = newBufferWidth;
 			m_VirtualBufferHeight = newBufferHeight;
 
+			m_VirtualPageSize = static_cast< int >( m_VirtualBufferHeight  * 0.9f );
+
 			// To enforce our rule that the cache size is at least as large as the screen
 			if ( m_LineBuffer.Capacity() < m_VirtualBufferHeight )
 			{
@@ -334,13 +338,13 @@ namespace Alfheimr
 		{
 			processed = true;
 
-			if ( Helheimr::Input::KEY_ARROW_UP == key )
+			if ( Helheimr::Input::KEY_PAGE_UP == key )
 			{
-				++m_ScrollIndex;
+				m_ScrollIndex += m_VirtualPageSize;
 			}
-			else if ( Helheimr::Input::KEY_ARROW_DOWN == key )
+			else if ( Helheimr::Input::KEY_PAGE_DOWN == key )
 			{
-				--m_ScrollIndex;
+				m_ScrollIndex -= m_VirtualPageSize;
 			}
 			else if ( Helheimr::Input::KEY_END == key )
 			{
@@ -459,6 +463,30 @@ namespace Alfheimr
 			{
 				character = shifted ? L'"' : L'\'';
 			}
+			else if ( keyValue == Helheimr::Input::KEY_ARROW_UP )
+			{
+				if ( 0 < m_ConsoleTextHistory.Size() )
+				{
+					if ( ++m_HistoryIndex >= m_ConsoleTextHistory.Size() )
+					{
+						--m_HistoryIndex;
+					}
+
+					m_ConsoleTextBuffer = m_ConsoleTextHistory[ m_ConsoleTextHistory.Size() - m_HistoryIndex - 1 ];
+				}
+			}
+			else if ( keyValue == Helheimr::Input::KEY_ARROW_DOWN )
+			{
+				if ( 0 < m_ConsoleTextHistory.Size() )
+				{
+					if ( --m_HistoryIndex < 0 )
+					{
+						m_HistoryIndex = 0;
+					}
+
+					m_ConsoleTextBuffer = m_ConsoleTextHistory[ m_ConsoleTextHistory.Size() - m_HistoryIndex - 1 ];
+				}
+			}
 
 			if ( character != 0 )
 			{
@@ -468,6 +496,14 @@ namespace Alfheimr
 			{
 				// Send the command line string to the parser
 				m_Parser->Execute( m_ConsoleTextBuffer );
+
+				// Do not bother caching empty lines
+				// TODO: Trim spaces?
+				if ( 0 < m_ConsoleTextBuffer.length() )
+				{
+					m_ConsoleTextHistory.Push( m_ConsoleTextBuffer );
+				}
+				m_HistoryIndex = -1;
 
 				// Clear the string
 				m_ConsoleTextBuffer.clear();

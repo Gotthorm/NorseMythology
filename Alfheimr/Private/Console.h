@@ -12,7 +12,8 @@
 #include <queue>
 #include "Alfheimr.h"
 #include "Niflheim.h"
-#include "Vanaheimr.h"
+//#include "Vanaheimr.h"
+#include "Jotunheim.h"
 
 class ConsoleParser;
 class ConsoleParameterList;
@@ -106,12 +107,17 @@ namespace Alfheimr
 			unsigned int m_ColorValue;
 			unsigned int m_WrapCount;
 		};
-		Vanaheimr::RingBuffer<CacheEntry> m_LineBuffer;
+		Jotunheim::RingBuffer<CacheEntry> m_LineBuffer;
 		unsigned int m_VirtualTotalLineCount = 0;
 
+		// The console's window dimensions in characters
 		unsigned int m_VirtualBufferWidth = 0;
 		unsigned int m_VirtualBufferHeight = 0;
 
+		// The number of lines a page up/down will move
+		unsigned int m_VirtualPageSize = 0;
+
+		// The parent window's dimensions in pixels
 		unsigned int m_WindowWidth = 0;
 		unsigned int m_WindowHeight = 0;
 
@@ -157,7 +163,8 @@ namespace Alfheimr
 		std::wstring m_ConsoleTextBuffer;
 
 		// The command line history
-		std::vector<std::wstring> m_ConsoleTextHistory;
+		Jotunheim::RingBuffer<std::wstring> m_ConsoleTextHistory;
+		int m_HistoryIndex = -1;
 
 		// A text buffer that represents the entire text surface
 		// The dimensions match the physical dimensions of the parent window
