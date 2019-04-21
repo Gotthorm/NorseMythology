@@ -108,9 +108,7 @@ namespace Muspelheim
 
 			const GLfloat color[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-			OpenGLInterface::VertexAttrib1f( 1, -1.0f );
-			//OpenGLInterface::VertexAttrib1f( 1, -0.5f );
-			OpenGLInterface::VertexAttrib4fv( 2, color );
+			OpenGLInterface::VertexAttrib4fv( 1, color );
 
 			OpenGLInterface::Uniform2fv( m_FontScalarLocationId, 1, m_FontScale );
 
