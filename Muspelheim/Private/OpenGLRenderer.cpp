@@ -280,7 +280,7 @@ namespace Muspelheim
 			{
 				m_Surfaces.push_back( newSurface );
 
-				PLATFORM_ASSERT( m_Surfaces.size() < UCHAR_MAX );
+				PLATFORM_ASSERT( m_Surfaces.size() < std::numeric_limits<unsigned char>::max() );
 				surfaceID = static_cast<SurfaceID>(m_Surfaces.size());
 
 				return true;

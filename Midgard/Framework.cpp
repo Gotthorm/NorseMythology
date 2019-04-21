@@ -3,6 +3,7 @@
 #include <sstream>
 #include <cwchar>
 #include <functional>
+#include <limits>
 #include "Framework.h"
 //#include "Muspelheim.h"
 #include "Niflheim.h"
@@ -658,35 +659,35 @@ void Framework::ProcessPlatformInput()
 						long rawMouseY = pRawInput->data.mouse.lLastY;
 
 						// We will cap deltas to CHAR_MIN to CHAR_MAX for each axis
-						if ( rawMouseX < CHAR_MIN || rawMouseX > CHAR_MAX || rawMouseY < CHAR_MIN || rawMouseY > CHAR_MAX )
+						if ( rawMouseX < std::numeric_limits<char>::min() || rawMouseX > std::numeric_limits<char>::max() || rawMouseY < std::numeric_limits<char>::min() || rawMouseY > std::numeric_limits<char>::max() )
 						{
 							wchar_t stringBuffer[ Platform::kMaxStringLength ];
 							std::swprintf( stringBuffer, Platform::kMaxStringLength, L"Mouse deltas exceeded max range (%i, %i)", rawMouseX, rawMouseY );
 
 							m_MessageManager->Post( Niflheim::Message::LOG_ERROR, stringBuffer );
 
-							if ( rawMouseX < CHAR_MIN )
+							if ( rawMouseX < std::numeric_limits<char>::min() )
 							{
-								rawMouseX = CHAR_MIN;
+								rawMouseX = std::numeric_limits<char>::min();
 							}
-							else if ( rawMouseX > CHAR_MAX )
+							else if ( rawMouseX > std::numeric_limits<char>::max() )
 							{
-								rawMouseX = CHAR_MAX;
+								rawMouseX = std::numeric_limits<char>::max();
 							}
 
-							if ( rawMouseY < CHAR_MIN )
+							if ( rawMouseY < std::numeric_limits<char>::min() )
 							{
-								rawMouseY = CHAR_MIN;
+								rawMouseY = std::numeric_limits<char>::min();
 							}
-							else if ( rawMouseY > CHAR_MAX )
+							else if ( rawMouseY > std::numeric_limits<char>::max() )
 							{
-								rawMouseY = CHAR_MAX;
+								rawMouseY = std::numeric_limits<char>::max();
 							}
 						}
 
 						// Test
-						unsigned char mouseX = ( rawMouseX & UCHAR_MAX );
-						unsigned char mouseY = ( rawMouseY & UCHAR_MAX );
+						unsigned char mouseX = ( rawMouseX & std::numeric_limits<unsigned char>::max() );
+						unsigned char mouseY = ( rawMouseY & std::numeric_limits<unsigned char>::max() );
 
 						inputEventData |= ( mouseX << 24 );
 						inputEventData |= ( mouseY << 16 );

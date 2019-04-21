@@ -197,7 +197,7 @@ namespace Muspelheim
 
 	std::shared_ptr<RenderObject> OpenGLSurface::CreateRenderObject()
 	{
-		PLATFORM_ASSERT( m_RenderObjects.size() < USHRT_MAX );
+		PLATFORM_ASSERT( m_RenderObjects.size() < std::numeric_limits<unsigned short>::max() );
 		unsigned short id = static_cast<unsigned short>(m_RenderObjects.size());
 
 		std::shared_ptr<OpenGLRenderObject> newRenderObject = std::make_shared<OpenGLRenderObject>( id, m_WeakSelf );
