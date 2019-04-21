@@ -102,7 +102,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;_USRDLL;ALFHEIMR_EXPORTS;%(PreprocessorDefinitions);MAKE_DLL</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)Include;$(SolutionDir)Vanaheimr;$(SolutionDir)Helheimr;$(SolutionDir)Niflheim;$(SolutionDir)Muspelheim;$(SolutionDir)external\glm-0.9.8.5;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Alfheimr;$(SolutionDir)Include;$(SolutionDir)Vanaheimr;$(SolutionDir)Helheimr;$(SolutionDir)Niflheim;$(SolutionDir)Muspelheim;$(SolutionDir)external\glm-0.9.8.5;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -150,15 +150,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Alfheimr.h" />
-    <ClInclude Include="ConsoleCommandManager.h" />
-    <ClInclude Include="ConsoleParameterList.h" />
-    <ClInclude Include="ConsoleParser.h" />
+    <ClInclude Include="Private\Console.h" />
+    <ClInclude Include="Private\ConsoleCommandManager.h" />
+    <ClInclude Include="Private\ConsoleParameterList.h" />
+    <ClInclude Include="Private\ConsoleParser.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Console.cpp" />
-    <ClCompile Include="ConsoleCommandManager.cpp" />
-    <ClCompile Include="ConsoleParameterList.cpp" />
-    <ClCompile Include="ConsoleParser.cpp" />
+    <ClCompile Include="Private\Console.cpp" />
+    <ClCompile Include="Private\ConsoleCommandManager.cpp" />
+    <ClCompile Include="Private\ConsoleParameterList.cpp" />
+    <ClCompile Include="Private\ConsoleParser.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

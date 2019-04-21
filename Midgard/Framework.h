@@ -66,7 +66,7 @@ private:
 	Game* m_pGame;
 	//Input* m_pInput;
 	Vanaheimr::CameraManager* m_pCameraManager;
-	Alfheimr::Console* m_pConsole;
+	std::shared_ptr<Alfheimr::Console> m_Console;
 	std::shared_ptr<Muspelheim::Renderer> m_Renderer;
 	std::shared_ptr<Niflheim::MessageManager> m_MessageManager;
 	std::shared_ptr<Helheimr::Input> m_Input;

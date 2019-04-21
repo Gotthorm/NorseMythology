@@ -1,6 +1,6 @@
 // CONSOLE.CPP
 
-#include "Alfheimr.h"
+#include "Console.h"
 #include "Niflheim.h"
 #include "Muspelheim.h"
 #include "Vanaheimr.h"
@@ -21,14 +21,19 @@ unsigned int const defaultLineBufferSize = 100;
 
 namespace Alfheimr
 {
-	Console::Console( const std::weak_ptr<Niflheim::MessageManager>& messageManager, std::weak_ptr<Muspelheim::Renderer> const & renderer )
+	std::shared_ptr<Console> Console::Create( std::weak_ptr<Niflheim::MessageManager> const & messageManager, std::weak_ptr<Muspelheim::Renderer> const & renderer )
+	{
+		return std::make_shared<ConsoleImplementation>(messageManager, renderer);
+	}
+
+	ConsoleImplementation::ConsoleImplementation( const std::weak_ptr<Niflheim::MessageManager>& messageManager, std::weak_ptr<Muspelheim::Renderer> const & renderer )
 		: Niflheim::MessageClient( messageManager )
 		, m_Renderer( renderer )
 		, m_LineBuffer( defaultLineBufferSize )
 	{
 	}
 
-	Console::~Console()
+	ConsoleImplementation::~ConsoleImplementation()
 	{
 		// Deregister the message handlers
 		std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
@@ -58,7 +63,7 @@ namespace Alfheimr
 		m_Renderer.reset();
 	}
 
-	bool Console::Initialize( int windowWidth, unsigned int windowHeight, float verticalClipSize )
+	bool ConsoleImplementation::Initialize( int windowWidth, unsigned int windowHeight, float verticalClipSize )
 	{
 		std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
 
@@ -149,14 +154,14 @@ namespace Alfheimr
 
 		ConsoleCommandManager::Create();
 
-		ConsoleCommandManager::GetInstance()->RegisterCommand( L"text_scale", std::bind( &Console::TextScale_Callback, this, std::placeholders::_1 ), ConsoleParameterList( 2, ConsoleParameter::ParameterType::FLOAT, ConsoleParameter::ParameterType::FLOAT ) );
-		ConsoleCommandManager::GetInstance()->RegisterCommand( L"max_line_count", std::bind( &Console::MaxLineCount_Callback, this, std::placeholders::_1 ), ConsoleParameterList( 1, ConsoleParameter::ParameterType::UINT ) );
-		ConsoleCommandManager::GetInstance()->RegisterCommand( L"vsync", std::bind( &Console::VSync_Callback, this, std::placeholders::_1 ), ConsoleParameterList( 1, ConsoleParameter::ParameterType::BOOL ) );
+		ConsoleCommandManager::GetInstance()->RegisterCommand( L"text_scale", std::bind( &ConsoleImplementation::TextScale_Callback, this, std::placeholders::_1 ), ConsoleParameterList( 2, ConsoleParameter::ParameterType::FLOAT, ConsoleParameter::ParameterType::FLOAT ) );
+		ConsoleCommandManager::GetInstance()->RegisterCommand( L"max_line_count", std::bind( &ConsoleImplementation::MaxLineCount_Callback, this, std::placeholders::_1 ), ConsoleParameterList( 1, ConsoleParameter::ParameterType::UINT ) );
+		ConsoleCommandManager::GetInstance()->RegisterCommand( L"vsync", std::bind( &ConsoleImplementation::VSync_Callback, this, std::placeholders::_1 ), ConsoleParameterList( 1, ConsoleParameter::ParameterType::BOOL ) );
 
 		return true;
 	}
 
-	bool Console::SetMaximumLineCount( unsigned int lineCount )
+	bool ConsoleImplementation::SetMaximumLineCount( unsigned int lineCount )
 	{
 		if ( lineCount != m_LineBuffer.Size() )
 		{
@@ -166,13 +171,13 @@ namespace Alfheimr
 		return true;
 	}
 
-	bool Console::GetMaximumLineCount( unsigned int & lineCount )
+	bool ConsoleImplementation::GetMaximumLineCount( unsigned int & lineCount )
 	{
-		lineCount = m_LineBuffer.Capacity();
+		lineCount = static_cast<unsigned int>(m_LineBuffer.Capacity());
 		return true;
 	}
 
-	bool Console::GetTextScale( float & widthScale, float & heightScale )
+	bool ConsoleImplementation::GetTextScale( float & widthScale, float & heightScale )
 	{
 		widthScale = m_TextScale[ 0 ];
 		heightScale = m_TextScale[ 1 ];
@@ -180,7 +185,7 @@ namespace Alfheimr
 		return true;
 	}
 
-	bool Console::SetTextScale( float widthScale, float heightScale )
+	bool ConsoleImplementation::SetTextScale( float widthScale, float heightScale )
 	{
 		bool completed = false;
 
@@ -224,7 +229,7 @@ namespace Alfheimr
 		return completed;
 	}
 
-	void Console::UpdateWindowSize( unsigned int width, unsigned int height )
+	void ConsoleImplementation::UpdateWindowSize( unsigned int width, unsigned int height )
 	{
 		m_WindowWidth = width;
 		m_WindowHeight = height;
@@ -235,7 +240,7 @@ namespace Alfheimr
 		UpdateBufferSize();
 	}
 
-	void Console::UpdateBufferSize()
+	void ConsoleImplementation::UpdateBufferSize()
 	{
 		std::shared_ptr<Muspelheim::Renderer> pRenderer = m_Renderer.lock();
 
@@ -273,14 +278,14 @@ namespace Alfheimr
 
 			for ( unsigned int index = 0; index < m_LineBuffer.Size(); ++index )
 			{
-				m_LineBuffer[ index ].m_WrapCount = ( m_LineBuffer[ index ].m_MessageString.length() / m_VirtualBufferWidth ) + 1;
+				m_LineBuffer[ index ].m_WrapCount = ( static_cast<unsigned int>(m_LineBuffer[ index ].m_MessageString.length()) / m_VirtualBufferWidth ) + 1;
 			}
 
 			m_Dirty = true;
 		}
 	}
 
-	void Console::Render()
+	void ConsoleImplementation::Render()
 	{
 		if ( IsVisible() )
 		{
@@ -294,7 +299,7 @@ namespace Alfheimr
 		}
 	}
 
-	void Console::ReceiveMessage( const Niflheim::Message& message )
+	void ConsoleImplementation::ReceiveMessage( const Niflheim::Message& message )
 	{
 		if ( message.Type == Niflheim::Message::KEY_STROKES )
 		{
@@ -306,7 +311,7 @@ namespace Alfheimr
 		}
 	}
 
-	bool Console::ProcessVisibilityToggle( unsigned int key )
+	bool ConsoleImplementation::ProcessVisibilityToggle( unsigned int key )
 	{
 		// Check for the console activation/deactivation
 		if ( Helheimr::Input::KEY_TILDA == key )
@@ -320,7 +325,7 @@ namespace Alfheimr
 		return false;
 	}
 
-	bool Console::ProcessControlInput( unsigned int key )
+	bool ConsoleImplementation::ProcessControlInput( unsigned int key )
 	{
 		bool processed = false;
 
@@ -358,7 +363,7 @@ namespace Alfheimr
 		return processed;
 	}
 
-	void Console::ProcessTextInput( unsigned int keyValue, bool shifted )
+	void ConsoleImplementation::ProcessTextInput( unsigned int keyValue, bool shifted )
 	{
 		// The text processing only occurs when we the console is visible
 		if ( IsVisible() )
@@ -470,11 +475,11 @@ namespace Alfheimr
 		}
 	}
 
-	void Console::Update( std::shared_ptr<Helheimr::Input> const & input, float timeElapsed )
+	void ConsoleImplementation::Update( std::shared_ptr<Helheimr::Input> const & input, float timeElapsed )
 	{
 	}
 
-	void Console::SetVisible( bool visible )
+	void ConsoleImplementation::SetVisible( bool visible )
 	{
 		if ( m_IsVisible != visible )
 		{
@@ -499,7 +504,7 @@ namespace Alfheimr
 		}
 	}
 
-	void Console::ProcessKeystroke( unsigned int keyStroke )
+	void ConsoleImplementation::ProcessKeystroke( unsigned int keyStroke )
 	{
 		unsigned short keyValue = ( Helheimr::Input::MASK_KEY_VALUE & keyStroke );
 
@@ -520,7 +525,7 @@ namespace Alfheimr
 		}
 	}
 
-	void Console::ProcessLogMessage( Niflheim::Message::MessageType type, std::wstring* logMessage )
+	void ConsoleImplementation::ProcessLogMessage( Niflheim::Message::MessageType type, std::wstring* logMessage )
 	{
 		unsigned int colorValue;
 
@@ -549,7 +554,7 @@ namespace Alfheimr
 
 		// The log message strings are padded so we only want to extract the actual valid string contents
 		std::wstring newEntry( logMessage->c_str() );
-		m_LineBuffer.Push( CacheEntry( newEntry, colorValue, ( newEntry.length() / m_VirtualBufferWidth ) + 1 ) );
+		m_LineBuffer.Push( CacheEntry( newEntry, colorValue, ( static_cast<unsigned int>( newEntry.length() ) / m_VirtualBufferWidth ) + 1 ) );
 
 		if ( 0 < m_ScrollIndex )
 		{
@@ -561,7 +566,7 @@ namespace Alfheimr
 		m_Dirty = true;
 	}
 
-	void Console::TextScale_Callback( const ConsoleParameterList& paramList )
+	void ConsoleImplementation::TextScale_Callback( const ConsoleParameterList& paramList )
 	{
 		if ( 0 == paramList.GetCount() )
 		{
@@ -605,7 +610,7 @@ namespace Alfheimr
 		}
 	}
 
-	void Console::MaxLineCount_Callback( const ConsoleParameterList& paramList )
+	void ConsoleImplementation::MaxLineCount_Callback( const ConsoleParameterList& paramList )
 	{
 		if ( 0 == paramList.GetCount() )
 		{
@@ -646,7 +651,7 @@ namespace Alfheimr
 		}
 	}
 
-	void Console::VSync_Callback( const ConsoleParameterList& paramList )
+	void ConsoleImplementation::VSync_Callback( const ConsoleParameterList& paramList )
 	{
 		std::shared_ptr<Muspelheim::Renderer> pRenderer = m_Renderer.lock();
 
@@ -690,7 +695,7 @@ namespace Alfheimr
 		}
 	}
 
-	void Console::RenderText( std::shared_ptr<Muspelheim::Renderer> const & renderer )
+	void ConsoleImplementation::RenderText( std::shared_ptr<Muspelheim::Renderer> const & renderer )
 	{
 		// The virtual screen of text we are writing to is m_VirtualBufferWidth by m_VirtualBufferHeight characters
 		// The x value range of [0 <=> m_VirtualBufferWidth - 1] maps left to right with 0 being the left most character
@@ -710,7 +715,7 @@ namespace Alfheimr
 			// Clear the screen buffer
 			std::fill( m_ScreenTextBuffer.begin(), m_ScreenTextBuffer.end(), 0 );
 
-			int const lineBufferSize = m_LineBuffer.Size() - 1;
+			int const lineBufferSize = static_cast<int>( m_LineBuffer.Size() - 1 );
 
 			int lineCount = 0;
 			int lineIndex = 0;
@@ -722,7 +727,7 @@ namespace Alfheimr
 			{
 				std::wstring const & bufferString = m_LineBuffer[ lineBufferSize - lineIndex ].m_MessageString;
 
-				lineCount = ( bufferString.length() / m_VirtualBufferWidth ) + 1;
+				lineCount = ( static_cast<int>( bufferString.length() ) / m_VirtualBufferWidth ) + 1;
 
 				while ( m_ScrollIndex > virtualLineIndex && 0 < lineCount )
 				{
@@ -752,13 +757,13 @@ namespace Alfheimr
 		}
 
 		// Render the entire text buffer
-		renderer->DrawSurfaceStringBuffer( m_MainScreenID, &m_ScreenTextBuffer[ 0 ], m_ScreenTextBuffer.size() );
+		renderer->DrawSurfaceStringBuffer( m_MainScreenID, &m_ScreenTextBuffer[ 0 ], static_cast<unsigned int>( m_ScreenTextBuffer.size() ) );
 
 		// Render the command line buffer
 		renderer->DrawSurfaceString( m_MainScreenID, m_ConsoleTextBuffer, 0, m_VirtualBufferHeight, Muspelheim::Renderer::TEXT_LEFT );
 	}
 
-	void Console::ValidateScrollIndex()
+	void ConsoleImplementation::ValidateScrollIndex()
 	{
 		//int maxScrollIndex = m_VirtualTotalLineCount - ( m_VirtualBufferHeight + 1 );
 		int maxScrollIndex = m_VirtualTotalLineCount - m_VirtualBufferHeight;

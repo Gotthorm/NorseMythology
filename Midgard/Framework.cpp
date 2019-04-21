@@ -121,7 +121,6 @@ Framework::Framework()
 	: m_pLogger( nullptr )
 	, m_pGame( nullptr )
 	, m_pCameraManager( nullptr )
-	, m_pConsole( nullptr )
 	, m_WindowHandle( 0 )
 	, m_MainScreenID( Muspelheim::InvalidSurface )
 	, m_pRawInputBuffer( nullptr )
@@ -233,8 +232,8 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		}
 
 		//
-		m_pConsole = new Alfheimr::Console( m_MessageManager, m_Renderer );
-		m_pConsole->Initialize( launchInfo.width, launchInfo.height, 0.80f );
+		m_Console = Alfheimr::Console::Create( m_MessageManager, m_Renderer );
+		m_Console->Initialize( launchInfo.width, launchInfo.height, 0.80f );
 
 		//
 		m_pCameraManager = new Vanaheimr::CameraManager();
@@ -366,8 +365,7 @@ void Framework::Shutdown()
 	delete m_pCameraManager;
 	m_pCameraManager = nullptr;
 
-	delete m_pConsole;
-	m_pConsole = nullptr;
+	m_Console.reset();
 
 	m_Input.reset();
 	//if( m_pGame != nullptr )
@@ -403,7 +401,7 @@ void Framework::Update()
 
 		ProcessPlatformInput();
 
-		m_pConsole->Update( m_Input, m_FrameTime.Duration() );
+		m_Console->Update( m_Input, m_FrameTime.Duration() );
 
 		//if( m_Input->GetKeyUp( Helheimr::Input::KEY_F2 ) )
 		//{
@@ -559,7 +557,7 @@ void Framework::Update()
 		std::swprintf( stringBuffer, Platform::kMaxStringLength, L"Camera Position: %.1f, %.1f, %.1f", cameraPosition.x, cameraPosition.y, cameraPosition.z );
 		m_Renderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 40, 2, Muspelheim::Renderer::TEXT_RIGHT );
 
-		m_pConsole->Render();
+		m_Console->Render();
 
 		m_Renderer->EndRender();
 
