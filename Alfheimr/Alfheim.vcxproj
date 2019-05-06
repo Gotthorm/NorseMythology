@@ -152,14 +152,15 @@
     <ClInclude Include="Alfheimr.h" />
     <ClInclude Include="Private\Console.h" />
     <ClInclude Include="Private\ConsoleCommandManager.h" />
-    <ClInclude Include="Private\ConsoleParameterList.h" />
     <ClInclude Include="Private\ConsoleParser.h" />
+    <ClInclude Include="Private\Parameter.h" />
+    <ClInclude Include="Private\ParameterListImplementation.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Private\Console.cpp" />
     <ClCompile Include="Private\ConsoleCommandManager.cpp" />
-    <ClCompile Include="Private\ConsoleParameterList.cpp" />
     <ClCompile Include="Private\ConsoleParser.cpp" />
+    <ClCompile Include="Private\ParameterListImplementation.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

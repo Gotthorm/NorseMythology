@@ -156,9 +156,8 @@ namespace Alfheimr
 
 		ConsoleCommandManager::Create();
 
-		ConsoleCommandManager::GetInstance()->RegisterCommand( L"text_scale", std::bind( &ConsoleImplementation::TextScale_Callback, this, std::placeholders::_1 ), ConsoleParameterList( 2, ConsoleParameter::ParameterType::FLOAT, ConsoleParameter::ParameterType::FLOAT ) );
-		ConsoleCommandManager::GetInstance()->RegisterCommand( L"max_line_count", std::bind( &ConsoleImplementation::MaxLineCount_Callback, this, std::placeholders::_1 ), ConsoleParameterList( 1, ConsoleParameter::ParameterType::UINT ) );
-		ConsoleCommandManager::GetInstance()->RegisterCommand( L"vsync", std::bind( &ConsoleImplementation::VSync_Callback, this, std::placeholders::_1 ), ConsoleParameterList( 1, ConsoleParameter::ParameterType::BOOL ) );
+		ConsoleCommandManager::GetInstance()->RegisterCommand( L"text_scale", std::bind( &ConsoleImplementation::TextScale_Callback, this, std::placeholders::_1 ), Alfheimr::ParameterList::Create( 2, Alfheimr::ParameterList::ParameterType::FLOAT, Alfheimr::ParameterList::ParameterType::FLOAT ) );
+		ConsoleCommandManager::GetInstance()->RegisterCommand( L"max_line_count", std::bind( &ConsoleImplementation::MaxLineCount_Callback, this, std::placeholders::_1 ), Alfheimr::ParameterList::Create( 1, Alfheimr::ParameterList::ParameterType::UINT ) );
 
 		return true;
 	}
@@ -472,7 +471,7 @@ namespace Alfheimr
 						--m_HistoryIndex;
 					}
 
-					m_ConsoleTextBuffer = m_ConsoleTextHistory[ m_ConsoleTextHistory.Size() - m_HistoryIndex - 1 ];
+					m_ConsoleTextBuffer = m_ConsoleTextHistory[ static_cast<int>(m_ConsoleTextHistory.Size()) - m_HistoryIndex - 1 ];
 				}
 			}
 			else if ( keyValue == Helheimr::Input::KEY_ARROW_DOWN )
@@ -484,7 +483,7 @@ namespace Alfheimr
 						m_HistoryIndex = 0;
 					}
 
-					m_ConsoleTextBuffer = m_ConsoleTextHistory[ m_ConsoleTextHistory.Size() - m_HistoryIndex - 1 ];
+					m_ConsoleTextBuffer = m_ConsoleTextHistory[ static_cast<int>(m_ConsoleTextHistory.Size()) - m_HistoryIndex - 1 ];
 				}
 			}
 
@@ -602,14 +601,14 @@ namespace Alfheimr
 		m_Dirty = true;
 	}
 
-	void ConsoleImplementation::TextScale_Callback( const ConsoleParameterList& paramList )
+	void ConsoleImplementation::TextScale_Callback( const Alfheimr::ParameterList& paramList )
 	{
+		std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
+
 		if ( 0 == paramList.GetCount() )
 		{
 			float widthScale;
 			float heightScale;
-
-			std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
 
 			if ( GetTextScale( widthScale, heightScale ) )
 			{
@@ -621,19 +620,18 @@ namespace Alfheimr
 		}
 		else if ( paramList.GetCount() == 2 )
 		{
-			if ( paramList.GetParameterType( 0 ) == ConsoleParameter::ParameterType::FLOAT && paramList.GetParameterType( 1 ) == ConsoleParameter::ParameterType::FLOAT )
+			if ( paramList.GetType( 0 ) == Alfheimr::ParameterList::ParameterType::FLOAT && paramList.GetType( 1 ) == Alfheimr::ParameterList::ParameterType::FLOAT )
 			{
-				TypedConsoleParameter<float>* param1 = dynamic_cast< TypedConsoleParameter<float>* >( paramList.GetParameterValue( 0 ) );
-				TypedConsoleParameter<float>* param2 = dynamic_cast< TypedConsoleParameter<float>* >( paramList.GetParameterValue( 1 ) );
-				assert( param1 != nullptr && param2 != nullptr );
-
-				if ( param1 != nullptr && param2 != nullptr )
+				float widthScale;
+				float heightScale;
+				if( paramList.GetValue( 0, widthScale ) && paramList.GetValue( 1, heightScale ) )
 				{
-					float widthScale = param1->GetData();
-					float heightScale = param2->GetData();
-
 					SetTextScale( widthScale, heightScale );
 				}
+			}
+			else
+			{
+				pMessageManager->Post( Niflheim::Message::LOG_ERROR, L"Syntax error : Invalid parameter type" );
 			}
 		}
 		else
@@ -646,13 +644,13 @@ namespace Alfheimr
 		}
 	}
 
-	void ConsoleImplementation::MaxLineCount_Callback( const ConsoleParameterList& paramList )
+	void ConsoleImplementation::MaxLineCount_Callback( const Alfheimr::ParameterList& paramList )
 	{
+		std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
+
 		if ( 0 == paramList.GetCount() )
 		{
 			unsigned int lineCount;
-
-			std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
 
 			if ( GetMaximumLineCount( lineCount ) )
 			{
@@ -664,70 +662,22 @@ namespace Alfheimr
 		}
 		else if ( paramList.GetCount() == 1 )
 		{
-			if ( paramList.GetParameterType( 0 ) == ConsoleParameter::ParameterType::UINT )
+			if ( paramList.GetType( 0 ) == Alfheimr::ParameterList::ParameterType::UINT )
 			{
-				TypedConsoleParameter<unsigned int>* param1 = dynamic_cast< TypedConsoleParameter<unsigned int>* >( paramList.GetParameterValue( 0 ) );
-				assert( param1 != nullptr );
-
-				if ( param1 != nullptr )
+				unsigned int lineCount;
+				if ( paramList.GetValue( 0, lineCount ) )
 				{
-					unsigned int lineCount = param1->GetData();
-
 					SetMaximumLineCount( lineCount );
-				}
-			}
-		}
-		else
-		{
-			std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
-			if ( nullptr != pMessageManager )
-			{
-				pMessageManager->Post( Niflheim::Message::LOG_ERROR, L"Syntax error : Invalid parameter count" );
-			}
-		}
-	}
-
-	void ConsoleImplementation::VSync_Callback( const ConsoleParameterList& paramList )
-	{
-		std::shared_ptr<Muspelheim::Renderer> pRenderer = m_Renderer.lock();
-
-		if ( nullptr != pRenderer )
-		{
-			if ( 0 == paramList.GetCount() )
-			{
-				bool const enabled = pRenderer->GetVSyncEnabled();
-
-				std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
-
-				if ( nullptr != pMessageManager )
-				{
-					std::wstring const booleanString = enabled ? L"true" : L"false";
-					pMessageManager->Post( Niflheim::Message::LOG_INFO, L" " + booleanString );
-				}
-			}
-			else if ( paramList.GetCount() == 1 )
-			{
-				if ( paramList.GetParameterType( 0 ) == ConsoleParameter::ParameterType::BOOL )
-				{
-					TypedConsoleParameter<bool>* param1 = dynamic_cast< TypedConsoleParameter<bool>* >( paramList.GetParameterValue( 0 ) );
-					assert( param1 != nullptr );
-
-					if ( param1 != nullptr )
-					{
-						bool const enabled = param1->GetData();
-
-						pRenderer->SetVSyncEnabled( enabled );
-					}
 				}
 			}
 			else
 			{
-				std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
-				if ( nullptr != pMessageManager )
-				{
-					pMessageManager->Post( Niflheim::Message::LOG_ERROR, L"Syntax error : Invalid parameter count" );
-				}
+				pMessageManager->Post( Niflheim::Message::LOG_ERROR, L"Syntax error : Invalid parameter type" );
 			}
+		}
+		else
+		{
+			pMessageManager->Post( Niflheim::Message::LOG_ERROR, L"Syntax error : Invalid parameter count" );
 		}
 	}
 
@@ -816,5 +766,10 @@ namespace Alfheimr
 		{
 			m_ScrollIndex = 0;
 		}
+	}
+
+	bool ConsoleImplementation::RegisterCommand( std::wstring const & functionName, std::function<void( ParameterList const & )> callback, std::shared_ptr<const ParameterList> params )
+	{
+		return ConsoleCommandManager::GetInstance()->RegisterCommand( functionName, callback, params );
 	}
 }

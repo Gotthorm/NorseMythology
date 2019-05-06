@@ -11,7 +11,7 @@
 namespace Muspelheim { class Renderer; }
 namespace Niflheim { class MessageManager; class Logger;  }
 namespace Vanaheimr { class CameraManager; }
-namespace Alfheimr { class Console; }
+namespace Alfheimr { class Console; class ParameterList; }
 namespace Helheimr { class Input; }
 class Game;
 class Loki;
@@ -60,6 +60,8 @@ private:
 	Framework( Framework const & ) = delete;
 
 	void ProcessPlatformInput();
+
+	void VSync_Callback( const Alfheimr::ParameterList & paramList );
 
 	// Subsystems
 	Niflheim::Logger* m_pLogger;

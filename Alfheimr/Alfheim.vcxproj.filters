@@ -21,13 +21,16 @@
     <ClInclude Include="Private\ConsoleCommandManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Private\ConsoleParameterList.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Private\ConsoleParser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Private\Console.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Private\ParameterListImplementation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Private\Parameter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -38,10 +41,10 @@
     <ClCompile Include="Private\ConsoleCommandManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Private\ConsoleParameterList.cpp">
+    <ClCompile Include="Private\ConsoleParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Private\ConsoleParser.cpp">
+    <ClCompile Include="Private\ParameterListImplementation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

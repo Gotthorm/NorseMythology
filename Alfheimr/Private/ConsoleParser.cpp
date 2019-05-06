@@ -4,6 +4,7 @@
 #include "Niflheim.h"
 #include <sstream>
 #include "ConsoleCommandManager.h"
+#include "ParameterListImplementation.h"
 
 // Some command brain storming
 // log <string>
@@ -35,7 +36,7 @@ void ConsoleParser::Execute( const std::wstring& commandLine )
 	{
 		std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
 
-		ConsoleParameterList paramList;
+		Alfheimr::ParameterListImplementation paramList;
 		if( ConsoleCommandManager::GetInstance()->GetParameterList( commandToken, paramList ) )
 		{
 			int paramCount = paramList.GetCount();
@@ -59,37 +60,37 @@ void ConsoleParser::Execute( const std::wstring& commandLine )
 				{
 					try
 					{
-						switch ( paramList.GetParameterType( paramIndex ) )
+						switch ( paramList.GetType( paramIndex ) )
 						{
-						case ConsoleParameter::ParameterType::FLOAT:
+						case Alfheimr::ParameterList::ParameterType::FLOAT:
 						{
 							float floatParam = std::stof( tokenList[ paramIndex ] );
-							paramList.SetParameterValue( paramIndex, floatParam );
+							paramList.SetValue( paramIndex, floatParam );
 							break;
 						}
-						case ConsoleParameter::ParameterType::INT:
+						case Alfheimr::ParameterList::ParameterType::INT:
 						{
 							int intParam = std::stoi( tokenList[ paramIndex ] );
-							paramList.SetParameterValue( paramIndex, intParam );
+							paramList.SetValue( paramIndex, intParam );
 							break;
 						}
-						case ConsoleParameter::ParameterType::UINT:
+						case Alfheimr::ParameterList::ParameterType::UINT:
 						{
 							unsigned int uintParam = unsigned int( std::stoi( tokenList[ paramIndex ] ) );
-							paramList.SetParameterValue( paramIndex, uintParam );
+							paramList.SetValue( paramIndex, uintParam );
 							break;
 						}
-						case ConsoleParameter::ParameterType::BOOL:
+						case Alfheimr::ParameterList::ParameterType::BOOL:
 						{
 							std::wstring stringValue = tokenList[ paramIndex ];
 							std::transform( stringValue.begin(), stringValue.end(), stringValue.begin(), ::tolower );
 							if ( 0 == stringValue.compare( L"true" ) || 0 == stringValue.compare( L"1" ) )
 							{
-								paramList.SetParameterValue( paramIndex, true );
+								paramList.SetValue( paramIndex, true );
 							}
 							else if ( 0 == stringValue.compare( L"false" ) || 0 == stringValue.compare( L"0" ) )
 							{
-								paramList.SetParameterValue( paramIndex, false );
+								paramList.SetValue( paramIndex, false );
 							}
 							else
 							{

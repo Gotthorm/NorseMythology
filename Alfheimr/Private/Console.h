@@ -1,63 +1,41 @@
 
 #pragma once  
 
-#ifdef MAKE_DLL  
-#define EXPORT __declspec(dllexport)   
-#else  
-#define EXPORT __declspec(dllimport)   
-#endif 
-
 #include <string>
 #include <vector>
 #include <queue>
 #include "Alfheimr.h"
 #include "Niflheim.h"
-//#include "Vanaheimr.h"
 #include "Jotunheim.h"
 
+// Prototypes
 class ConsoleParser;
-class ConsoleParameterList;
-
-namespace Muspelheim { class Renderer; }
-namespace Helheimr { class Input; }
 
 namespace Alfheimr
 {
-	/// \brief A window for logging and run time variable tweaking
-	///
-	/// The Console class controls a special window whose visibility is toggled with the '`' or '~' keys.
-	/// It is used for monitoring logged messages in real time and to also allow for querying and modifying run time variables.
 	class ConsoleImplementation : public Console, public Niflheim::MessageClient
 	{
 	public:
 		// 
 		ConsoleImplementation( const std::weak_ptr<Niflheim::MessageManager>& messageManager, std::weak_ptr<Muspelheim::Renderer> const & renderer );
-
-		// 
 		virtual ~ConsoleImplementation();
 
+		// Implementation of Console interface
 		virtual bool Initialize( int width, unsigned int height, float verticalClipSize ) override;
+		virtual bool GetMaximumLineCount( unsigned int & lineCount ) override;
+		virtual bool SetMaximumLineCount( unsigned int lineCount ) override;
+		virtual void UpdateWindowSize( unsigned int width, unsigned int height ) override;
+		virtual bool GetTextScale( float & widthScale, float & heightScale ) override;
+		virtual bool SetTextScale( float widthScale, float heightScale ) override;
+		virtual void Render() override;
+		virtual void SetVisible( bool visible ) override;
+		virtual bool IsVisible() override { return m_IsVisible; }
+		virtual void Update( std::shared_ptr<Helheimr::Input> const & input, float timeElapsed ) override;
 
-		// Override MessageClient::ReceiveMessage
+		// Implementation of MessageClient interface
 		virtual void ReceiveMessage( const Niflheim::Message& message ) override;
 
-		virtual bool GetMaximumLineCount( unsigned int & lineCount ) override;
-
-		virtual bool SetMaximumLineCount( unsigned int lineCount ) override;
-
-		virtual void UpdateWindowSize( unsigned int width, unsigned int height ) override;
-
-		virtual bool GetTextScale( float & widthScale, float & heightScale ) override;
-
-		virtual bool SetTextScale( float widthScale, float heightScale ) override;
-
-		virtual void Render() override;
-
-		virtual void SetVisible( bool visible ) override;
-
-		virtual bool IsVisible() override { return m_IsVisible; }
-
-		virtual void Update( std::shared_ptr<Helheimr::Input> const & input, float timeElapsed ) override;
+		virtual bool RegisterCommand( std::wstring const & functionName, std::function<void( ParameterList const & )> callback, std::shared_ptr<const ParameterList> params ) override;
 
 	private:
 		// Remove the default assignment operator
@@ -81,9 +59,8 @@ namespace Alfheimr
 
 		void ProcessLogMessage( Niflheim::Message::MessageType type, std::wstring* logMessage );
 
-		void TextScale_Callback( const ConsoleParameterList& paramList );
-		void MaxLineCount_Callback( const ConsoleParameterList& paramList );
-		void VSync_Callback( const ConsoleParameterList& paramList );
+		void TextScale_Callback( const Alfheimr::ParameterList& paramList );
+		void MaxLineCount_Callback( const Alfheimr::ParameterList& paramList );
 
 		void ValidateScrollIndex();
 

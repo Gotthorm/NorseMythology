@@ -5,7 +5,7 @@
 
 #include "Singleton.h"
 #include <functional>
-#include "ConsoleParameterList.h"
+#include "ParameterListImplementation.h"
 #include <vector>
 #include <map>
 
@@ -13,19 +13,19 @@ class ConsoleCommandManager : public Singleton<ConsoleCommandManager>
 {
 public:
 
-	bool RegisterCommand( const std::wstring& functionName, std::function<void( const ConsoleParameterList& )> callback, const ConsoleParameterList& params );
+	bool RegisterCommand( std::wstring const & functionName, std::function<void( Alfheimr::ParameterList const & )> callback, std::shared_ptr<const Alfheimr::ParameterList> params );
 
-	bool GetParameterList( const std::wstring& functionName, ConsoleParameterList& parameterList );
+	bool GetParameterList( std::wstring const & functionName, Alfheimr::ParameterListImplementation & parameterList );
 
-	bool ExecuteCommand( const std::wstring& functionName, const ConsoleParameterList& parameterList );
+	bool ExecuteCommand( std::wstring const & functionName, Alfheimr::ParameterList const & parameterList );
 
 private:
 
 	struct Command
 	{
 		std::wstring functionName;
-		std::function<void( const ConsoleParameterList& )> functionCallback;
-		ConsoleParameterList paramList;
+		std::function<void( const Alfheimr::ParameterList& )> functionCallback;
+		std::shared_ptr<const Alfheimr::ParameterList> paramList;
 	};
 
 	// Use the default implementation

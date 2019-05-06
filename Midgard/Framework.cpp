@@ -15,8 +15,6 @@
 #include "Vanaheimr.h"
 #include "Alfheimr.h"
 
-//#include "ConsoleCommandManager.h"
-//#include "ConsoleParameterList.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 #pragma comment(lib, "Niflheim.lib")
@@ -338,6 +336,16 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 
 		m_WindowHandle = hWindow;
 	}
+
+	m_Console->RegisterCommand( L"vsync", std::bind( &Framework::VSync_Callback, this, std::placeholders::_1 ), Alfheimr::ParameterList::Create( 1, Alfheimr::ParameterList::ParameterType::BOOL ) );
+
+	// Create a lot of messages to test console window functionality
+	//{
+	//	for ( int index = 0; index < 100; ++index )
+	//	{
+	//		m_MessageManager->Post( Niflheim::Message::LOG_INFO, L"XXXXX " + std::to_wstring( index ) + L" XXXXX Test Spam Message XXXXX" );
+	//	}
+	//}
 
 	//Vanaheimr::Object3D newObject;
 	//glm::vec3 forwardVector = newObject.GetForward();
@@ -695,7 +703,7 @@ void Framework::ProcessPlatformInput()
 				case RIM_TYPEKEYBOARD:
 				{
 					char stringBuffer[ 256 ];
-					sprintf( stringBuffer, "VKey %u Message %u Flags %u Extra %u\n", pRawInput->data.keyboard.VKey, pRawInput->data.keyboard.Message, pRawInput->data.keyboard.Flags, pRawInput->data.keyboard.ExtraInformation );
+					sprintf_s( stringBuffer, 256, "VKey %u Message %u Flags %u Extra %u\n", pRawInput->data.keyboard.VKey, pRawInput->data.keyboard.Message, pRawInput->data.keyboard.Flags, pRawInput->data.keyboard.ExtraInformation );
 					OutputDebugStringA( stringBuffer );
 
 					inputEventData = pRawInput->data.keyboard.VKey;
@@ -724,6 +732,39 @@ void Framework::ProcessPlatformInput()
 		{
 			m_Input->ProcessEvent( inputEventData );
 		}
+	}
+}
+
+void Framework::VSync_Callback( const Alfheimr::ParameterList & paramList )
+{
+	PLATFORM_ASSERT( nullptr != m_Renderer );
+	PLATFORM_ASSERT( nullptr != m_MessageManager );
+
+	if ( 0 == paramList.GetCount() )
+	{
+		bool const enabled = m_Renderer->GetVSyncEnabled();
+
+		std::wstring const booleanString = enabled ? L"true" : L"false";
+		m_MessageManager->Post( Niflheim::Message::LOG_INFO, L" " + booleanString );
+	}
+	else if ( paramList.GetCount() == 1 )
+	{
+		if ( paramList.GetType( 0 ) == Alfheimr::ParameterList::ParameterType::BOOL )
+		{
+			bool boolValue;
+			if ( paramList.GetValue( 0U, boolValue ) )
+			{
+				m_Renderer->SetVSyncEnabled( boolValue );
+			}
+		}
+		else
+		{
+			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, L"Syntax error : Invalid parameter type" );
+		}
+	}
+	else
+	{
+		m_MessageManager->Post( Niflheim::Message::LOG_ERROR, L"Syntax error : Invalid parameter count" );
 	}
 }
 

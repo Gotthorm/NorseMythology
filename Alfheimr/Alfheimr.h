@@ -7,20 +7,49 @@
 #define EXPORT __declspec(dllimport)   
 #endif 
 
+#include <memory>
 #include <string>
-#include <vector>
-#include <queue>
-#include "Niflheim.h"
-#include "Vanaheimr.h"
+#include <functional>
 
-class ConsoleParser;
-class ConsoleParameterList;
-
-namespace Muspelheim { class Renderer; }
-namespace Helheimr { class Input; }
+// Prototypes
+namespace Niflheim		{ class MessageManager; }
+namespace Muspelheim	{ class Renderer; }
+namespace Helheimr		{ class Input; }
 
 namespace Alfheimr
 {
+	class EXPORT ParameterList
+	{
+	public:
+		enum class ParameterType
+		{
+			INVALID,
+			STRING,
+			INT,
+			FLOAT,
+			UINT,
+			BOOL,
+		};
+
+		static std::shared_ptr<const ParameterList> Create( int paramCount, ParameterType... );
+
+		virtual ParameterType GetType( unsigned int index ) const = 0;
+
+		virtual unsigned int GetCount() const = 0;
+
+		virtual bool GetValue( unsigned int index, int & param ) const = 0;
+		virtual bool GetValue( unsigned int index, bool & param ) const = 0;
+		virtual bool GetValue( unsigned int index, float & param ) const = 0;
+		virtual bool GetValue( unsigned int index, std::wstring & param ) const = 0;
+		virtual bool GetValue( unsigned int index, unsigned int & param ) const = 0;
+
+		virtual bool SetValue( unsigned int index, int param ) = 0;
+		virtual bool SetValue( unsigned int index, bool param ) = 0;
+		virtual bool SetValue( unsigned int index, float param ) = 0;
+		virtual bool SetValue( unsigned int index, std::wstring const & param ) = 0;
+		virtual bool SetValue( unsigned int index, unsigned int param ) = 0;
+	};
+
 	/// \brief A window for logging and run time variable tweaking
 	///
 	/// The Console class controls a special window whose visibility is toggled with the '`' or '~' keys.
@@ -93,6 +122,8 @@ namespace Alfheimr
 		/// Update the console with the amount of time that has elapsed in seconds, since the last update.
 		/// \param timeElapsed The amount of time in seconds since the last update.
 		virtual void Update( std::shared_ptr<Helheimr::Input> const & input, float timeElapsed ) = 0;
+
+		virtual bool RegisterCommand( std::wstring const & functionName, std::function<void( ParameterList const & )> callback, std::shared_ptr<const ParameterList> params ) = 0;
 	};
 }
 
