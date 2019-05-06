@@ -1,6 +1,6 @@
 // CONSOLE.CPP
 
-#include "Console.h"
+#include "ConsoleImplementation.h"
 #include "Niflheim.h"
 #include "Muspelheim.h"
 #include "Vanaheimr.h"
@@ -8,7 +8,6 @@
 #include <memory>
 #include "ConsoleParser.h"
 #include "ConsoleCommandManager.h"
-
 
 // TODO: This will become a console variable
 unsigned int cv_MinimumConsoleMessageLength = 0;
@@ -156,8 +155,8 @@ namespace Alfheimr
 
 		ConsoleCommandManager::Create();
 
-		ConsoleCommandManager::GetInstance()->RegisterCommand( L"text_scale", std::bind( &ConsoleImplementation::TextScale_Callback, this, std::placeholders::_1 ), Alfheimr::ParameterList::Create( 2, Alfheimr::ParameterList::ParameterType::FLOAT, Alfheimr::ParameterList::ParameterType::FLOAT ) );
-		ConsoleCommandManager::GetInstance()->RegisterCommand( L"max_line_count", std::bind( &ConsoleImplementation::MaxLineCount_Callback, this, std::placeholders::_1 ), Alfheimr::ParameterList::Create( 1, Alfheimr::ParameterList::ParameterType::UINT ) );
+		ConsoleCommandManager::GetInstance()->RegisterCommand( L"text_scale", std::bind( &ConsoleImplementation::TextScale_Callback, this, std::placeholders::_1 ), ParameterList::Create( 2, ParameterList::ParameterType::FLOAT, ParameterList::ParameterType::FLOAT ) );
+		ConsoleCommandManager::GetInstance()->RegisterCommand( L"max_line_count", std::bind( &ConsoleImplementation::MaxLineCount_Callback, this, std::placeholders::_1 ), ParameterList::Create( 1, ParameterList::ParameterType::UINT ) );
 
 		return true;
 	}
@@ -601,7 +600,7 @@ namespace Alfheimr
 		m_Dirty = true;
 	}
 
-	void ConsoleImplementation::TextScale_Callback( const Alfheimr::ParameterList& paramList )
+	void ConsoleImplementation::TextScale_Callback( const ParameterList& paramList )
 	{
 		std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
 
@@ -620,7 +619,7 @@ namespace Alfheimr
 		}
 		else if ( paramList.GetCount() == 2 )
 		{
-			if ( paramList.GetType( 0 ) == Alfheimr::ParameterList::ParameterType::FLOAT && paramList.GetType( 1 ) == Alfheimr::ParameterList::ParameterType::FLOAT )
+			if ( paramList.GetType( 0 ) == ParameterList::ParameterType::FLOAT && paramList.GetType( 1 ) == ParameterList::ParameterType::FLOAT )
 			{
 				float widthScale;
 				float heightScale;
@@ -644,7 +643,7 @@ namespace Alfheimr
 		}
 	}
 
-	void ConsoleImplementation::MaxLineCount_Callback( const Alfheimr::ParameterList& paramList )
+	void ConsoleImplementation::MaxLineCount_Callback( const ParameterList& paramList )
 	{
 		std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
 
@@ -662,7 +661,7 @@ namespace Alfheimr
 		}
 		else if ( paramList.GetCount() == 1 )
 		{
-			if ( paramList.GetType( 0 ) == Alfheimr::ParameterList::ParameterType::UINT )
+			if ( paramList.GetType( 0 ) == ParameterList::ParameterType::UINT )
 			{
 				unsigned int lineCount;
 				if ( paramList.GetValue( 0, lineCount ) )

@@ -150,14 +150,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Alfheimr.h" />
-    <ClInclude Include="Private\Console.h" />
+    <ClInclude Include="Private\ConsoleImplementation.h" />
     <ClInclude Include="Private\ConsoleCommandManager.h" />
     <ClInclude Include="Private\ConsoleParser.h" />
     <ClInclude Include="Private\Parameter.h" />
     <ClInclude Include="Private\ParameterListImplementation.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Private\Console.cpp" />
+    <ClCompile Include="Private\ConsoleImplementation.cpp" />
     <ClCompile Include="Private\ConsoleCommandManager.cpp" />
     <ClCompile Include="Private\ConsoleParser.cpp" />
     <ClCompile Include="Private\ParameterListImplementation.cpp" />

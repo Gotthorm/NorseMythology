@@ -8,11 +8,11 @@
 #include "Niflheim.h"
 #include "Jotunheim.h"
 
-// Prototypes
-class ConsoleParser;
-
 namespace Alfheimr
 {
+	// Prototypes
+	class ConsoleParser;
+
 	class ConsoleImplementation : public Console, public Niflheim::MessageClient
 	{
 	public:

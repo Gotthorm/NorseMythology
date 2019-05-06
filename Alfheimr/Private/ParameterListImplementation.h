@@ -6,11 +6,12 @@
 #include <vector>
 #include "Alfheimr.h"
 
-class Parameter;
-
 namespace Alfheimr
 {
-	class ParameterListImplementation : public Alfheimr::ParameterList
+	// Prototypes
+	class Parameter;
+
+	class ParameterListImplementation : public ParameterList
 	{
 	public:
 		ParameterListImplementation() = default;
@@ -35,7 +36,7 @@ namespace Alfheimr
 		void Clear();
 
 	protected:
-		friend Alfheimr::ParameterList;
+		friend ParameterList;
 		std::vector<Parameter*> m_List;
 	};
 }

@@ -3,47 +3,50 @@
 #include "ConsoleCommandManager.h"
 #include <iostream>
 
-bool ConsoleCommandManager::RegisterCommand( std::wstring const & functionName, std::function<void( Alfheimr::ParameterList const & )> callback, std::shared_ptr<const Alfheimr::ParameterList> params )
+namespace Alfheimr
 {
-	if ( m_CommandTable.find( functionName ) == m_CommandTable.end() )
+	bool ConsoleCommandManager::RegisterCommand( std::wstring const & functionName, std::function<void( ParameterList const & )> callback, std::shared_ptr<const ParameterList> params )
 	{
-		m_CommandTable[ functionName ].functionName = functionName;
-		m_CommandTable[ functionName ].functionCallback = callback;
-		m_CommandTable[ functionName ].paramList = params;
+		if ( m_CommandTable.find( functionName ) == m_CommandTable.end() )
+		{
+			m_CommandTable[ functionName ].functionName = functionName;
+			m_CommandTable[ functionName ].functionCallback = callback;
+			m_CommandTable[ functionName ].paramList = params;
 
-		return true;
+			return true;
+		}
+
+		return false;
 	}
 
-	return false;
-}
-
-bool ConsoleCommandManager::GetParameterList( std::wstring const & functionName, Alfheimr::ParameterListImplementation & parameterList )
-{
-	std::map<std::wstring, Command>::iterator it = m_CommandTable.find( functionName );
-
-	if( it != m_CommandTable.end() )
+	bool ConsoleCommandManager::GetParameterList( std::wstring const & functionName, ParameterListImplementation & parameterList )
 	{
-		Alfheimr::ParameterListImplementation const * const pParameterData = dynamic_cast<Alfheimr::ParameterListImplementation const *>((( *it ).second.paramList).get());
+		std::map<std::wstring, Command>::iterator it = m_CommandTable.find( functionName );
 
-		parameterList = *pParameterData;
+		if ( it != m_CommandTable.end() )
+		{
+			ParameterListImplementation const * const pParameterData = dynamic_cast< ParameterListImplementation const * >( ( ( *it ).second.paramList ).get() );
 
-		return true;
+			parameterList = *pParameterData;
+
+			return true;
+		}
+
+		return false;
 	}
 
-	return false;
-}
-
-bool ConsoleCommandManager::ExecuteCommand( std::wstring const & functionName, Alfheimr::ParameterList const & parameterList )
-{
-	std::map<std::wstring, Command>::iterator it = m_CommandTable.find( functionName );
-
-	if( it != m_CommandTable.end() )
+	bool ConsoleCommandManager::ExecuteCommand( std::wstring const & functionName, ParameterList const & parameterList )
 	{
-		(*it).second.functionCallback( parameterList );
+		std::map<std::wstring, Command>::iterator it = m_CommandTable.find( functionName );
 
-		return true;
+		if ( it != m_CommandTable.end() )
+		{
+			( *it ).second.functionCallback( parameterList );
+
+			return true;
+		}
+
+		// Error about unknown command?
+		return false;
 	}
-
-	// Error about unknown command?
-	return false;
 }
