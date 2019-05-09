@@ -69,6 +69,12 @@ namespace Alfheimr
 		/// \return Returns a boolean indicating whether the console has been successfully initialized.
 		virtual bool Initialize( int width, unsigned int height, float verticalClipSize ) = 0;
 
+		/// \brief Get the console cache size
+		///
+		/// This gets the number of lines that are cached in the console window.
+		/// The value set here will be the number of full lines without taking into account any wrapping.
+		/// \param lineCount The number of text lines that are being be stored in the cache.
+		/// \return Returns a boolean indicating whether the call was successful.
 		virtual bool GetMaximumLineCount( unsigned int & lineCount ) = 0;
 
 		/// \brief Set the console cache size
@@ -88,6 +94,12 @@ namespace Alfheimr
 		/// \param height The height of the parent window.
 		virtual void UpdateWindowSize( unsigned int width, unsigned int height ) = 0;
 
+		/// \brief Get the text scale
+		///
+		/// Get the current horizontal and vertical scale of the text.
+		/// \param widthScale
+		/// \param heightScale
+		/// \return Returns a boolean indicating whether the call was successful.
 		virtual bool GetTextScale( float & widthScale, float & heightScale ) = 0;
 
 		/// \brief Set the text scale
@@ -123,6 +135,17 @@ namespace Alfheimr
 		/// \param timeElapsed The amount of time in seconds since the last update.
 		virtual void Update( std::shared_ptr<Helheimr::Input> const & input, float timeElapsed ) = 0;
 
+		/// \brief Register a console command
+		///
+		/// Register a call back method that will be called by the defined command string.
+		/// \param functionName
+		/// \param callback
+		/// \param params
+		///
+		/// An example using the call back method that expects a single boolean as its parameter
+		/// \code{.cpp}
+		/// RegisterCommand( L"vsync", std::bind( &Framework::VSync_Callback, this, std::placeholders::_1 ), Alfheimr::ParameterList::Create( 1, Alfheimr::ParameterList::ParameterType::BOOL ) );
+		/// \endcode
 		virtual bool RegisterCommand( std::wstring const & functionName, std::function<void( ParameterList const & )> callback, std::shared_ptr<const ParameterList> params ) = 0;
 	};
 }
