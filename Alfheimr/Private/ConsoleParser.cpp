@@ -17,140 +17,151 @@
 
 namespace Alfheimr
 {
-	ConsoleParser::ConsoleParser( std::weak_ptr<Niflheim::MessageManager> const & messageManager )
+	ConsoleParser::ConsoleParser( std::weak_ptr<Niflheim::MessageManager> const & messageManager, std::weak_ptr<ConsoleCommandManager> const & commandManager )
 		: m_MessageManager( messageManager )
+		, m_CommandManager( commandManager )
 	{
 	}
 
 	void ConsoleParser::Execute( const std::wstring& commandLine )
 	{
+		// Make a copy of the command line
 		std::wstring commandBuffer = commandLine;
+
 		std::wstring commandToken;
 
+		// This call will extract the command token and update what is remaining in the commandBuffer
 		if ( GetCommandToken( commandBuffer, commandToken ) )
 		{
 			std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
 
-			ParameterListImplementation paramList;
-			if ( ConsoleCommandManager::GetInstance()->GetParameterList( commandToken, paramList ) )
+			std::shared_ptr<ConsoleCommandManager> pCommandManager = m_CommandManager.lock();
+
+			if ( nullptr != pCommandManager )
 			{
-				int paramCount = paramList.GetCount();
-
-				std::vector<std::wstring> tokenList;
-
-				int tokenCount = Tokenize( commandBuffer, tokenList );
-
-				// We are going to allow excess parameters, we will ignore the extras but generate a warning
-				if ( tokenCount > paramCount && nullptr != pMessageManager )
+				ParameterListImplementation paramList;
+				if ( pCommandManager->GetParameterList( commandToken, paramList ) )
 				{
-					std::wstringstream stringStream;
-					stringStream << L"Excess parameters for console command: \"" << commandToken << L"\" ";
-					stringStream << L"Was expecting: " << paramCount << L" and found: " << tokenCount;
-					pMessageManager->Post( Niflheim::Message::LOG_WARN, stringStream.str() );
-				}
+					int paramCount = paramList.GetCount();
 
-				if ( tokenCount >= paramCount )
-				{
-					for ( int paramIndex = 0; paramIndex < paramCount; ++paramIndex )
-					{
-						try
-						{
-							switch ( paramList.GetType( paramIndex ) )
-							{
-							case ParameterList::ParameterType::FLOAT:
-							{
-								float floatParam = std::stof( tokenList[ paramIndex ] );
-								paramList.SetValue( paramIndex, floatParam );
-								break;
-							}
-							case ParameterList::ParameterType::INT:
-							{
-								int intParam = std::stoi( tokenList[ paramIndex ] );
-								paramList.SetValue( paramIndex, intParam );
-								break;
-							}
-							case ParameterList::ParameterType::UINT:
-							{
-								unsigned int uintParam = unsigned int( std::stoi( tokenList[ paramIndex ] ) );
-								paramList.SetValue( paramIndex, uintParam );
-								break;
-							}
-							case ParameterList::ParameterType::BOOL:
-							{
-								std::wstring stringValue = tokenList[ paramIndex ];
-								std::transform( stringValue.begin(), stringValue.end(), stringValue.begin(), ::tolower );
-								if ( 0 == stringValue.compare( L"true" ) || 0 == stringValue.compare( L"1" ) )
-								{
-									paramList.SetValue( paramIndex, true );
-								}
-								else if ( 0 == stringValue.compare( L"false" ) || 0 == stringValue.compare( L"0" ) )
-								{
-									paramList.SetValue( paramIndex, false );
-								}
-								else
-								{
-									throw std::invalid_argument( "Invalid boolean" );
-								}
-								break;
-							}
-							default:
-								break;
-							}
-						}
-						catch ( std::invalid_argument )
-						{
-							if ( nullptr != pMessageManager )
-							{
-								std::wstring errorMessage = L"Invalid argument: ";
-								errorMessage += tokenList[ paramIndex ];
-								pMessageManager->Post( Niflheim::Message::LOG_ERROR, errorMessage.c_str() );
-							}
-							return;
-						}
-					}
-				}
+					std::vector<std::wstring> tokenList;
 
-				// When there is zero tokens we treat the call as a "get" instead of a "set"
-				if ( 0 == tokenCount )
-				{
-					paramList.Clear();
-					paramCount = 0;
-				}
+					int tokenCount = Tokenize( commandBuffer, tokenList );
 
-				if ( tokenCount >= paramCount )
-				{
-					if ( nullptr != pMessageManager )
+					// We are going to allow excess parameters, we will ignore the extras but generate a warning
+					if ( tokenCount > paramCount && nullptr != pMessageManager )
 					{
 						std::wstringstream stringStream;
-						stringStream << L"Executed Console Command: \"" << commandToken;
-						for ( std::wstring token : tokenList )
-						{
-							stringStream << L" " << token;
-						}
-						stringStream << "\"";
-						pMessageManager->Post( Niflheim::Message::LOG_INFO, stringStream.str() );
+						stringStream << L"Excess parameters for console command: \"" << commandToken << L"\" ";
+						stringStream << L"Was expecting: " << paramCount << L" and found: " << tokenCount;
+						pMessageManager->Post( Niflheim::Message::LOG_WARN, stringStream.str() );
 					}
 
-					if ( false == ConsoleCommandManager::GetInstance()->ExecuteCommand( commandToken, paramList ) )
+					if ( tokenCount >= paramCount )
 					{
-						pMessageManager->Post( Niflheim::Message::LOG_ERROR, L"Console system command execute error" );
+						for ( int paramIndex = 0; paramIndex < paramCount; ++paramIndex )
+						{
+							try
+							{
+								switch ( paramList.GetType( paramIndex ) )
+								{
+								case ParameterList::ParameterType::FLOAT:
+								{
+									float floatParam = std::stof( tokenList[ paramIndex ] );
+									paramList.SetValue( paramIndex, floatParam );
+									break;
+								}
+								case ParameterList::ParameterType::INT:
+								{
+									int intParam = std::stoi( tokenList[ paramIndex ] );
+									paramList.SetValue( paramIndex, intParam );
+									break;
+								}
+								case ParameterList::ParameterType::UINT:
+								{
+									unsigned int uintParam = unsigned int( std::stoi( tokenList[ paramIndex ] ) );
+									paramList.SetValue( paramIndex, uintParam );
+									break;
+								}
+								case ParameterList::ParameterType::BOOL:
+								{
+									std::wstring stringValue = tokenList[ paramIndex ];
+									std::transform( stringValue.begin(), stringValue.end(), stringValue.begin(), ::tolower );
+									if ( 0 == stringValue.compare( L"true" ) || 0 == stringValue.compare( L"1" ) )
+									{
+										paramList.SetValue( paramIndex, true );
+									}
+									else if ( 0 == stringValue.compare( L"false" ) || 0 == stringValue.compare( L"0" ) )
+									{
+										paramList.SetValue( paramIndex, false );
+									}
+									else
+									{
+										throw std::invalid_argument( "Invalid boolean" );
+									}
+									break;
+								}
+								default:
+									break;
+								}
+							}
+							catch ( std::invalid_argument )
+							{
+								if ( nullptr != pMessageManager )
+								{
+									std::wstring errorMessage = L"Invalid argument: ";
+									errorMessage += tokenList[ paramIndex ];
+									pMessageManager->Post( Niflheim::Message::LOG_ERROR, errorMessage.c_str() );
+								}
+								return;
+							}
+						}
+					}
+
+					// When there is zero tokens we treat the call as a "get" instead of a "set"
+					if ( 0 == tokenCount )
+					{
+						paramList.Clear();
+						paramCount = 0;
+					}
+
+					if ( tokenCount >= paramCount )
+					{
+						if ( nullptr != pMessageManager )
+						{
+							std::wstringstream stringStream;
+							stringStream << L"Executed Console Command: \"" << commandToken;
+							for ( std::wstring token : tokenList )
+							{
+								stringStream << L" " << token;
+							}
+							stringStream << "\"";
+							pMessageManager->Post( Niflheim::Message::LOG_INFO, stringStream.str() );
+						}
+
+						if ( false == pCommandManager->ExecuteCommand( commandToken, paramList ) )
+						{
+							pMessageManager->Post( Niflheim::Message::LOG_ERROR, L"Console system command execute error" );
+						}
+					}
+					else
+					{
+						if ( nullptr != pMessageManager )
+						{
+							std::wstring errorMessage = L"Insufficient parameters for command: ";
+							errorMessage += commandToken;
+							pMessageManager->Post( Niflheim::Message::LOG_ERROR, errorMessage.c_str() );
+						}
 					}
 				}
-				else
+				else if ( nullptr != pMessageManager )
 				{
-					if ( nullptr != pMessageManager )
-					{
-						std::wstring errorMessage = L"Insufficient parameters for command: ";
-						errorMessage += commandToken;
-						pMessageManager->Post( Niflheim::Message::LOG_ERROR, errorMessage.c_str() );
-					}
+					pMessageManager->Post( Niflheim::Message::LOG_ERROR, L"Unrecognized command: " + commandToken );
 				}
 			}
 			else if ( nullptr != pMessageManager )
 			{
-				std::wstring errorMessage = L"Unrecognized command: ";
-				errorMessage += commandToken;
-				pMessageManager->Post( Niflheim::Message::LOG_ERROR, errorMessage.c_str() );
+				pMessageManager->Post( Niflheim::Message::LOG_ERROR, L"Command manager unavailable" );
 			}
 		}
 	}

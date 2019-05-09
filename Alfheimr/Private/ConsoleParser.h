@@ -11,11 +11,13 @@ namespace Niflheim { class MessageManager; }
 
 namespace Alfheimr
 {
+	class ConsoleCommandManager;
+
 	class ConsoleParser
 	{
 	public:
 		// Use the default implementation
-		ConsoleParser( std::weak_ptr<Niflheim::MessageManager> const & messageManager );
+		ConsoleParser( std::weak_ptr<Niflheim::MessageManager> const & messageManager, std::weak_ptr<ConsoleCommandManager> const & commandManager );
 
 		// Use the default implementation
 		virtual ~ConsoleParser() = default;
@@ -37,5 +39,6 @@ namespace Alfheimr
 		bool GetCommandToken( std::wstring& commandBuffer, std::wstring& token );
 
 		std::weak_ptr<Niflheim::MessageManager> m_MessageManager;
+		std::weak_ptr<ConsoleCommandManager> m_CommandManager;
 	};
 }

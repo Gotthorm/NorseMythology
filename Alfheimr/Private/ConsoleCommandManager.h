@@ -1,24 +1,31 @@
-// CONSOLECOMMANDS.H
+// CONSOLECOMMANDMANAGER.H
 
 #pragma once
 
-#include "Singleton.h"
 #include <functional>
-#include "ParameterListImplementation.h"
-#include <vector>
+#include <memory>
 #include <map>
+#include <set>
 
 namespace Alfheimr
 {
-	class ConsoleCommandManager : public Singleton<ConsoleCommandManager>
+	class ParameterList;
+	class ParameterListImplementation;
+
+	class ConsoleCommandManager
 	{
 	public:
+		// Use default implementation
+		ConsoleCommandManager() = default;
+		virtual ~ConsoleCommandManager() = default;
 
 		bool RegisterCommand( std::wstring const & functionName, std::function<void( ParameterList const & )> callback, std::shared_ptr<const ParameterList> params );
 
-		bool GetParameterList( std::wstring const & functionName, ParameterListImplementation & parameterList );
+		bool GetParameterList( std::wstring const & functionName, ParameterListImplementation & parameterList ) const;
 
 		bool ExecuteCommand( std::wstring const & functionName, ParameterList const & parameterList );
+
+		bool GetCommand( std::wstring const & searchName, std::wstring & functionName, unsigned int & matchIndex ) const;
 
 	private:
 
@@ -29,12 +36,6 @@ namespace Alfheimr
 			std::shared_ptr<const ParameterList> paramList;
 		};
 
-		// Use the default implementation
-		ConsoleCommandManager() = default;
-
-		// Use the default implementation
-		virtual ~ConsoleCommandManager() = default;
-
 		// Remove the default assignment operator
 		ConsoleCommandManager & operator =( const ConsoleCommandManager & ) = delete;
 
@@ -42,8 +43,6 @@ namespace Alfheimr
 		ConsoleCommandManager( const ConsoleCommandManager & ) = delete;
 
 		std::map<std::wstring, Command> m_CommandTable;
-
-		// Provide friend access to Singleton<ConsoleCommand> specialization
-		friend Singleton<ConsoleCommandManager>;
+		std::set<std::wstring> m_CommandList;
 	};
 }

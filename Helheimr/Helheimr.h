@@ -18,6 +18,7 @@ namespace Helheimr
 		{
 			KEY_MOUSE_RIGHT = 0x02,
 			KEY_BACKSPACE = 0x08,
+			KEY_TAB = 0x09,
 			KEY_RETURN = 0x0D,
 			KEY_SHIFT = 0x10,
 			KEY_CONTROL = 0x11,

@@ -12,6 +12,7 @@ namespace Alfheimr
 {
 	// Prototypes
 	class ConsoleParser;
+	class ConsoleCommandManager;
 
 	class ConsoleImplementation : public Console, public Niflheim::MessageClient
 	{
@@ -117,9 +118,6 @@ namespace Alfheimr
 		// Each render frame it is copied to a texture to be processed by a shader.
 		//unsigned int* m_ScreenTextColorBuffer = nullptr;
 
-		//
-		ConsoleParser* m_Parser = nullptr;
-
 		// TODO: This could be moved to an XML file and loaded dynamically?
 		// Color constants: White, Yellow, Red, Blue
 		unsigned int m_ColorTable[ 4 ] = { 0xFFFFFFFF, 0xFFFF00FF, 0xFF0000FF, 0x01BCFFFF };
@@ -133,11 +131,16 @@ namespace Alfheimr
 		// The number of lines that are wrapping which are currently visible 
 		int m_LineWrapCount = 0;
 
+		unsigned int m_AutoCompletionIndex = 0;
+
 		// The main screen (surface) identifier
 		unsigned char m_MainScreenID;
 
 		// The command line text buffer
 		std::wstring m_ConsoleTextBuffer;
+
+		// The command line text buffer
+		std::wstring m_CommandAutoCompleteString;
 
 		// The command line history
 		Jotunheim::RingBuffer<std::wstring> m_ConsoleTextHistory;
@@ -149,6 +152,10 @@ namespace Alfheimr
 		std::vector<wchar_t> m_ScreenTextBuffer;
 
 		std::weak_ptr<Muspelheim::Renderer> m_Renderer;
+
+		std::shared_ptr<ConsoleCommandManager> m_CommandManager;
+
+		std::unique_ptr<ConsoleParser> m_Parser;
 	};
 
 }

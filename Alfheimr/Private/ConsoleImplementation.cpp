@@ -13,7 +13,7 @@
 unsigned int cv_MinimumConsoleMessageLength = 0;
 
 std::wstring const consoleShaderName( L"Media/Shaders/console.overlay" );
-std::wstring const text2DShaderName( L"Media/Shaders/text2d" );
+std::wstring const text2DShaderName( L"Media/Shaders/console.text2d" );
 float const minimumClipSize = 0.1f;
 float const maximumClipSize = 1.0f;
 unsigned int const defaultLineBufferSize = 1000;
@@ -50,10 +50,9 @@ namespace Alfheimr
 
 		m_MessageManager.reset();
 
-		delete m_Parser;
-		m_Parser = nullptr;
+		m_Parser.reset();
 
-		ConsoleCommandManager::Destroy();
+		m_CommandManager.reset();
 
 		std::shared_ptr<Muspelheim::Renderer> pRenderer = m_Renderer.lock();
 		if ( nullptr != pRenderer )
@@ -149,15 +148,15 @@ namespace Alfheimr
 		pMessageManager->Register( this, Niflheim::Message::KEY_STROKES );
 
 		m_ConsoleTextBuffer.reserve( Niflheim::Message::MAX_STRING_LENGTH );
+		m_CommandAutoCompleteString.reserve( Niflheim::Message::MAX_STRING_LENGTH );
 
-		m_Parser = new ConsoleParser( pMessageManager );
-		assert( m_Parser );
+		m_CommandManager = std::make_shared<ConsoleCommandManager>();
 
-		ConsoleCommandManager::Create();
+		m_CommandManager->RegisterCommand( L"text_scale", std::bind( &ConsoleImplementation::TextScale_Callback, this, std::placeholders::_1 ), ParameterList::Create( 2, ParameterList::ParameterType::FLOAT, ParameterList::ParameterType::FLOAT ) );
+		m_CommandManager->RegisterCommand( L"max_line_count", std::bind( &ConsoleImplementation::MaxLineCount_Callback, this, std::placeholders::_1 ), ParameterList::Create( 1, ParameterList::ParameterType::UINT ) );
 
-		ConsoleCommandManager::GetInstance()->RegisterCommand( L"text_scale", std::bind( &ConsoleImplementation::TextScale_Callback, this, std::placeholders::_1 ), ParameterList::Create( 2, ParameterList::ParameterType::FLOAT, ParameterList::ParameterType::FLOAT ) );
-		ConsoleCommandManager::GetInstance()->RegisterCommand( L"max_line_count", std::bind( &ConsoleImplementation::MaxLineCount_Callback, this, std::placeholders::_1 ), ParameterList::Create( 1, ParameterList::ParameterType::UINT ) );
-
+		m_Parser = std::make_unique<ConsoleParser>( pMessageManager, m_CommandManager );
+		
 		return true;
 	}
 
@@ -371,6 +370,7 @@ namespace Alfheimr
 		if ( IsVisible() )
 		{
 			wchar_t character = 0;
+			bool processedTab = false;
 			if ( keyValue >= Helheimr::Input::KEY_A && keyValue <= Helheimr::Input::KEY_Z )
 			{
 				character = ( shifted ? L'A' : L'a' ) + ( keyValue - Helheimr::Input::KEY_A );
@@ -431,6 +431,9 @@ namespace Alfheimr
 				if ( m_ConsoleTextBuffer.length() > 0 )
 				{
 					m_ConsoleTextBuffer.pop_back();
+				
+					// Text buffer has been modified, reset the auto completion
+					m_AutoCompletionIndex = 0;
 				}
 			}
 			else if ( keyValue == Helheimr::Input::KEY_SEMICOLON )
@@ -471,6 +474,9 @@ namespace Alfheimr
 					}
 
 					m_ConsoleTextBuffer = m_ConsoleTextHistory[ static_cast<int>(m_ConsoleTextHistory.Size()) - m_HistoryIndex - 1 ];
+				
+					// Text buffer has been modified, reset the auto completion
+					m_AutoCompletionIndex = 0;
 				}
 			}
 			else if ( keyValue == Helheimr::Input::KEY_ARROW_DOWN )
@@ -483,12 +489,33 @@ namespace Alfheimr
 					}
 
 					m_ConsoleTextBuffer = m_ConsoleTextHistory[ static_cast<int>(m_ConsoleTextHistory.Size()) - m_HistoryIndex - 1 ];
+				
+					// Text buffer has been modified, reset the auto completion
+					m_AutoCompletionIndex = 0;
 				}
 			}
 
 			if ( character != 0 )
 			{
 				m_ConsoleTextBuffer += character;
+
+				// Text buffer has been modified, reset the auto completion
+				m_AutoCompletionIndex = 0;
+			}
+			else if ( keyValue == Helheimr::Input::KEY_TAB )
+			{
+				if ( 0 == m_AutoCompletionIndex )
+				{
+					m_CommandAutoCompleteString = m_ConsoleTextBuffer;
+				}
+
+				// Things like using the command history buffer, or typing a char should reset the search
+				std::wstring commandString;
+				if ( m_CommandManager->GetCommand( m_CommandAutoCompleteString, commandString, m_AutoCompletionIndex ) )
+				{
+					m_ConsoleTextBuffer = commandString;
+				}
+				++m_AutoCompletionIndex;
 			}
 			else if ( keyValue == Helheimr::Input::KEY_RETURN )
 			{
@@ -505,12 +532,16 @@ namespace Alfheimr
 
 				// Clear the string
 				m_ConsoleTextBuffer.clear();
+
+				// Text buffer has been modified, reset the auto completion
+				m_AutoCompletionIndex = 0;
 			}
 		}
 	}
 
 	void ConsoleImplementation::Update( std::shared_ptr<Helheimr::Input> const & input, float timeElapsed )
 	{
+		
 	}
 
 	void ConsoleImplementation::SetVisible( bool visible )
@@ -769,6 +800,6 @@ namespace Alfheimr
 
 	bool ConsoleImplementation::RegisterCommand( std::wstring const & functionName, std::function<void( ParameterList const & )> callback, std::shared_ptr<const ParameterList> params )
 	{
-		return ConsoleCommandManager::GetInstance()->RegisterCommand( functionName, callback, params );
+		return m_CommandManager->RegisterCommand( functionName, callback, params );
 	}
 }
