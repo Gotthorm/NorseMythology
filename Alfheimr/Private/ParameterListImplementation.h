@@ -14,6 +14,8 @@ namespace Alfheimr
 	class ParameterListImplementation : public ParameterList
 	{
 	public:
+		static std::shared_ptr<const ParameterList> ParameterListImplementation::Create( int paramCount, ParameterType... );
+
 		ParameterListImplementation() = default;
 		virtual ~ParameterListImplementation() = default;
 
@@ -34,6 +36,8 @@ namespace Alfheimr
 		virtual bool SetValue( unsigned int index, std::wstring const & param ) override;
 
 		void Clear();
+
+		void Add( Parameter* param ) { m_List.push_back( param ); }
 
 	protected:
 		friend ParameterList;

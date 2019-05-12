@@ -7,40 +7,66 @@
 
 namespace Alfheimr
 {
-	std::shared_ptr<const ParameterList> ParameterList::Create( int paramCount, ParameterType... )
+	auto createParamList = []( ParameterList::ParameterType paramType, std::shared_ptr<ParameterListImplementation> & paramList )
+	{ 
+		switch ( paramType )
+		{
+		case ParameterList::ParameterType::STRING:
+			paramList->Add( new TypedParameter<std::wstring>( ParameterList::ParameterType::STRING, L"" ) );
+			break;
+		case ParameterList::ParameterType::INT:
+			paramList->Add( new TypedParameter<int>( ParameterList::ParameterType::INT, 0 ) );
+			break;
+		case ParameterList::ParameterType::UINT:
+			paramList->Add( new TypedParameter<unsigned int>( ParameterList::ParameterType::UINT, 0U ) );
+			break;
+		case ParameterList::ParameterType::FLOAT:
+			paramList->Add( new TypedParameter<float>( ParameterList::ParameterType::FLOAT, 0.0f ) );
+			break;
+		case ParameterList::ParameterType::BOOL:
+			paramList->Add( new TypedParameter<bool>( ParameterList::ParameterType::BOOL, false ) );
+			break;
+		case ParameterList::ParameterType::INVALID:
+		default:
+			assert( 0 );
+			break;
+		}
+	};
+
+	// The exported interface for creating the parameter list instance
+	__declspec( dllexport ) std::shared_ptr<const ParameterList> CreateParameterList( int paramCount, ParameterList::ParameterType... )
 	{
 		std::shared_ptr<ParameterListImplementation> paramList = std::make_shared<ParameterListImplementation>();
-	
+
 		va_list args;
 
 		va_start( args, paramCount );
 
 		for ( int index = 0; index < paramCount; ++index )
 		{
-			ParameterType paramType = va_arg( args, ParameterType );
+			ParameterList::ParameterType paramType = va_arg( args, ParameterList::ParameterType );
 
-			switch ( paramType )
-			{
-			case ParameterType::STRING:
-				paramList->m_List.push_back( new TypedParameter<std::wstring>( ParameterType::STRING, L"" ) );
-				break;
-			case ParameterType::INT:
-				paramList->m_List.push_back( new TypedParameter<int>( ParameterType::INT, 0 ) );
-				break;
-			case ParameterType::UINT:
-				paramList->m_List.push_back( new TypedParameter<unsigned int>( ParameterType::UINT, 0U ) );
-				break;
-			case ParameterType::FLOAT:
-				paramList->m_List.push_back( new TypedParameter<float>( ParameterType::FLOAT, 0.0f ) );
-				break;
-			case ParameterType::BOOL:
-				paramList->m_List.push_back( new TypedParameter<bool>( ParameterType::BOOL, false ) );
-				break;
-			case ParameterType::INVALID:
-			default:
-				assert( 0 );
-				break;
-			}
+			createParamList( paramType, paramList );
+		}
+
+		va_end( args );
+
+		return paramList;
+	}
+
+	std::shared_ptr<const ParameterList> ParameterListImplementation::Create( int paramCount, ParameterType... )
+	{
+		std::shared_ptr<ParameterListImplementation> paramList = std::make_shared<ParameterListImplementation>();
+
+		va_list args;
+
+		va_start( args, paramCount );
+
+		for ( int index = 0; index < paramCount; ++index )
+		{
+			ParameterList::ParameterType paramType = va_arg( args, ParameterList::ParameterType );
+
+			createParamList( paramType, paramList );
 		}
 
 		va_end( args );

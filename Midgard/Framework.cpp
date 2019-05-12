@@ -22,7 +22,6 @@
 #pragma comment(lib, "Helheimr.lib")
 #pragma comment(lib, "Vanaheimr.lib")
 #pragma comment(lib, "Valhalla.lib")
-#pragma comment(lib, "Alfheimr.lib")
 
 // Used for the macro NEXTRAWINPUTBLOCK
 typedef __int64 QWORD;
@@ -30,6 +29,12 @@ typedef __int64 QWORD;
 const unsigned int MaxRawInputEntries = 32;
 const float VSyncMouseSpeed = 0.1f;
 const float DefaultMouseSpeed = 1.0f;
+
+char const consoleCreateMangledName[] = "?CreateConsole@Alfheimr@@YA?AV?$shared_ptr@VConsole@Alfheimr@@@std@@AEBV?$weak_ptr@VMessageManager@Niflheim@@@3@AEBV?$weak_ptr@VRenderer@Muspelheim@@@3@@Z";
+char const parameterListCreateMangledName[] = "?CreateParameterList@Alfheimr@@YA?AV?$shared_ptr@$$CBVParameterList@Alfheimr@@@std@@HW4ParameterType@ParameterList@1@ZZ";
+
+typedef std::shared_ptr<Alfheimr::Console>( __cdecl *CONSOLE_CREATE )( std::weak_ptr<Niflheim::MessageManager> const & messageManager, std::weak_ptr<Muspelheim::Renderer> const & renderer );
+typedef std::shared_ptr<const Alfheimr::ParameterList>( __cdecl *PARAMETERLIST_CREATE )( int paramCount, Alfheimr::ParameterList::ParameterType... );
 
 //void Camera::Update()
 //{
@@ -230,8 +235,29 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		}
 
 		//
-		m_Console = Alfheimr::Console::Create( m_MessageManager, m_Renderer );
-		m_Console->Initialize( launchInfo.width, launchInfo.height, 0.80f );
+		HINSTANCE alfheimrLib = LoadLibrary( L"Alfheimr.dll" );
+
+		if ( alfheimrLib != NULL )
+		{
+			CONSOLE_CREATE consoleCreate = ( CONSOLE_CREATE )GetProcAddress( alfheimrLib, consoleCreateMangledName );
+
+			if ( NULL != consoleCreate )
+			{
+				m_Console = consoleCreate( m_MessageManager, m_Renderer );
+
+				if ( nullptr != m_Console )
+				{
+					m_Console->Initialize( launchInfo.width, launchInfo.height, 0.80f );
+
+					PARAMETERLIST_CREATE parameterListCreate = ( PARAMETERLIST_CREATE )GetProcAddress( alfheimrLib, parameterListCreateMangledName );
+
+					if ( NULL != parameterListCreate )
+					{
+						m_Console->RegisterCommand( L"vsync", std::bind( &Framework::VSync_Callback, this, std::placeholders::_1 ), parameterListCreate( 1, Alfheimr::ParameterList::ParameterType::BOOL ) );
+					}
+				}
+			}
+		}
 
 		//
 		m_pCameraManager = new Vanaheimr::CameraManager();
@@ -337,8 +363,6 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		m_WindowHandle = hWindow;
 	}
 
-	m_Console->RegisterCommand( L"vsync", std::bind( &Framework::VSync_Callback, this, std::placeholders::_1 ), Alfheimr::ParameterList::Create( 1, Alfheimr::ParameterList::ParameterType::BOOL ) );
-
 	// Create a lot of messages to test console window functionality
 	//{
 	//	for ( int index = 0; index < 100; ++index )
@@ -408,8 +432,6 @@ void Framework::Update()
 		m_FrameTime.Update();
 
 		ProcessPlatformInput();
-
-		m_Console->Update( m_Input, m_FrameTime.Duration() );
 
 		//if( m_Input->GetKeyUp( Helheimr::Input::KEY_F2 ) )
 		//{
@@ -565,7 +587,10 @@ void Framework::Update()
 		std::swprintf( stringBuffer, Platform::kMaxStringLength, L"Camera Position: %.1f, %.1f, %.1f", cameraPosition.x, cameraPosition.y, cameraPosition.z );
 		m_Renderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 40, 2, Muspelheim::Renderer::TEXT_RIGHT );
 
-		m_Console->Render();
+		if ( nullptr != m_Console )
+		{
+			m_Console->Render();
+		}
 
 		m_Renderer->EndRender();
 

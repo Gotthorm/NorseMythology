@@ -8,6 +8,7 @@
 #include <memory>
 #include "ConsoleParser.h"
 #include "ConsoleCommandManager.h"
+#include "ParameterListImplementation.h"
 
 // TODO: This will become a console variable
 unsigned int cv_MinimumConsoleMessageLength = 0;
@@ -21,7 +22,8 @@ unsigned int const defaultHistoryBufferSize = 100;
 
 namespace Alfheimr
 {
-	std::shared_ptr<Console> Console::Create( std::weak_ptr<Niflheim::MessageManager> const & messageManager, std::weak_ptr<Muspelheim::Renderer> const & renderer )
+	// The exported interface for creating the console instance
+	__declspec( dllexport ) std::shared_ptr<Console> CreateConsole( std::weak_ptr<Niflheim::MessageManager> const & messageManager, std::weak_ptr<Muspelheim::Renderer> const & renderer )
 	{
 		return std::make_shared<ConsoleImplementation>(messageManager, renderer);
 	}
@@ -152,8 +154,8 @@ namespace Alfheimr
 
 		m_CommandManager = std::make_shared<ConsoleCommandManager>();
 
-		m_CommandManager->RegisterCommand( L"text_scale", std::bind( &ConsoleImplementation::TextScale_Callback, this, std::placeholders::_1 ), ParameterList::Create( 2, ParameterList::ParameterType::FLOAT, ParameterList::ParameterType::FLOAT ) );
-		m_CommandManager->RegisterCommand( L"max_line_count", std::bind( &ConsoleImplementation::MaxLineCount_Callback, this, std::placeholders::_1 ), ParameterList::Create( 1, ParameterList::ParameterType::UINT ) );
+		RegisterCommand( L"text_scale", std::bind( &ConsoleImplementation::TextScale_Callback, this, std::placeholders::_1 ), ParameterListImplementation::Create( 2, ParameterList::ParameterType::FLOAT, ParameterList::ParameterType::FLOAT ) );
+		RegisterCommand( L"max_line_count", std::bind( &ConsoleImplementation::MaxLineCount_Callback, this, std::placeholders::_1 ), ParameterListImplementation::Create( 1, ParameterList::ParameterType::UINT ) );
 
 		m_Parser = std::make_unique<ConsoleParser>( pMessageManager, m_CommandManager );
 		
@@ -539,11 +541,6 @@ namespace Alfheimr
 		}
 	}
 
-	void ConsoleImplementation::Update( std::shared_ptr<Helheimr::Input> const & input, float timeElapsed )
-	{
-		
-	}
-
 	void ConsoleImplementation::SetVisible( bool visible )
 	{
 		if ( m_IsVisible != visible )
@@ -800,6 +797,16 @@ namespace Alfheimr
 
 	bool ConsoleImplementation::RegisterCommand( std::wstring const & functionName, std::function<void( ParameterList const & )> callback, std::shared_ptr<const ParameterList> params )
 	{
-		return m_CommandManager->RegisterCommand( functionName, callback, params );
+		if ( m_CommandManager->RegisterCommand( functionName, callback, params ) )
+		{
+			std::shared_ptr<Niflheim::MessageManager> pMessageManager = m_MessageManager.lock();
+			if ( nullptr != pMessageManager )
+			{
+				pMessageManager->Post( Niflheim::Message::LOG_INFO, L"Console command \"" + functionName + L"\" registered" );
+			}
+			return true;
+		}
+
+		return false;
 	}
 }

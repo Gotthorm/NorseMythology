@@ -1,12 +1,6 @@
 
 #pragma once  
 
-#ifdef MAKE_DLL  
-#define EXPORT __declspec(dllexport)   
-#else  
-#define EXPORT __declspec(dllimport)   
-#endif 
-
 #include <memory>
 #include <string>
 #include <functional>
@@ -18,7 +12,7 @@ namespace Helheimr		{ class Input; }
 
 namespace Alfheimr
 {
-	class EXPORT ParameterList
+	class ParameterList
 	{
 	public:
 		enum class ParameterType
@@ -30,8 +24,6 @@ namespace Alfheimr
 			UINT,
 			BOOL,
 		};
-
-		static std::shared_ptr<const ParameterList> Create( int paramCount, ParameterType... );
 
 		virtual ParameterType GetType( unsigned int index ) const = 0;
 
@@ -54,7 +46,7 @@ namespace Alfheimr
 	///
 	/// The Console class controls a special window whose visibility is toggled with the '`' or '~' keys.
 	/// It is used for monitoring logged messages in real time and to also allow for querying and modifying run time variables.
-	class EXPORT Console
+	class Console
 	{
 	public:
 		static std::shared_ptr<Console> Create( std::weak_ptr<Niflheim::MessageManager> const & messageManager, std::weak_ptr<Muspelheim::Renderer> const & renderer );
@@ -129,12 +121,6 @@ namespace Alfheimr
 		/// \return Returns a boolean indicating whether the console window is visible or not.
 		virtual bool IsVisible() = 0;
 
-		/// \brief Update the console
-		///
-		/// Update the console with the amount of time that has elapsed in seconds, since the last update.
-		/// \param timeElapsed The amount of time in seconds since the last update.
-		virtual void Update( std::shared_ptr<Helheimr::Input> const & input, float timeElapsed ) = 0;
-
 		/// \brief Register a console command
 		///
 		/// Register a call back method that will be called by the defined command string.
@@ -149,7 +135,5 @@ namespace Alfheimr
 		virtual bool RegisterCommand( std::wstring const & functionName, std::function<void( ParameterList const & )> callback, std::shared_ptr<const ParameterList> params ) = 0;
 	};
 }
-
-
 
 

@@ -31,7 +31,6 @@ namespace Alfheimr
 		virtual void Render() override;
 		virtual void SetVisible( bool visible ) override;
 		virtual bool IsVisible() override { return m_IsVisible; }
-		virtual void Update( std::shared_ptr<Helheimr::Input> const & input, float timeElapsed ) override;
 
 		// Implementation of MessageClient interface
 		virtual void ReceiveMessage( const Niflheim::Message& message ) override;
