@@ -3,8 +3,6 @@
 #include "OpenGLText.h"
 #include "KTX.h"
 #include "Platform.h"
-//#include "glext.h"
-//#include "Vanaheimr.h"
 #include "OpenGLShader.h"
 #include <codecvt>
 
@@ -16,7 +14,7 @@ namespace Muspelheim
 		m_pScreenBuffer = nullptr;
 		glDeleteTextures( 1, &font_texture );
 		glDeleteTextures( 1, &text_buffer );
-		OpenGLInterface::DeleteVertexArrays( 1, &vao );
+		OpenGLInterface::DeleteVertexArrays( 1, &m_VertexArrayObject );
 		//OpenGLInterface::DeleteProgram( text_program );
 	}
 
@@ -53,8 +51,8 @@ namespace Muspelheim
 			//OpenGLInterface::DeleteShader( vs );
 
 			// glCreateVertexArrays(1, &vao);
-			OpenGLInterface::GenVertexArrays( 1, &vao );
-			OpenGLInterface::BindVertexArray( vao );
+			OpenGLInterface::GenVertexArrays( 1, &m_VertexArrayObject );
+			OpenGLInterface::BindVertexArray( m_VertexArrayObject );
 
 			// glCreateTextures(GL_TEXTURE_2D, 1, &text_buffer);
 			OpenGLInterface::ActiveTexture( GL_TEXTURE0 ); // Fix from tesselation?
@@ -119,6 +117,7 @@ namespace Muspelheim
 				glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, m_BufferWidth, m_BufferHeight, GL_RED_INTEGER, GL_UNSIGNED_BYTE, m_pScreenBuffer );
 				m_Dirty = false;
 			}
+
 			OpenGLInterface::ActiveTexture( GL_TEXTURE1 );
 			OpenGLInterface::BindTexture( GL_TEXTURE_2D_ARRAY, font_texture );
 
@@ -128,7 +127,7 @@ namespace Muspelheim
 			glDepthFunc( GL_LEQUAL );
 			glEnable( GL_CULL_FACE );
 
-			OpenGLInterface::BindVertexArray( vao );
+			OpenGLInterface::BindVertexArray( m_VertexArrayObject );
 			glDrawArrays( GL_TRIANGLE_STRIP, 0, 4 );
 		}
 	}

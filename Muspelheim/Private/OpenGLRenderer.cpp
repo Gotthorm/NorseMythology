@@ -10,7 +10,6 @@
 
 #pragma comment(lib, "OpenGL32.lib")
 #pragma comment(lib, "Niflheim.lib")
-#pragma comment(lib, "Vanaheimr.lib")
 
 namespace Muspelheim
 {

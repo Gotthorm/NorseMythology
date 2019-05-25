@@ -1,6 +1,7 @@
 // VOLSTAGG.CPP
 
-//#include <windows.h>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm\gtx\quaternion.hpp>
 #include "Volstagg.h"
 #include "Valhalla.h"
 #include <stdio.h>
@@ -22,8 +23,10 @@ bool Volstagg::Init( Muspelheim::Renderer& renderer )
 	{
 		if( renderObject->SetShader( renderer.LoadShader( shaderName ) ) )
 		{
+			// Rotate this on the X axis 90 degrees
 			// Need to figure out why this is necessary
-			renderObject->Pitch( Vanaheimr::Deg2Rad(90) );
+			glm::quat orientation = glm::angleAxis( 90 * ( 3.14159265358979323846f / 180.0f ), glm::vec3( 1, 0, 0 ) );
+			renderObject->SetOrientation( orientation );
 
 			return true;
 		}

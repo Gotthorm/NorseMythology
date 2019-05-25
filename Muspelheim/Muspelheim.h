@@ -9,7 +9,6 @@
 #include <string>
 #include <memory>
 #include "Platform.h"
-#include "Vanaheimr.h"
 
 namespace Niflheim { class MessageManager; }
 
@@ -20,7 +19,7 @@ namespace Muspelheim
 	typedef unsigned char SurfaceID;
 	const SurfaceID InvalidSurface = 0;
 
-	class EXPORT RenderObject : public Vanaheimr::Object3D
+	class EXPORT RenderObject
 	{
 	public:
 		enum PolyMode { TRIANGLES, PATCH };
@@ -32,7 +31,7 @@ namespace Muspelheim
 		virtual bool LoadData( unsigned int size, void* data, unsigned int objectCount ) = 0;
 
 		//
-		virtual bool LoadTexture( const unsigned char* imageData, unsigned int height, unsigned int width, bool hasAlpha ) = 0;
+		virtual bool LoadTexture( unsigned char const * imageData, unsigned int height, unsigned int width, bool hasAlpha ) = 0;
 
 		//
 		virtual bool Render() = 0;
@@ -42,9 +41,13 @@ namespace Muspelheim
 		virtual void SetPolyLineMode( bool lineMode ) = 0;
 		virtual void SetPolyBackFace( bool backFace ) = 0;
 		virtual void SetPolyMode( PolyMode polyMode ) = 0;
+
+		virtual void SetPosition( glm::vec3 const & position ) = 0;
+		virtual void SetOrientation( glm::quat const & orientation ) = 0;
+		virtual void SetName( std::wstring const & name ) = 0;
 	};
 
-	class EXPORT LightObject : public Vanaheimr::Object3D
+	class EXPORT LightObject 
 	{
 	public:
 		//
@@ -72,10 +75,10 @@ namespace Muspelheim
 		enum TextAlignment { TEXT_LEFT, TEXT_RIGHT, TEXT_MIDDLE };
 
 		//
-		virtual bool Initialize( const Platform::WindowHandle& hWindow ) = 0;
+		virtual bool Initialize( Platform::WindowHandle const & hWindow ) = 0;
 
 		//
-		virtual void BeginRender( const glm::mat4& viewMatrix ) = 0;
+		virtual void BeginRender( glm::mat4 const & viewMatrix ) = 0;
 
 		//
 		virtual void EndRender() = 0;
@@ -87,13 +90,13 @@ namespace Muspelheim
 		virtual std::wstring GetVersionInformation() = 0;
 
 		//
-		virtual void AddMessaging( const std::weak_ptr<Niflheim::MessageManager>& messageManager ) = 0;
+		virtual void AddMessaging( std::weak_ptr<Niflheim::MessageManager> const & messageManager ) = 0;
 
 		//
-		virtual unsigned int LoadShader( const std::wstring& shaderName ) = 0;
+		virtual unsigned int LoadShader( std::wstring const & shaderName ) = 0;
 
 		//
-		virtual unsigned int LoadTexture( const unsigned char* imageData, unsigned int height, unsigned int width, bool hasAlpha ) = 0;
+		virtual unsigned int LoadTexture( unsigned char const * imageData, unsigned int height, unsigned int width, bool hasAlpha ) = 0;
 
 		//
 		virtual bool GetVSyncEnabled() = 0;
@@ -109,25 +112,25 @@ namespace Muspelheim
 		//
 
 		//
-		virtual bool CreateSurface( SurfaceID& surfaceID ) = 0;
+		virtual bool CreateSurface( SurfaceID & surfaceID ) = 0;
 
 		//
 		virtual bool DestroySurface( SurfaceID surfaceID ) = 0;
 
 		// 
-		virtual bool GetSurfaceDepth( SurfaceID surfaceID, unsigned char& depth ) = 0;
+		virtual bool GetSurfaceDepth( SurfaceID surfaceID, unsigned char & depth ) = 0;
 
 		//
 		virtual bool SetSurfaceDepth( SurfaceID surfaceID, unsigned char depth ) = 0;
 
 		//
-		virtual bool GetSurfaceColor( SurfaceID surfaceID, glm::vec4& color ) = 0;
+		virtual bool GetSurfaceColor( SurfaceID surfaceID, glm::vec4 & color ) = 0;
 
 		//
-		virtual bool SetSurfaceColor( SurfaceID surfaceID, const glm::vec4& color ) = 0;
+		virtual bool SetSurfaceColor( SurfaceID surfaceID, glm::vec4 const & color ) = 0;
 
 		//
-		virtual bool GetSurfaceVisible( SurfaceID surfaceID, bool& visible ) = 0;
+		virtual bool GetSurfaceVisible( SurfaceID surfaceID, bool & visible ) = 0;
 
 		//
 		virtual bool SetSurfaceVisible( SurfaceID surfaceID, bool visible ) = 0;
@@ -142,7 +145,7 @@ namespace Muspelheim
 		virtual bool GetSurfaceFontSize( SurfaceID surfaceID, unsigned int & width, unsigned int & height ) = 0;
 
 		//
-		virtual bool DrawSurfaceString( SurfaceID surfaceID, const std::wstring& textString, unsigned short posX, unsigned short posY, TextAlignment alignment ) = 0;
+		virtual bool DrawSurfaceString( SurfaceID surfaceID, std::wstring const & textString, unsigned short posX, unsigned short posY, TextAlignment alignment ) = 0;
 
 		//
 		virtual bool DrawSurfaceStringBuffer( SurfaceID surfaceID, wchar_t const * pTextBuffer, unsigned int size ) = 0;

@@ -1,13 +1,12 @@
 // OpenGLSurface.CPP
 
-#include "Muspelheim.h"
+#include <glm/gtc/type_ptr.hpp>
 #include "OpenGLRenderer.h"
 #include "OpenGLSurface.h"
 #include "OpenGLInterface.h"
 #include "OpenGLRenderObject.h"
 #include "OpenGLLightObject.h"
 #include "OpenGLShader.h"
-#include <glm/gtc/type_ptr.hpp>
 
 namespace Muspelheim
 {

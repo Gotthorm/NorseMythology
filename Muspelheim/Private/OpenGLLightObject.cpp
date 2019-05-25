@@ -1,11 +1,9 @@
 // OpenGLLightObject.CPP
 
-#include "Muspelheim.h"
 #include "OpenGLRenderer.h"
 #include "OpenGLLightObject.h"
 #include "OpenGLInterface.h"
 #include "OpenGLSurface.h"
-//#include <glm/gtc/type_ptr.hpp>
 
 namespace Muspelheim
 {

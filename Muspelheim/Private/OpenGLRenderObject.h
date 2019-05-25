@@ -1,10 +1,8 @@
 #pragma once  
 
 #include <memory>
+#include <glm/gtx/quaternion.hpp>
 #include "Muspelheim.h"
-//#include <glm\glm.hpp>
-//#include "VectorMath.h"
-//#include "OpenGLText.h"
 
 namespace Muspelheim
 {
@@ -30,6 +28,10 @@ namespace Muspelheim
 		virtual void SetPolyBackFace( bool backFace ) override { m_PolyBackFace = backFace; }
 		virtual void SetPolyMode( PolyMode polyMode ) override { m_PolyMode = polyMode; }
 
+		virtual void SetPosition( const glm::vec3& position ) override { m_Position = position; }
+		virtual void SetOrientation( const glm::quat& orientation ) override { m_Orientation = orientation; }
+		virtual void SetName( std::wstring const & name ) override { m_Name = name; }
+
 		//
 		void Draw( const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix );
 
@@ -54,6 +56,10 @@ namespace Muspelheim
 		GLint m_UniformProjectionMatrix = -1;
 
 		std::vector<unsigned int> m_LoadedTextures;
+
+		glm::vec3 m_Position;
+		glm::quat m_Orientation;
+		std::wstring m_Name;
 
 		static OpenGLRenderer* sm_Renderer;
 	};

@@ -1,12 +1,11 @@
 // OpenGLRenderObject.CPP
 
-#include "Muspelheim.h"
+#include <glm/gtc/type_ptr.hpp>
 #include "OpenGLRenderer.h"
 #include "OpenGLRenderObject.h"
 #include "OpenGLInterface.h"
 #include "OpenGLSurface.h"
 #include "OpenGLShader.h"
-#include <glm/gtc/type_ptr.hpp>
 
 namespace Muspelheim
 {
@@ -131,9 +130,11 @@ namespace Muspelheim
 				glBindTexture( GL_TEXTURE_2D, m_LoadedTextures[ 0 ] );
 			}
 
+			glm::mat4 const localMatrix = glm::translate( glm::mat4_cast( m_Orientation ), m_Position );
+
 			OpenGLInterface::UniformMatrix4fv( m_UniformViewMatrix, 1, GL_FALSE, glm::value_ptr( viewMatrix ) );
 			OpenGLInterface::UniformMatrix4fv( m_UniformProjectionMatrix, 1, GL_FALSE, glm::value_ptr( projectionMatrix ) );
-			OpenGLInterface::UniformMatrix4fv( m_UniformModelMatrix, 1, GL_FALSE, glm::value_ptr( GetMatrix() ) );
+			OpenGLInterface::UniformMatrix4fv( m_UniformModelMatrix, 1, GL_FALSE, glm::value_ptr( localMatrix ) );
 
 			GLenum windingOrder = m_WindingOrderClockwise ? GL_CW : GL_CCW;
 			GLenum face = m_PolyBackFace ? GL_FRONT_AND_BACK : GL_FRONT;

@@ -1,8 +1,7 @@
 #pragma once
 
-#include "Muspelheim.h"
-#include "OpenGLInterface.h"
 #include <string>
+#include "OpenGLInterface.h"
 
 namespace Muspelheim
 {
@@ -43,7 +42,7 @@ namespace Muspelheim
 
 		GLuint      text_buffer;
 		GLuint      font_texture;
-		GLuint      vao;
+		GLuint      m_VertexArrayObject;
 
 		GLint		m_FontWidth = 0;
 		GLint		m_FontHeight = 0;
