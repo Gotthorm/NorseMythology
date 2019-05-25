@@ -11,15 +11,17 @@ TODO:
 - Mouse input is fixed but I need to change the input to read buffers instead of single events
 	to prevent the queued input when vsync is used.
 
-Asgard
 Alfheimr - Console/Scripting
+Asgard - Testing
 Svartalfheimr
-Midgard - Main Application
-Jotunheimr
-Vanaheimr - Utility/Common
-Niflheim - Messaging
-Muspelheim - Graphics
 Helheimr - Input
+Jotunheimr
+Midgard - Main Application
+Muspelheim - Graphics
+Niflheim - Messaging/Logging
+Nildavellir - Deprecated
+Valhalla - Data conversion
+Vanaheimr - Utility/Common
 
 Decide whether Surface objects needs to be exposed outside of the Muspelheim module.  
 Could just use id's and add modifier methods to the renderer interface.

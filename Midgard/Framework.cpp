@@ -4,6 +4,7 @@
 #include <cwchar>
 #include <functional>
 #include <limits>
+#include <glm/gtc/matrix_transform.hpp>
 #include "Framework.h"
 //#include "Muspelheim.h"
 #include "Niflheim.h"
@@ -14,8 +15,6 @@
 #include "Volstagg.h"
 #include "Vanaheimr.h"
 #include "Alfheimr.h"
-
-#include <glm/gtc/matrix_transform.hpp>
 
 #pragma comment(lib, "Niflheim.lib")
 #pragma comment(lib, "Muspelheim.lib")
