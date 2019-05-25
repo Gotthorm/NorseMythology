@@ -1,11 +1,12 @@
 // CONSOLE.CPP
 
+#include <glm/gtc/matrix_transform.hpp>
+#include <memory>
 #include "ConsoleImplementation.h"
 #include "Niflheim.h"
 #include "Muspelheim.h"
 #include "Vanaheimr.h"
 #include "Helheimr.h"
-#include <memory>
 #include "ConsoleParser.h"
 #include "ConsoleCommandManager.h"
 #include "ParameterListImplementation.h"

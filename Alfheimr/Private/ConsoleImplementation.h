@@ -31,11 +31,10 @@ namespace Alfheimr
 		virtual void Render() override;
 		virtual void SetVisible( bool visible ) override;
 		virtual bool IsVisible() override { return m_IsVisible; }
+		virtual bool RegisterCommand( std::wstring const & functionName, std::function<void( ParameterList const & )> callback, std::shared_ptr<const ParameterList> params ) override;
 
 		// Implementation of MessageClient interface
 		virtual void ReceiveMessage( const Niflheim::Message& message ) override;
-
-		virtual bool RegisterCommand( std::wstring const & functionName, std::function<void( ParameterList const & )> callback, std::shared_ptr<const ParameterList> params ) override;
 
 	private:
 		// Remove the default assignment operator
