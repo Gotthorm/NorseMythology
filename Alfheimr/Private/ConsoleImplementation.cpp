@@ -772,7 +772,7 @@ namespace Alfheimr
 		}
 
 		// Render the entire text buffer
-		renderer->DrawSurfaceStringBuffer( m_MainScreenID, &m_ScreenTextBuffer.Text[ 0 ], static_cast<unsigned int>( m_ScreenTextBuffer.Text.size() ) );
+		renderer->DrawSurfaceStringBuffer( m_MainScreenID, m_ScreenTextBuffer );
 
 		// Render the command line buffer
 		renderer->DrawSurfaceString( m_MainScreenID, m_ConsoleTextBuffer, m_ColorTable[ 0 ], 0, m_VirtualBufferHeight, Muspelheim::Renderer::TEXT_LEFT );
