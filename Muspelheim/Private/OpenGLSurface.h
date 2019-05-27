@@ -53,10 +53,10 @@ namespace Muspelheim
 		void RenderAll( const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix );
 
 		//
-		bool DrawString( const std::wstring& textString, unsigned short posX, unsigned short posY, Renderer::TextAlignment alignment );
+		bool DrawString( const std::wstring& textString, unsigned int color, unsigned short posX, unsigned short posY, Renderer::TextAlignment alignment );
 
 		//
-		bool DrawStringBuffer( wchar_t const * pTextBuffer, unsigned int size );
+		bool DrawStringBuffer( TextBuffer const & textBuffer );
 
 		//
 		std::shared_ptr<RenderObject> CreateRenderObject();

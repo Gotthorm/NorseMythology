@@ -1,6 +1,7 @@
 // CONSOLE.CPP
 
-#include <glm/gtc/matrix_transform.hpp>
+#include<glm\glm.hpp>
+//#include <glm/gtc/matrix_transform.hpp>
 #include <memory>
 #include "ConsoleImplementation.h"
 #include "Niflheim.h"
@@ -236,8 +237,8 @@ namespace Alfheimr
 		m_WindowWidth = width;
 		m_WindowHeight = height;
 
-		m_ScreenTextBuffer.resize( width * height );
-		std::fill( m_ScreenTextBuffer.begin(), m_ScreenTextBuffer.end(), 0 );
+		m_ScreenTextBuffer.Text.resize( width * height );
+		std::fill( m_ScreenTextBuffer.Text.begin(), m_ScreenTextBuffer.Text.end(), 0 );
 
 		UpdateBufferSize();
 	}
@@ -727,7 +728,7 @@ namespace Alfheimr
 			}
 
 			// Clear the screen buffer
-			std::fill( m_ScreenTextBuffer.begin(), m_ScreenTextBuffer.end(), 0 );
+			std::fill( m_ScreenTextBuffer.Text.begin(), m_ScreenTextBuffer.Text.end(), 0 );
 
 			int const lineBufferSize = static_cast<int>( m_LineBuffer.Size() - 1 );
 
@@ -755,7 +756,7 @@ namespace Alfheimr
 
 					std::wstring newLine = bufferString.substr( remainder, m_VirtualBufferWidth );
 
-					memcpy( &m_ScreenTextBuffer[ index * m_WindowWidth ], newLine.c_str(), newLine.length() * sizeof( wchar_t ) );
+					memcpy( &m_ScreenTextBuffer.Text[ index * m_WindowWidth ], newLine.c_str(), newLine.length() * sizeof( wchar_t ) );
 
 					--index;
 					if ( 0 >= index )
@@ -771,10 +772,10 @@ namespace Alfheimr
 		}
 
 		// Render the entire text buffer
-		renderer->DrawSurfaceStringBuffer( m_MainScreenID, &m_ScreenTextBuffer[ 0 ], static_cast<unsigned int>( m_ScreenTextBuffer.size() ) );
+		renderer->DrawSurfaceStringBuffer( m_MainScreenID, &m_ScreenTextBuffer.Text[ 0 ], static_cast<unsigned int>( m_ScreenTextBuffer.Text.size() ) );
 
 		// Render the command line buffer
-		renderer->DrawSurfaceString( m_MainScreenID, m_ConsoleTextBuffer, 0, m_VirtualBufferHeight, Muspelheim::Renderer::TEXT_LEFT );
+		renderer->DrawSurfaceString( m_MainScreenID, m_ConsoleTextBuffer, m_ColorTable[ 0 ], 0, m_VirtualBufferHeight, Muspelheim::Renderer::TEXT_LEFT );
 	}
 
 	void ConsoleImplementation::ValidateScrollIndex()

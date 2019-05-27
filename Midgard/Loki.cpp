@@ -1,6 +1,6 @@
 // LOKI.CPP
 
-#include <glm/gtc/matrix_transform.hpp>
+#include <glm\glm.hpp>
 #include "Loki.h"
 #include <stdio.h>
 #include "Valhalla.h"

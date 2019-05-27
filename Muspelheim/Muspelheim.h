@@ -1,19 +1,27 @@
 #pragma once  
 
 #ifdef MAKE_DLL  
-#define EXPORT __declspec(dllexport)   
+#define EXPORT __declspec(dllexport)
 #else  
-#define EXPORT __declspec(dllimport)   
+#define EXPORT __declspec(dllimport)
 #endif 
 
 #include <string>
 #include <memory>
+#include <vector>
+#include <glm\glm.hpp>
 #include "Platform.h"
 
 namespace Niflheim { class MessageManager; }
 
 namespace Muspelheim
 {
+	struct TextBuffer
+	{
+		std::vector<unsigned int> Color;
+		std::vector<wchar_t> Text;
+	};
+
 	class Renderer;
 
 	typedef unsigned char SurfaceID;
@@ -145,10 +153,10 @@ namespace Muspelheim
 		virtual bool GetSurfaceFontSize( SurfaceID surfaceID, unsigned int & width, unsigned int & height ) = 0;
 
 		//
-		virtual bool DrawSurfaceString( SurfaceID surfaceID, std::wstring const & textString, unsigned short posX, unsigned short posY, TextAlignment alignment ) = 0;
+		virtual bool DrawSurfaceString( SurfaceID surfaceID, std::wstring const & textString, unsigned int color, unsigned short posX, unsigned short posY, TextAlignment alignment ) = 0;
 
 		//
-		virtual bool DrawSurfaceStringBuffer( SurfaceID surfaceID, wchar_t const * pTextBuffer, unsigned int size ) = 0;
+		virtual bool DrawSurfaceStringBuffer( SurfaceID surfaceID, TextBuffer const & textBuffer ) = 0;
 
 		//
 		virtual std::shared_ptr<RenderObject> CreateSurfaceRenderObject( SurfaceID surfaceID ) = 0;

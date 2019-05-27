@@ -6,6 +6,7 @@
 namespace Muspelheim
 {
 	class OpenGLShader;
+	struct TextBuffer;
 
 	class OpenGLText
 	{
@@ -17,16 +18,16 @@ namespace Muspelheim
 		// Called by the parent surface
 		bool Init( unsigned short width, unsigned int height );
 
-		bool SetShader( OpenGLShader* shader );
+		bool SetShader( OpenGLShader * pShader );
 
 		// Called by the parent surface
 		void Render();
 
 		//bool LoadFont( const std::wstring& font ) override;
 
-		bool DrawString( const std::wstring& str, unsigned short posX, unsigned short posY );
+		bool DrawString( std::wstring const & str, unsigned int color, unsigned short posX, unsigned short posY );
 
-		bool DrawStringBuffer( wchar_t const * pSourceText, unsigned int size );
+		bool DrawStringBuffer( TextBuffer const & textBuffer );
 
 		//bool MoveCursor( unsigned short posX, unsigned short posY ) override;
 
@@ -39,6 +40,8 @@ namespace Muspelheim
 
 	private:
 		bool SetSize( unsigned short width, unsigned int height );
+
+		void CopyAndConvert( char * pTarget, wchar_t const * pSource, unsigned int size );
 
 		GLuint      text_buffer;
 		GLuint      font_texture;

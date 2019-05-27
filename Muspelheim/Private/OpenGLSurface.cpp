@@ -169,7 +169,7 @@ namespace Muspelheim
 		m_ClipSize[ 3 ] = CenterJustify( 1 - topY );
 	}
 
-	bool OpenGLSurface::DrawString( const std::wstring& textString, unsigned short posX, unsigned short posY, Renderer::TextAlignment alignment )
+	bool OpenGLSurface::DrawString( const std::wstring& textString, unsigned int color, unsigned short posX, unsigned short posY, Renderer::TextAlignment alignment )
 	{
 		// TODO: Refactor this to handle invalid data and also the case of TEXT_MIDDLE
 
@@ -186,12 +186,12 @@ namespace Muspelheim
 				alignedX = ( m_Width / m_Text.GetFontWidth() ) - posX;
 			}
 		}
-		return m_Text.DrawString( textString, alignedX, posY );
+		return m_Text.DrawString( textString, color, alignedX, posY );
 	}
 
-	bool OpenGLSurface::DrawStringBuffer( wchar_t const * pTextBuffer, unsigned int size )
+	bool OpenGLSurface::DrawStringBuffer( TextBuffer const & textBuffer )
 	{
-		return m_Text.DrawStringBuffer( pTextBuffer, size );
+		return m_Text.DrawStringBuffer( textBuffer );
 	}
 
 	std::shared_ptr<RenderObject> OpenGLSurface::CreateRenderObject()

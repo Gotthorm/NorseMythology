@@ -1,6 +1,7 @@
 // OpenGLRenderObject.CPP
 
-#include <glm/gtc/type_ptr.hpp>
+#include <glm\gtc\type_ptr.hpp>
+#include <glm\gtc\matrix_transform.hpp>
 #include "OpenGLRenderer.h"
 #include "OpenGLRenderObject.h"
 #include "OpenGLInterface.h"

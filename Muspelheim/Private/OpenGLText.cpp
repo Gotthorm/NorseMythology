@@ -1,10 +1,11 @@
 // TEXT.CPP
 
+#include <vector>
+#include "Muspelheim.h"
 #include "OpenGLText.h"
 #include "KTX.h"
 #include "Platform.h"
 #include "OpenGLShader.h"
-#include <codecvt>
 
 namespace Muspelheim
 {
@@ -132,18 +133,13 @@ namespace Muspelheim
 		}
 	}
 
-	bool OpenGLText::DrawString( const std::wstring& str, unsigned short posX, unsigned short posY )
+	bool OpenGLText::DrawString( const std::wstring& str, unsigned int color, unsigned short posX, unsigned short posY )
 	{
 		if( nullptr != m_pScreenBuffer )
 		{
-			char* dst = m_pScreenBuffer + posY * m_BufferWidth + posX;
+			char* pTarget = m_pScreenBuffer + posY * m_BufferWidth + posX;
 
-			// Convert the wide chars to regular
-			using convert_type = std::codecvt_utf8<wchar_t>;
-			std::wstring_convert<convert_type, wchar_t> converter;
-			std::string convertedString = converter.to_bytes( str );
-
-			strcpy( dst, convertedString.c_str() );
+			CopyAndConvert( pTarget, str.c_str(), static_cast<unsigned int>(str.length()) );
 
 			return m_Dirty = true;
 		}
@@ -151,41 +147,46 @@ namespace Muspelheim
 		return false;
 	}
 
-	bool OpenGLText::DrawStringBuffer( wchar_t const * pSourceText, unsigned int size )
+	bool OpenGLText::DrawStringBuffer( TextBuffer const & textBuffer )
 	{
-		if ( nullptr != m_pScreenBuffer && nullptr != pSourceText && 0 < size )
+		unsigned int const size = static_cast<unsigned int>(textBuffer.Text.size());
+
+		if ( nullptr != m_pScreenBuffer && 0 < size )
 		{
 			unsigned int const copySize = ( size < m_BufferSize ) ? size : m_BufferSize;
 
-			char * pTarget = m_pScreenBuffer;
-
-			for( unsigned int index = 0; index < copySize; ++index )
-			{
-				wchar_t code = pSourceText[ index ];
-			
-				//if( code == '\0' )
-				//	break;
-			
-				if( code < 128 )
-				{
-					*pTarget = char( code );
-				}
-				else
-				{
-					*pTarget = '?';
-					if( code >= 0xD800 && code <= 0xD8FF )
-					{
-						// lead surrogate, skip the next code unit, which is the trail
-						++index;
-					}
-				}
-				++pTarget;
-			}
+			CopyAndConvert( m_pScreenBuffer, &(textBuffer.Text[0]), copySize );
 
 			return true;
 		}
 
 		return false;
+	}
+
+	void OpenGLText::CopyAndConvert( char * pTarget, wchar_t const * pSource, unsigned int size )
+	{
+		for ( unsigned int index = 0; index < size; ++index )
+		{
+			wchar_t const code = pSource[ index ];
+
+			//if( code == '\0' )
+			//	break;
+
+			if ( code < 128 )
+			{
+				*pTarget = char( code );
+			}
+			else
+			{
+				*pTarget = '?';
+				if ( code >= 0xD800 && code <= 0xD8FF )
+				{
+					// lead surrogate, skip the next code unit, which is the trail
+					++index;
+				}
+			}
+			++pTarget;
+		}
 	}
 
 	//void Text::scroll(int lines)

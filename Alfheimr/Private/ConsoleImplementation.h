@@ -7,6 +7,7 @@
 #include "Alfheimr.h"
 #include "Niflheim.h"
 #include "Jotunheim.h"
+#include "Muspelheim.h"
 
 namespace Alfheimr
 {
@@ -147,7 +148,7 @@ namespace Alfheimr
 		// A text buffer that represents the entire text surface
 		// The dimensions match the physical dimensions of the parent window
 		// This buffer does not understand wrapping so data must be wrapped for it by the client that writes into it.
-		std::vector<wchar_t> m_ScreenTextBuffer;
+		Muspelheim::TextBuffer m_ScreenTextBuffer;
 
 		std::weak_ptr<Muspelheim::Renderer> m_Renderer;
 

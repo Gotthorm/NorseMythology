@@ -6,7 +6,7 @@
 #include <sstream>
 #include <codecvt>
 #include "Niflheim.h"
-#include <glm/gtc/matrix_transform.hpp>
+#include <glm\gtc\matrix_transform.hpp>
 
 #pragma comment(lib, "OpenGL32.lib")
 #pragma comment(lib, "Niflheim.lib")
@@ -14,7 +14,7 @@
 namespace Muspelheim
 {
 	//
-	bool OpenGLRenderer::Initialize( const Platform::WindowHandle& hWindow )
+	bool OpenGLRenderer::Initialize( Platform::WindowHandle const & hWindow )
 	{
 		PIXELFORMATDESCRIPTOR pfd =
 		{
@@ -82,9 +82,9 @@ namespace Muspelheim
 	}
 
 	//
-	void OpenGLRenderer::BeginRender( const glm::mat4& viewMatrix )
+	void OpenGLRenderer::BeginRender( glm::mat4 const & viewMatrix )
 	{
-		static const GLfloat one = 1.0f;
+		static GLfloat const one = 1.0f;
 
 		m_ViewMatrix = viewMatrix;
 
@@ -119,7 +119,7 @@ namespace Muspelheim
 	std::wstring OpenGLRenderer::GetVersionInformation()
 	{
 		// Determine what version of OpenGL is initialized
-		const char* glVersion = (const char*)glGetString( GL_VERSION );
+		char const * const glVersion = reinterpret_cast<char const *>(glGetString( GL_VERSION ));
 		CHAR tempString[ 256 ];
 		sprintf_s( tempString, 256, "OpenGL information: %s", glVersion );
 
@@ -203,12 +203,12 @@ namespace Muspelheim
 		}
 	}
 
-	void OpenGLRenderer::AddMessaging( const std::weak_ptr<Niflheim::MessageManager>& messageManager )
+	void OpenGLRenderer::AddMessaging( std::weak_ptr<Niflheim::MessageManager> const & messageManager )
 	{
 		m_MessageManager = messageManager;
 	}
 
-	unsigned int OpenGLRenderer::LoadShader( const std::wstring& shaderName )
+	unsigned int OpenGLRenderer::LoadShader( std::wstring const & shaderName )
 	{
 		OpenGLShader* shader = new OpenGLShader();
 
@@ -222,7 +222,7 @@ namespace Muspelheim
 		return 0;
 	}
 
-	unsigned int OpenGLRenderer::LoadTexture( const unsigned char* imageData, unsigned int height, unsigned int width, bool hasAlpha )
+	unsigned int OpenGLRenderer::LoadTexture( unsigned char const * imageData, unsigned int height, unsigned int width, bool hasAlpha )
 	{
 		unsigned int textureID = 0;
 
@@ -353,7 +353,7 @@ namespace Muspelheim
 	}
 
 	//
-	bool OpenGLRenderer::SetSurfaceColor( SurfaceID surfaceID, const glm::vec4& color )
+	bool OpenGLRenderer::SetSurfaceColor( SurfaceID surfaceID, glm::vec4 const & color )
 	{
 		if( surfaceID > 0 && m_Surfaces.size() >= surfaceID )
 		{
@@ -437,26 +437,27 @@ namespace Muspelheim
 	}
 
 	//
-	bool OpenGLRenderer::DrawSurfaceString( SurfaceID surfaceID, const std::wstring& textString, unsigned short posX, unsigned short posY, TextAlignment alignment )
+	bool OpenGLRenderer::DrawSurfaceString( SurfaceID surfaceID, std::wstring const & textString, unsigned int color, unsigned short posX, unsigned short posY, TextAlignment alignment )
 	{
 		if( surfaceID > 0 && m_Surfaces.size() >= surfaceID )
 		{
-			return m_Surfaces[ surfaceID - 1 ]->DrawString( textString, posX, posY, alignment );
+			return m_Surfaces[ surfaceID - 1 ]->DrawString( textString, color, posX, posY, alignment );
 		}
 
 		return false;
 	}
 
 	//
-	bool OpenGLRenderer::DrawSurfaceStringBuffer( SurfaceID surfaceID, wchar_t const * pTextBuffer, unsigned int size )
+	bool OpenGLRenderer::DrawSurfaceStringBuffer( SurfaceID surfaceID, TextBuffer const & textBuffer )
 	{
 		if ( surfaceID > 0 && m_Surfaces.size() >= surfaceID )
 		{
-			return m_Surfaces[ surfaceID - 1 ]->DrawStringBuffer( pTextBuffer, size );
+			return m_Surfaces[ surfaceID - 1 ]->DrawStringBuffer( textBuffer );
 		}
 
 		return false;
 	}
+
 	//
 	std::shared_ptr<RenderObject> OpenGLRenderer::CreateSurfaceRenderObject( SurfaceID surfaceID )
 	{

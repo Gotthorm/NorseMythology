@@ -1,6 +1,5 @@
 // VOLSTAGG.CPP
 
-#include <glm/gtc/matrix_transform.hpp>
 #include <glm\gtx\quaternion.hpp>
 #include "Volstagg.h"
 #include "Valhalla.h"

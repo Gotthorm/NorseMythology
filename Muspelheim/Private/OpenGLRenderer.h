@@ -1,7 +1,7 @@
 #pragma once  
 
 #include <Windows.h>
-#include <glm/gtc/matrix_transform.hpp>
+#include <glm\glm.hpp>
 #include "Muspelheim.h"
 #include "OpenGLSurface.h"
 #include "OpenGLRenderObject.h"
@@ -24,10 +24,10 @@ namespace Muspelheim
 		virtual ~OpenGLRenderer();
 
 		//
-		virtual bool Initialize( const Platform::WindowHandle& hWindow ) override;
+		virtual bool Initialize( Platform::WindowHandle const & hWindow ) override;
 
 		//
-		virtual void BeginRender( const glm::mat4& viewMatrix ) override;
+		virtual void BeginRender( glm::mat4 const & viewMatrix ) override;
 
 		//
 		virtual void EndRender() override;
@@ -39,13 +39,13 @@ namespace Muspelheim
 		virtual std::wstring GetVersionInformation() override;
 
 		//
-		virtual void AddMessaging( const std::weak_ptr<Niflheim::MessageManager>& messageManager ) override;
+		virtual void AddMessaging( std::weak_ptr<Niflheim::MessageManager> const & messageManager ) override;
 
 		//
-		virtual unsigned int LoadShader( const std::wstring& shaderName ) override;
+		virtual unsigned int LoadShader( std::wstring const & shaderName ) override;
 
 		//
-		virtual unsigned int LoadTexture( const unsigned char* imageData, unsigned int height, unsigned int width, bool hasAlpha ) override;
+		virtual unsigned int LoadTexture( unsigned char const * imageData, unsigned int height, unsigned int width, bool hasAlpha ) override;
 
 		//
 		virtual bool GetVSyncEnabled() override;
@@ -74,7 +74,7 @@ namespace Muspelheim
 		virtual bool GetSurfaceColor( SurfaceID surfaceID, glm::vec4& color ) override;
 
 		//
-		virtual bool SetSurfaceColor( SurfaceID surfaceID, const glm::vec4& color ) override;
+		virtual bool SetSurfaceColor( SurfaceID surfaceID, glm::vec4 const & color ) override;
 
 		//
 		virtual bool GetSurfaceVisible( SurfaceID surfaceID, bool& visible ) override;
@@ -83,10 +83,10 @@ namespace Muspelheim
 		virtual bool SetSurfaceVisible( SurfaceID surfaceID, bool visible ) override;
 
 		//
-		virtual bool DrawSurfaceString( SurfaceID surfaceID, const std::wstring& textString, unsigned short posX, unsigned short posY, TextAlignment alignment ) override;
+		virtual bool DrawSurfaceString( SurfaceID surfaceID, std::wstring const & textString, unsigned int color, unsigned short posX, unsigned short posY, TextAlignment alignment ) override;
 
 		//
-		virtual bool DrawSurfaceStringBuffer( SurfaceID surfaceID, wchar_t const * pTextBuffer, unsigned int size ) override;
+		virtual bool DrawSurfaceStringBuffer( SurfaceID surfaceID, TextBuffer const & textBuffer ) override;
 
 		//
 		virtual std::shared_ptr<RenderObject> CreateSurfaceRenderObject( SurfaceID surfaceID ) override;

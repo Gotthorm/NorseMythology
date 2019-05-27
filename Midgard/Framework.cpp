@@ -4,6 +4,7 @@
 #include <cwchar>
 #include <functional>
 #include <limits>
+//#include <glm\glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "Framework.h"
 //#include "Muspelheim.h"
@@ -570,21 +571,24 @@ void Framework::Update()
 
 		m_Renderer->BeginRender( viewMatrix );
 
+		// Yellow
+		unsigned int color(0xFFFF00FF);
+
 		// Render the current FPS
 		wchar_t stringBuffer[ Platform::kMaxStringLength ];
 		std::swprintf( stringBuffer, Platform::kMaxStringLength, L"%4u FPS", m_FrameTime.FPS() );
-		m_Renderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 10, 0, Muspelheim::Renderer::TEXT_RIGHT );
+		m_Renderer->DrawSurfaceString( m_MainScreenID, stringBuffer, color, 10, 0, Muspelheim::Renderer::TEXT_RIGHT );
 
 		std::swprintf( stringBuffer, Platform::kMaxStringLength, L"VSync: %s", ( vsync ? L"enabled" : L"disabled" ) );
-		m_Renderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 40, 0, Muspelheim::Renderer::TEXT_RIGHT );
+		m_Renderer->DrawSurfaceString( m_MainScreenID, stringBuffer, color, 40, 0, Muspelheim::Renderer::TEXT_RIGHT );
 
 		glm::vec3 const & cameraForward = viewMatrix[ 2 ];
 		std::swprintf( stringBuffer, Platform::kMaxStringLength, L"Camera Direction: %.3f, %.3f, %.3f", cameraForward.x, cameraForward.y, cameraForward.z );
-		m_Renderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 40, 1, Muspelheim::Renderer::TEXT_RIGHT );
+		m_Renderer->DrawSurfaceString( m_MainScreenID, stringBuffer, color, 40, 1, Muspelheim::Renderer::TEXT_RIGHT );
 
 		glm::vec3 const & cameraPosition = pCurrentCamera->GetPosition();
 		std::swprintf( stringBuffer, Platform::kMaxStringLength, L"Camera Position: %.1f, %.1f, %.1f", cameraPosition.x, cameraPosition.y, cameraPosition.z );
-		m_Renderer->DrawSurfaceString( m_MainScreenID, stringBuffer, 40, 2, Muspelheim::Renderer::TEXT_RIGHT );
+		m_Renderer->DrawSurfaceString( m_MainScreenID, stringBuffer, color, 40, 2, Muspelheim::Renderer::TEXT_RIGHT );
 
 		if ( nullptr != m_Console )
 		{
