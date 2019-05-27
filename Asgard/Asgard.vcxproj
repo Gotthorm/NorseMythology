@@ -153,6 +153,12 @@
   <ItemGroup>
     <ClInclude Include="Framework.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Media\Shaders\surface.background.fs.glsl" />
+    <None Include="Media\Shaders\surface.background.vs.glsl" />
+    <None Include="Media\Shaders\text2d.fs.glsl" />
+    <None Include="Media\Shaders\text2d.vs.glsl" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
