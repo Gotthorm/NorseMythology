@@ -23,7 +23,7 @@ namespace Muspelheim
 		~OpenGLSurface() = default;
 
 		//
-		bool Init( std::weak_ptr<OpenGLSurface> weakSelf, unsigned short width, unsigned short height );
+		bool Init( std::weak_ptr<OpenGLSurface> weakSelf, unsigned short width, unsigned short height, std::weak_ptr<Niflheim::MessageManager> const & messageManager );
 
 		//
 		bool SetSize( unsigned short width, unsigned short height );

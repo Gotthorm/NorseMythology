@@ -11,7 +11,7 @@
 namespace Muspelheim
 {
 	//
-	bool OpenGLSurface::Init( std::weak_ptr<OpenGLSurface> weakSelf, unsigned short width, unsigned short height )
+	bool OpenGLSurface::Init( std::weak_ptr<OpenGLSurface> weakSelf, unsigned short width, unsigned short height, std::weak_ptr<Niflheim::MessageManager> const & messageManager )
 	{
 		PLATFORM_ASSERT( width > 0 && height > 0 );
 
@@ -19,7 +19,7 @@ namespace Muspelheim
 		{
 			if( SetSize( width, height ) )
 			{
-				if( m_Text.Init( width, height ) )
+				if( m_Text.Init( width, height, messageManager ) )
 				{
 					m_WeakSelf = weakSelf;
 

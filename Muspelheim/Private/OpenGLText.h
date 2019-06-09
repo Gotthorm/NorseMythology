@@ -16,7 +16,7 @@ namespace Muspelheim
 		~OpenGLText();
 
 		// Called by the parent surface
-		bool Init( unsigned short width, unsigned int height );
+		bool Init( unsigned short width, unsigned int height, std::weak_ptr<Niflheim::MessageManager> const & messageManager );
 
 		bool SetShader( OpenGLShader * pShader );
 

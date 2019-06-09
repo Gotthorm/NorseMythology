@@ -275,7 +275,7 @@ namespace Muspelheim
 
 		if( newSurface )
 		{
-			if( newSurface->Init( newSurface, m_Width, m_Height ) )
+			if( newSurface->Init( newSurface, m_Width, m_Height, m_MessageManager ) )
 			{
 				m_Surfaces.push_back( newSurface );
 

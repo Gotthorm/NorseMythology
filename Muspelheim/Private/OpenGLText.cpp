@@ -1,11 +1,16 @@
 // TEXT.CPP
 
+#include <ft2build.h>
+#include FT_FREETYPE_H
 #include <vector>
 #include "Muspelheim.h"
 #include "OpenGLText.h"
 #include "KTX.h"
 #include "Platform.h"
 #include "OpenGLShader.h"
+#include "Niflheim.h"
+
+#pragma comment(lib, "freetype.lib")
 
 namespace Muspelheim
 {
@@ -34,41 +39,40 @@ namespace Muspelheim
 		return false;
 	}
 
-	bool OpenGLText::Init( unsigned short width, unsigned int height )
+	bool OpenGLText::Init( unsigned short width, unsigned int height, std::weak_ptr<Niflheim::MessageManager> const & messageManager )
 	{
-		if( SetSize( width, height ) )
+		FT_Library ft;
+
+		if ( 0 == FT_Init_FreeType( &ft ) )
 		{
-			//delete m_Shader;
+			if ( SetSize( width, height ) )
+			{
+				OpenGLInterface::GenVertexArrays( 1, &m_VertexArrayObject );
+				OpenGLInterface::BindVertexArray( m_VertexArrayObject );
 
-			//GLuint vs = OpenGLInterface::LoadShader( L"Media/Shaders/text2d.vs.glsl", GL_VERTEX_SHADER, true );
-			//GLuint fs = OpenGLInterface::LoadShader( L"Media/Shaders/text2d.fs.glsl", GL_FRAGMENT_SHADER, true );
+				// glCreateTextures(GL_TEXTURE_2D, 1, &text_buffer);
+				OpenGLInterface::ActiveTexture( GL_TEXTURE0 ); // Fix from tesselation?
+				glGenTextures( 1, &text_buffer );
+				glBindTexture( GL_TEXTURE_2D, text_buffer );
+				OpenGLInterface::TexStorage2D( GL_TEXTURE_2D, 1, GL_R8UI, m_BufferWidth, m_BufferHeight );
 
-			//text_program = OpenGLInterface::CreateProgram();
-			//OpenGLInterface::AttachShader( text_program, vs );
-			//OpenGLInterface::AttachShader( text_program, fs );
-			//OpenGLInterface::LinkProgram( text_program );
+				glPixelStorei( GL_UNPACK_ALIGNMENT, 4 ); // Fix from tesselation?
+				font_texture = KTX::load( "Media/Textures/cp437_9x16.ktx" );
 
-			//OpenGLInterface::DeleteShader( fs );
-			//OpenGLInterface::DeleteShader( vs );
+				// Extract the font width and height.  Results must be 0 or larger.
+				glGetTexLevelParameteriv( GL_TEXTURE_2D_ARRAY, 0, GL_TEXTURE_WIDTH, &m_FontWidth );
+				glGetTexLevelParameteriv( GL_TEXTURE_2D_ARRAY, 0, GL_TEXTURE_HEIGHT, &m_FontHeight );
 
-			// glCreateVertexArrays(1, &vao);
-			OpenGLInterface::GenVertexArrays( 1, &m_VertexArrayObject );
-			OpenGLInterface::BindVertexArray( m_VertexArrayObject );
-
-			// glCreateTextures(GL_TEXTURE_2D, 1, &text_buffer);
-			OpenGLInterface::ActiveTexture( GL_TEXTURE0 ); // Fix from tesselation?
-			glGenTextures( 1, &text_buffer );
-			glBindTexture( GL_TEXTURE_2D, text_buffer );
-			OpenGLInterface::TexStorage2D( GL_TEXTURE_2D, 1, GL_R8UI, m_BufferWidth, m_BufferHeight );
-
-			glPixelStorei( GL_UNPACK_ALIGNMENT, 4 ); // Fix from tesselation?
-			font_texture = KTX::load( "Media/Textures/cp437_9x16.ktx" );
-
-			// Extract the font width and height.  Results must be 0 or larger.
-			glGetTexLevelParameteriv( GL_TEXTURE_2D_ARRAY, 0, GL_TEXTURE_WIDTH, &m_FontWidth );
-			glGetTexLevelParameteriv( GL_TEXTURE_2D_ARRAY, 0, GL_TEXTURE_HEIGHT, &m_FontHeight );
-
-			return ( font_texture != 0 );
+				return ( font_texture != 0 );
+			}
+		}
+		else
+		{
+			std::shared_ptr<Niflheim::MessageManager> sharedMssageManager = messageManager.lock();
+			if ( sharedMssageManager )
+			{
+				sharedMssageManager->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Could not init freetype library" ) );
+			}
 		}
 
 		return false;
@@ -103,8 +107,6 @@ namespace Muspelheim
 	{
 		if( m_Shader && m_Shader->Use() )
 		{
-			//OpenGLInterface::UseProgram( text_program );
-
 			const GLfloat color[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
 			OpenGLInterface::VertexAttrib4fv( 1, color );
