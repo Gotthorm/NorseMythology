@@ -270,22 +270,22 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 		// Initialize the game
 
 		// Create and initialize the avatar
-		m_pLoki1 = new Loki( m_MainScreenID );
-		PLATFORM_ASSERT( nullptr != m_pCameraManager );
-		if( m_pLoki1->Init( m_Renderer ) )
-		{
-			if( false == m_pLoki1->Load( avatarDataName ) )
-			{
-				m_MessageManager->Post( Niflheim::Message::LOG_WARN, L"Failed to load Loki render data: " + avatarDataName );
-			}
-		}
-		else
-		{
-			m_MessageManager->Post( Niflheim::Message::LOG_ERROR, L"Failed to initialize a Loki render object" );
-			return false;
-		}
+		//m_pLoki1 = new Loki( m_MainScreenID );
+		//PLATFORM_ASSERT( nullptr != m_pCameraManager );
+		//if( m_pLoki1->Init( m_Renderer ) )
+		//{
+		//	if( false == m_pLoki1->Load( avatarDataName ) )
+		//	{
+		//		m_MessageManager->Post( Niflheim::Message::LOG_WARN, L"Failed to load Loki render data: " + avatarDataName );
+		//	}
+		//}
+		//else
+		//{
+		//	m_MessageManager->Post( Niflheim::Message::LOG_ERROR, L"Failed to initialize a Loki render object" );
+		//	return false;
+		//}
 
-		m_pLoki1->SetPosition( glm::vec3( moveScale, 0, moveScale ) );
+		//m_pLoki1->SetPosition( glm::vec3( moveScale, 0, moveScale ) );
 
 		//m_Loki2 = new Loki( m_MainScreenID );
 		//if( m_Loki2 && m_Loki2->Init( *m_Renderer ) )
@@ -382,8 +382,8 @@ bool Framework::Init( Platform::WindowHandle hWindow, const Platform::LaunchInfo
 
 void Framework::Shutdown()
 {
-	delete m_pLoki1;
-	m_pLoki1 = nullptr;
+	//delete m_pLoki1;
+	//m_pLoki1 = nullptr;
 	//delete m_Loki2;
 	//m_Loki2 = nullptr;
 	//delete m_Loki3;
@@ -446,7 +446,7 @@ void Framework::Update()
 		//PLATFORM_ASSERT( m_pGame != nullptr );
 		//m_pGame->Update();
 
-		m_pLoki1->Update();
+		//m_pLoki1->Update();
 		//m_Loki2->Update();
 		//m_Loki3->Update();
 		//m_Loki4->Update();

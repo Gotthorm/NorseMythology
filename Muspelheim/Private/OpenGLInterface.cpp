@@ -33,6 +33,7 @@ PFNGLGETOBJECTPARAMETERIVARBPROC OpenGLInterface::GetObjectParameterivARB = NULL
 PFNGLGETSHADERINFOLOGPROC OpenGLInterface::GetShaderInfoLog = NULL;
 PFNGLGETUNIFORMLOCATIONPROC OpenGLInterface::GetUniformLocation = NULL;
 PFNGLUNIFORM2FVPROC OpenGLInterface::Uniform2fv = NULL;
+PFNGLUNIFORM1IPROC OpenGLInterface::Uniform1i = NULL;
 PFNGLUNIFORMMATRIX4FVPROC OpenGLInterface::UniformMatrix4fv = NULL;
 
 PFNGLCLEARBUFFERFVPROC OpenGLInterface::ClearBufferfv = NULL;
@@ -107,6 +108,7 @@ bool OpenGLInterface::Initialize()
 	GetShaderInfoLog = (PFNGLGETSHADERINFOLOGPROC)(GetOpenGLFunctionAddress("glGetShaderInfoLog"));
 	GetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)(GetOpenGLFunctionAddress("glGetUniformLocation"));
 	Uniform2fv = (PFNGLUNIFORM2FVPROC)(GetOpenGLFunctionAddress("glUniform2fv"));
+	Uniform1i = ( PFNGLUNIFORM1IPROC )( GetOpenGLFunctionAddress( "glUniform1i" ) );
 	UniformMatrix4fv = (PFNGLUNIFORMMATRIX4FVPROC)GetOpenGLFunctionAddress( "glUniformMatrix4fv" );
 
 	ClearBufferfv = (PFNGLCLEARBUFFERFVPROC)(GetOpenGLFunctionAddress("glClearBufferfv"));

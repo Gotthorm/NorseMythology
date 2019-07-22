@@ -159,6 +159,11 @@
     <None Include="Media\Shaders\text2d.fs.glsl" />
     <None Include="Media\Shaders\text2d.vs.glsl" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Muspelheim\Muspelheim.vcxproj">
+      <Project>{8e11ade8-4c52-443e-915f-fae19eece2db}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

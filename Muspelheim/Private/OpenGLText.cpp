@@ -12,6 +12,9 @@
 
 #pragma comment(lib, "freetype.lib")
 
+char const defaultFontFile[] = "Media/Fonts/CourierNew.ttf";
+unsigned int const fontPointSize = 16U;
+
 namespace Muspelheim
 {
 	OpenGLText::~OpenGLText()
@@ -22,6 +25,9 @@ namespace Muspelheim
 		glDeleteTextures( 1, &text_buffer );
 		OpenGLInterface::DeleteVertexArrays( 1, &m_VertexArrayObject );
 		//OpenGLInterface::DeleteProgram( text_program );
+
+		FT_Done_Face( m_Face );
+		FT_Done_FreeType( m_FreeTypeLibrary );
 	}
 
 	bool OpenGLText::SetShader( OpenGLShader* shader )
@@ -41,44 +47,78 @@ namespace Muspelheim
 
 	bool OpenGLText::Init( unsigned short width, unsigned int height, std::weak_ptr<Niflheim::MessageManager> const & messageManager )
 	{
-		FT_Library ft;
+		std::shared_ptr<Niflheim::MessageManager> sharedMessageManager = messageManager.lock();
 
-		if ( 0 == FT_Init_FreeType( &ft ) )
+		// Initialize the free type library
+		//if ( 0 == FT_Init_FreeType( &m_FreeTypeLibrary ) )
 		{
-			if ( SetSize( width, height ) )
+			// Load our default TTF font
+			//if ( 0 == FT_New_Face( m_FreeTypeLibrary, defaultFontFile, 0, &m_Face ) )
 			{
-				OpenGLInterface::GenVertexArrays( 1, &m_VertexArrayObject );
-				OpenGLInterface::BindVertexArray( m_VertexArrayObject );
+				// Set the font size : 16 equates to a 9 x 9 pixel font
+				//if ( 0 == FT_Set_Pixel_Sizes( m_Face, 0, fontPointSize ) )
+				{
+					//if ( 0 == FT_Load_Char( m_Face, 'X', FT_LOAD_RENDER ) )
+					{
+						//m_FontWidth = m_Face->glyph->bitmap.width;
+						//m_FontHeight = m_Face->glyph->bitmap.rows;
 
-				// glCreateTextures(GL_TEXTURE_2D, 1, &text_buffer);
-				OpenGLInterface::ActiveTexture( GL_TEXTURE0 ); // Fix from tesselation?
-				glGenTextures( 1, &text_buffer );
-				glBindTexture( GL_TEXTURE_2D, text_buffer );
-				OpenGLInterface::TexStorage2D( GL_TEXTURE_2D, 1, GL_R8UI, m_BufferWidth, m_BufferHeight );
+						GLuint tex;
+						OpenGLInterface::ActiveTexture( GL_TEXTURE0 );
+						glGenTextures( 1, &tex );
+						glBindTexture( GL_TEXTURE_2D, tex );
+						OpenGLInterface::Uniform1i( m_UniformTex, 0 );
+					}
 
-				glPixelStorei( GL_UNPACK_ALIGNMENT, 4 ); // Fix from tesselation?
-				font_texture = KTX::load( "Media/Textures/cp437_9x16.ktx" );
+					if ( SetBufferSize( width, height ) )
+					{
+						OpenGLInterface::GenVertexArrays( 1, &m_VertexArrayObject );
+						OpenGLInterface::BindVertexArray( m_VertexArrayObject );
 
-				// Extract the font width and height.  Results must be 0 or larger.
-				glGetTexLevelParameteriv( GL_TEXTURE_2D_ARRAY, 0, GL_TEXTURE_WIDTH, &m_FontWidth );
-				glGetTexLevelParameteriv( GL_TEXTURE_2D_ARRAY, 0, GL_TEXTURE_HEIGHT, &m_FontHeight );
+						// glCreateTextures(GL_TEXTURE_2D, 1, &text_buffer);
+						OpenGLInterface::ActiveTexture( GL_TEXTURE0 ); // Fix from tesselation?
+						glGenTextures( 1, &text_buffer );
+						glBindTexture( GL_TEXTURE_2D, text_buffer );
+						OpenGLInterface::TexStorage2D( GL_TEXTURE_2D, 1, GL_R8UI, m_BufferWidth, m_BufferHeight );
 
-				return ( font_texture != 0 );
+						glPixelStorei( GL_UNPACK_ALIGNMENT, 4 ); // Fix from tesselation?
+						font_texture = KTX::load( "Media/Textures/cp437_9x16.ktx" );
+
+						// Extract the font width and height.  Results must be 0 or larger.
+						glGetTexLevelParameteriv( GL_TEXTURE_2D_ARRAY, 0, GL_TEXTURE_WIDTH, &m_FontWidth );
+						glGetTexLevelParameteriv( GL_TEXTURE_2D_ARRAY, 0, GL_TEXTURE_HEIGHT, &m_FontHeight );
+
+						return ( font_texture != 0 );
+					}
+				}
+				//else
+				//{
+				//	if ( sharedMessageManager )
+				//	{
+				//		sharedMessageManager->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Failed to set font point size to " + std::to_wstring( fontPointSize ) ) );
+				//	}
+				//}
 			}
+			//else
+			//{
+			//	if ( sharedMessageManager )
+			//	{
+			//		sharedMessageManager->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Could not open default font" ) );
+			//	}
+			//}
 		}
-		else
-		{
-			std::shared_ptr<Niflheim::MessageManager> sharedMssageManager = messageManager.lock();
-			if ( sharedMssageManager )
-			{
-				sharedMssageManager->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Could not init freetype library" ) );
-			}
-		}
+		//else
+		//{
+		//	if ( sharedMessageManager )
+		//	{
+		//		sharedMessageManager->Post( Niflheim::Message::LOG_ERROR, std::wstring( L"Could not init freetype library" ) );
+		//	}
+		//}
 
 		return false;
 	}
 
-	bool OpenGLText::SetSize( unsigned short width, unsigned int height )
+	bool OpenGLText::SetBufferSize( unsigned short width, unsigned int height )
 	{
 		// TODO: make this work after init also
 		if( nullptr != m_pScreenBuffer )

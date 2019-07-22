@@ -3,6 +3,9 @@
 #include <string>
 #include "OpenGLInterface.h"
 
+struct FT_LibraryRec_;
+struct FT_FaceRec_;
+
 namespace Muspelheim
 {
 	class OpenGLShader;
@@ -39,7 +42,7 @@ namespace Muspelheim
 		void SetScale( float scaleX, float scaleY );
 
 	private:
-		bool SetSize( unsigned short width, unsigned int height );
+		bool SetBufferSize( unsigned short width, unsigned int height );
 
 		void CopyAndConvert( char * pTarget, wchar_t const * pSource, unsigned int size );
 
@@ -66,5 +69,10 @@ namespace Muspelheim
 		unsigned short m_BufferWidth = 0;
 		unsigned short m_BufferHeight = 0;
 		unsigned int m_BufferSize = 0;
+
+		FT_LibraryRec_* m_FreeTypeLibrary = nullptr;
+		FT_FaceRec_ * m_Face = nullptr;
+
+		GLint m_UniformTex = -1;;
 	};
 }

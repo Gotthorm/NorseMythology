@@ -83,16 +83,26 @@ void Framework::ResizeWindow( unsigned short width, unsigned short height )
 // Research
 void Framework::Update()
 {
+	// https://learnopengl.com/Advanced-OpenGL/Advanced-GLSL
+
 	if ( m_Initialized )
 	{
 		m_Renderer->BeginRender( glm::mat4() );
 
 		wchar_t stringBuffer[ Platform::kMaxStringLength ];
 
-		unsigned int const color(0xFFFFFFFF);
+		unsigned int const whiteColor( 0xFFFFFFFF );
+		unsigned int const blueColor( 0x0000FFF );
+		unsigned int const redColor( 0xFF0000FF );
 
-		std::swprintf( stringBuffer, Platform::kMaxStringLength, L"My mother and your mother were hanging up clothes." );
-		m_Renderer->DrawSurfaceString( m_MainScreenID, stringBuffer, color, 1, 1, Muspelheim::Renderer::TEXT_LEFT );
+		std::swprintf( stringBuffer, Platform::kMaxStringLength, L"W: A hundred and fifty years before, when the parochial disagreements between Earth and Mars had been on the verge of war," );
+		m_Renderer->DrawSurfaceString( m_MainScreenID, stringBuffer, whiteColor, 1, 1, Muspelheim::Renderer::TEXT_LEFT );
+
+		std::swprintf( stringBuffer, Platform::kMaxStringLength, L"B: the Belt had been a far horizon of tremendous mineral wealth beyond viable economic reach," );
+		m_Renderer->DrawSurfaceString( m_MainScreenID, stringBuffer, blueColor, 1, 2, Muspelheim::Renderer::TEXT_LEFT );
+
+		std::swprintf( stringBuffer, Platform::kMaxStringLength, L"R: and the outer planets had been beyond even the most unrealistic corporate dream." );
+		m_Renderer->DrawSurfaceString( m_MainScreenID, stringBuffer, redColor, 1, 3, Muspelheim::Renderer::TEXT_LEFT );
 
 		m_Renderer->EndRender();
 	}

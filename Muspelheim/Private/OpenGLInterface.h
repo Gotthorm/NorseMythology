@@ -41,6 +41,7 @@ struct OpenGLInterface
 	static PFNGLGETSHADERINFOLOGPROC GetShaderInfoLog;
 	static PFNGLGETUNIFORMLOCATIONPROC GetUniformLocation;
 	static PFNGLUNIFORM2FVPROC Uniform2fv;
+	static PFNGLUNIFORM1IPROC Uniform1i;
 
 	//typedef void (APIENTRY* PFNGLCLEARBUFFERFVPROC)(GLenum, GLint, const GLfloat*);
 	static PFNGLCLEARBUFFERFVPROC ClearBufferfv;
