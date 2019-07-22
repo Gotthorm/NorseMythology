@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ImageMagick;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -27,6 +28,10 @@ namespace Yggdrasil
                 //reading from the file
                 try
                 {
+                    //using ( MagickImage image = new MagickImage( filePath ) )
+                    //{
+                    //    image.
+                    //}
                     using ( Stream inputStream = new FileStream( filePath, FileMode.Open, FileAccess.Read, FileShare.Read ) )
                     {
                         m_Image = Image.FromStream( inputStream );
