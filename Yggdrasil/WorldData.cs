@@ -28,18 +28,19 @@ namespace Yggdrasil
                 //reading from the file
                 try
                 {
-                    //using ( MagickImage image = new MagickImage( filePath ) )
-                    //{
-                    //    image.
-                    //}
-                    using ( Stream inputStream = new FileStream( filePath, FileMode.Open, FileAccess.Read, FileShare.Read ) )
+                    using (MagickImage image = new MagickImage(filePath))
                     {
-                        m_Image = Image.FromStream( inputStream );
+                        int bitDepth = image.BitDepth();
 
-                        m_Width = m_Image.Width;
-                        m_Height = m_Image.Height;
+                        m_Width = image.Width;
+                        m_Height = image.Height;
 
-                        m_FilePath = filePath;
+                        m_Image = image.ToBitmap();
+
+                        if (bitDepth == 8)
+                        {
+                            Console.WriteLine("8 Bit");
+                        }
                     }
 
                     return true;
