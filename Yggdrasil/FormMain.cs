@@ -93,22 +93,6 @@ namespace Yggdrasil
             Properties.Settings.Default.Save();
         }
 
-        private void openWorldToolStripMenuItem_Click( object sender, EventArgs e )
-        {
-            using ( OpenFileDialog openFileDialog = new OpenFileDialog() )
-            {
-                openFileDialog.InitialDirectory = m_DataFolderPath;
-                openFileDialog.Filter = "txt files (*.yggdrasil)|*.yggdrasil|All files (*.*)|*.*";
-                openFileDialog.FilterIndex = 1;
-                openFileDialog.RestoreDirectory = true;
-
-                if ( openFileDialog.ShowDialog() == DialogResult.OK )
-                {
-                    LoadWorld( openFileDialog.FileName );
-                }
-            }
-        }
-
         private void FormMain_Load( object sender, EventArgs e )
         {
         }
@@ -159,6 +143,34 @@ namespace Yggdrasil
             m_PictureBox.Height = m_Data.Height;
         }
 
+        private void ImportImage(string filePath)
+        {
+            // Create a default empty world if one isnt already loaded?
+            if (null == m_Data)
+            {
+                // Load a new world
+                m_Data = new WorldData();
+            }
+
+            // Create a GUID
+
+            // Create a new Branch instance
+            Branch newBranch = new Branch();
+
+            if(newBranch.LoadImage(filePath))
+            {
+                // Prompt user for additional information
+                FormBranch branchDialogBox = new FormBranch(newBranch);
+
+                DialogResult dialogresult = branchDialogBox.ShowDialog();
+
+                // Create and save new branch file
+
+                // Import branch data into current world data
+            }
+
+        }
+
         private void numericUpDownZoom_KeyPress( object sender, KeyPressEventArgs e )
         {
             if ( !char.IsControl( e.KeyChar ) && !char.IsDigit( e.KeyChar ) )
@@ -179,6 +191,38 @@ namespace Yggdrasil
 
                 m_PictureBox.Width = Decimal.ToInt32(width);
                 m_PictureBox.Height = Decimal.ToInt32(height);
+            }
+        }
+
+        private void ImportImageToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.InitialDirectory = m_DataFolderPath;
+                openFileDialog.Filter = "image files (*.png)|*.png|All files (*.*)|*.*";
+                openFileDialog.FilterIndex = 1;
+                openFileDialog.RestoreDirectory = true;
+
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    ImportImage(openFileDialog.FileName);
+                }
+            }
+        }
+
+        private void OpenWorldToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.InitialDirectory = m_DataFolderPath;
+                openFileDialog.Filter = "txt files (*.yggdrasil)|*.yggdrasil|All files (*.*)|*.*";
+                openFileDialog.FilterIndex = 1;
+                openFileDialog.RestoreDirectory = true;
+
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    LoadWorld(openFileDialog.FileName);
+                }
             }
         }
     }

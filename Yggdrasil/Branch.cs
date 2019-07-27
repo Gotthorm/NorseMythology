@@ -1,22 +1,104 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ImageMagick;
 
 namespace Yggdrasil
 {
     // This represents a single imported data element
-    class Branch
+    public class Branch
     {
         // This should end up in a more global location?
         public enum Type
         {
             Invalid,
             Elevation
+        };
+
+        public Branch()
+        {
+
         }
 
-        private uint m_Version = 0;
+        public int ImageWidth
+        {
+            get
+            {
+                return m_ImageWidth;
+            }
+        }
+
+        public int ImageHeight
+        {
+            get
+            {
+                return m_ImageHeight;
+            }
+        }
+
+        public int ImageBitDepth
+        {
+            get
+            {
+                return m_ImageBitDepth;
+            }
+        }
+
+        public uint Version
+        {
+            get
+            {
+                return m_Version;
+            }
+        }
+
+        public string SourcePath
+        {
+            get
+            {
+                return m_OriginalPath;
+            }
+        }
+
+        public bool LoadImage(string filePath)
+        {
+            // Load the image "as is"
+            if (File.Exists(filePath))
+            {
+                m_OriginalPath = filePath;
+
+                try
+                {
+                    FileStream fileStream = new FileStream(filePath, FileMode.Open);
+
+                    int fileLength = (int)fileStream.Length;
+                    m_ImageData = new byte[fileLength];
+                    fileStream.Read(m_ImageData, 0, fileLength);
+
+                    // Load the image into ImageMagick to extract some basic information
+                    using (MagickImage image = new MagickImage(filePath))
+                    {
+                        m_ImageBitDepth = image.BitDepth();
+
+                        m_ImageWidth = image.Width;
+                        m_ImageHeight = image.Height;
+                    }
+
+                    return true;
+                }
+                catch (Exception)
+                {
+
+                }
+            }
+
+            return false;
+        }
+
+        private uint m_Version = 1;
 
         private string m_Remarks = "";
         private string m_SourceURL = "";
@@ -25,7 +107,7 @@ namespace Yggdrasil
         private int m_ElevationMaximum = 0;
         private int m_ImageWidth = 0;
         private int m_ImageHeight = 0;
-
+        private int m_ImageBitDepth = 0;
         
         private float m_GlobalCoordinateWest = 0.0f;
         private float m_GlobalCoordinateEast = 0.0f;
@@ -34,6 +116,10 @@ namespace Yggdrasil
 
         private Type m_Type = Type.Invalid;
 
+        private string m_OriginalPath = "";
+
+        // m_GUID?
+        
         private byte[] m_ImageData = null;
     }
 }

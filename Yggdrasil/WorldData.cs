@@ -114,6 +114,9 @@ namespace Yggdrasil
             return false;
         }
 
+        // A list of project relative branch paths that are currently loaded
+        List<string> m_Branches = new List<string>();
+
         private string m_FilePath = "";
         private int m_Width;
         private int m_Height;

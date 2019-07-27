@@ -39,9 +39,10 @@
             this.pictureBoxMain = new System.Windows.Forms.PictureBox();
             this.Filters = new System.Windows.Forms.TabControl();
             this.tabPageMain = new System.Windows.Forms.TabPage();
-            this.tabPageFilters = new System.Windows.Forms.TabPage();
-            this.labelZoom = new System.Windows.Forms.Label();
             this.numericUpDownZoom = new System.Windows.Forms.NumericUpDown();
+            this.labelZoom = new System.Windows.Forms.Label();
+            this.tabPageFilters = new System.Windows.Forms.TabPage();
+            this.importImageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainerMain)).BeginInit();
             this.splitContainerMain.Panel1.SuspendLayout();
@@ -68,7 +69,8 @@
             // fileToolStripMenuItem
             // 
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.openWorldToolStripMenuItem});
+            this.openWorldToolStripMenuItem,
+            this.importImageToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
             this.fileToolStripMenuItem.Text = "File";
@@ -76,9 +78,9 @@
             // openWorldToolStripMenuItem
             // 
             this.openWorldToolStripMenuItem.Name = "openWorldToolStripMenuItem";
-            this.openWorldToolStripMenuItem.Size = new System.Drawing.Size(138, 22);
+            this.openWorldToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.openWorldToolStripMenuItem.Text = "Open World";
-            this.openWorldToolStripMenuItem.Click += new System.EventHandler(this.openWorldToolStripMenuItem_Click);
+            this.openWorldToolStripMenuItem.Click += new System.EventHandler(this.OpenWorldToolStripMenuItem_Click);
             // 
             // optionsToolStripMenuItem
             // 
@@ -160,26 +162,6 @@
             this.tabPageMain.Text = "View Controls";
             this.tabPageMain.UseVisualStyleBackColor = true;
             // 
-            // tabPageFilters
-            // 
-            this.tabPageFilters.Location = new System.Drawing.Point(4, 22);
-            this.tabPageFilters.Name = "tabPageFilters";
-            this.tabPageFilters.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageFilters.Size = new System.Drawing.Size(216, 671);
-            this.tabPageFilters.TabIndex = 1;
-            this.tabPageFilters.Text = "Filters";
-            this.tabPageFilters.UseVisualStyleBackColor = true;
-            // 
-            // labelZoom
-            // 
-            this.labelZoom.AutoSize = true;
-            this.labelZoom.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelZoom.Location = new System.Drawing.Point(13, 8);
-            this.labelZoom.Name = "labelZoom";
-            this.labelZoom.Size = new System.Drawing.Size(39, 15);
-            this.labelZoom.TabIndex = 0;
-            this.labelZoom.Text = "Zoom";
-            // 
             // numericUpDownZoom
             // 
             this.numericUpDownZoom.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -199,6 +181,33 @@
             0});
             this.numericUpDownZoom.ValueChanged += new System.EventHandler(this.numericUpDownZoom_ValueChanged);
             this.numericUpDownZoom.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.numericUpDownZoom_KeyPress);
+            // 
+            // labelZoom
+            // 
+            this.labelZoom.AutoSize = true;
+            this.labelZoom.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelZoom.Location = new System.Drawing.Point(13, 8);
+            this.labelZoom.Name = "labelZoom";
+            this.labelZoom.Size = new System.Drawing.Size(39, 15);
+            this.labelZoom.TabIndex = 0;
+            this.labelZoom.Text = "Zoom";
+            // 
+            // tabPageFilters
+            // 
+            this.tabPageFilters.Location = new System.Drawing.Point(4, 22);
+            this.tabPageFilters.Name = "tabPageFilters";
+            this.tabPageFilters.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPageFilters.Size = new System.Drawing.Size(216, 671);
+            this.tabPageFilters.TabIndex = 1;
+            this.tabPageFilters.Text = "Filters";
+            this.tabPageFilters.UseVisualStyleBackColor = true;
+            // 
+            // importImageToolStripMenuItem
+            // 
+            this.importImageToolStripMenuItem.Name = "importImageToolStripMenuItem";
+            this.importImageToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.importImageToolStripMenuItem.Text = "Import Image";
+            this.importImageToolStripMenuItem.Click += new System.EventHandler(this.ImportImageToolStripMenuItem_Click);
             // 
             // FormMain
             // 
@@ -246,6 +255,7 @@
         private System.Windows.Forms.ToolStripMenuItem openWorldToolStripMenuItem;
         private System.Windows.Forms.Label labelZoom;
         private System.Windows.Forms.NumericUpDown numericUpDownZoom;
+        private System.Windows.Forms.ToolStripMenuItem importImageToolStripMenuItem;
     }
 }
 
