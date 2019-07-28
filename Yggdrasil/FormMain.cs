@@ -150,6 +150,14 @@ namespace Yggdrasil
             {
                 // Load a new world
                 m_Data = new WorldData();
+
+				// Save the default world data to generate the location
+				if(m_Data.Save() == false)
+				{
+					// Something went wrong so we will not proceed
+					// The world data should report its own error
+					return;
+				}
             }
 
             // Create a GUID
@@ -162,11 +170,12 @@ namespace Yggdrasil
                 // Prompt user for additional information
                 FormBranch branchDialogBox = new FormBranch(newBranch);
 
-                DialogResult dialogresult = branchDialogBox.ShowDialog();
+                if (branchDialogBox.ShowDialog() == DialogResult.OK)
+                {
+                    // Create and save new branch file
 
-                // Create and save new branch file
-
-                // Import branch data into current world data
+                    // Import branch data into current world data
+                }
             }
 
         }

@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace Yggdrasil
 {
@@ -61,9 +62,43 @@ namespace Yggdrasil
         }
 
         // Save a yggdrasil file
-        public bool Save(string filePath)
+        public bool Save()
         {
-            return false;
+			// If we have not created the save file, do it now
+			if(m_FileCreated == false)
+			{
+				using (OpenFileDialog openFileDialog = new OpenFileDialog())
+				{
+					openFileDialog.InitialDirectory = Properties.Settings.Default.WorldDataFolder;
+					openFileDialog.Filter = "txt files (*.yggdrasil)|*.yggdrasil|All files (*.*)|*.*";
+					openFileDialog.FilterIndex = 1;
+					openFileDialog.RestoreDirectory = true;
+
+					if (openFileDialog.ShowDialog() == DialogResult.OK)
+					{
+						m_FilePath = openFileDialog.FileName;
+					}
+				}
+			}
+
+			m_FileCreated = true;
+
+			if(m_Dirty)
+			{
+				using (FileStream stream = new FileStream(m_FilePath, FileMode.Create))
+				{
+					using (BinaryWriter writer = new BinaryWriter(stream))
+					{
+						writer.Write("hello");
+						writer.Write(5);
+						writer.Close();
+					}
+				}
+
+				m_Dirty = false;
+			}
+
+			return false;
         }
 
         // Import a single image, merging it into the current world data
@@ -114,8 +149,11 @@ namespace Yggdrasil
             return false;
         }
 
-        // A list of project relative branch paths that are currently loaded
-        List<string> m_Branches = new List<string>();
+		private bool m_FileCreated = false;
+		private bool m_Dirty = true;
+
+		// A list of project relative branch paths that are currently loaded
+		private List<string> m_Branches = new List<string>();
 
         private string m_FilePath = "";
         private int m_Width;

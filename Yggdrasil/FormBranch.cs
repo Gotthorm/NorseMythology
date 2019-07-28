@@ -15,12 +15,20 @@ namespace Yggdrasil
         public FormBranch(Branch branchData)
         {
             InitializeComponent();
+
+            // Populate the read only text boxes
             textBox_BranchImagePath.Text = branchData.SourcePath;
             textBox_BranchVersion.Text = branchData.Version.ToString();
             textBox_BranchImageDimensionsWidth.Text = branchData.ImageWidth.ToString();
             textBox_BranchImageDimensionsHeight.Text = branchData.ImageHeight.ToString();
             textBox_BranchImageBitDepth.Text = branchData.ImageBitDepth.ToString();
+
+            m_BranchData = branchData;
         }
+
+        private bool m_UserModifiedElevation = false;
+        private bool m_UserModifiedGlobalCoordinates = false;
+        private Branch m_BranchData = null;
 
         private bool ElevationInputIsValid(char newChar, string currentText)
         {
@@ -129,8 +137,43 @@ namespace Yggdrasil
 
         private void Button_BranchOK_Click(object sender, EventArgs e)
         {
-            // We will validate entries before allowing this to proceed?
             // Elevation range and global coordinates are mandatory to proceed.
+            // so generate a warning if either of them have not been edited.
+            if(m_UserModifiedElevation == false)
+            {
+                if(MessageBox.Show("Did you remember to set the elevation extents?", "Important Question", MessageBoxButtons.YesNo) == DialogResult.No)
+                {
+                    return;
+                }
+            }
+
+            if (m_UserModifiedGlobalCoordinates == false)
+            {
+                if (MessageBox.Show("Did you remember to set the global coordinates?", "Important Question", MessageBoxButtons.YesNo) == DialogResult.No)
+                {
+                    return;
+                }
+            }
+            
+            // Accept the OK
+            this.DialogResult = DialogResult.OK;
+
+            try
+            {
+                // Update the data
+                m_BranchData.ElevationMin = Convert.ToInt32(textBox_BranchElevationMin.Text);
+                m_BranchData.ElevationMax = Convert.ToInt32(textBox_BranchElevationMax.Text);
+                m_BranchData.GlobalCoordinateEast = Convert.ToSingle(textBox_BranchGlobalCoordinatesE.Text);
+                m_BranchData.GlobalCoordinateWest = Convert.ToSingle(textBox_BranchGlobalCoordinatesW.Text);
+                m_BranchData.GlobalCoordinateNorth = Convert.ToSingle(textBox_BranchGlobalCoordinatesN.Text);
+                m_BranchData.GlobalCoordinateSouth = Convert.ToSingle(textBox_BranchGlobalCoordinatesS.Text);
+                m_BranchData.Remarks = textBox_BranchRemarks.Text;
+				m_BranchData.Type = Branch.LayerType.Elevation;
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Invalid data read from the Branch form", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void TextBox_BranchElevationMin_KeyPress(object sender, KeyPressEventArgs e)
@@ -206,16 +249,19 @@ namespace Yggdrasil
         private void TextBox_BranchElevationMin_Validated(object sender, EventArgs e)
         {
             errorProviderBranch.SetError(textBox_BranchElevationMin, "");
+            m_UserModifiedElevation = true;
         }
 
         private void TextBox_BranchElevationMax_Validated(object sender, EventArgs e)
         {
             errorProviderBranch.SetError(textBox_BranchElevationMax, "");
+            m_UserModifiedElevation = true;
         }
 
         private void TextBox_BranchGlobalCoordinatesW_Validated(object sender, EventArgs e)
         {
             errorProviderBranch.SetError(textBox_BranchGlobalCoordinatesW, "");
+            m_UserModifiedGlobalCoordinates = true;
         }
 
         private void TextBox_BranchGlobalCoordinatesW_Validating(object sender, CancelEventArgs e)
@@ -243,11 +289,13 @@ namespace Yggdrasil
         private void TextBox_BranchGlobalCoordinatesN_Validated(object sender, EventArgs e)
         {
             errorProviderBranch.SetError(textBox_BranchGlobalCoordinatesN, "");
+            m_UserModifiedGlobalCoordinates = true;
         }
 
         private void TextBox_BranchGlobalCoordinatesE_Validated(object sender, EventArgs e)
         {
             errorProviderBranch.SetError(textBox_BranchGlobalCoordinatesE, "");
+            m_UserModifiedGlobalCoordinates = true;
         }
 
         private void TextBox_BranchGlobalCoordinatesE_Validating(object sender, CancelEventArgs e)
@@ -264,6 +312,7 @@ namespace Yggdrasil
         private void TextBox_BranchGlobalCoordinatesS_Validated(object sender, EventArgs e)
         {
             errorProviderBranch.SetError(textBox_BranchGlobalCoordinatesS, "");
+            m_UserModifiedGlobalCoordinates = true;
         }
 
         private void TextBox_BranchGlobalCoordinatesS_Validating(object sender, CancelEventArgs e)

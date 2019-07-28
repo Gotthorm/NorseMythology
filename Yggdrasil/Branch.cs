@@ -12,7 +12,7 @@ namespace Yggdrasil
     public class Branch
     {
         // This should end up in a more global location?
-        public enum Type
+        public enum LayerType
         {
             Invalid,
             Elevation
@@ -63,6 +63,110 @@ namespace Yggdrasil
             }
         }
 
+        public int ElevationMin
+        {
+            get
+            {
+                return m_ElevationMinimum;
+            }
+
+            set
+            {
+                m_ElevationMinimum = value;
+            }
+        }
+
+        public int ElevationMax
+        {
+            get
+            {
+                return m_ElevationMaximum;
+            }
+
+            set
+            {
+                m_ElevationMaximum = value;
+            }
+        }
+
+        public string Remarks
+        {
+            get
+            {
+                return m_Remarks;
+            }
+
+            set
+            {
+                m_Remarks = value;
+            }
+        }
+
+        public float GlobalCoordinateWest
+        {
+            get
+            {
+                return m_GlobalCoordinateWest;
+            }
+
+            set
+            {
+                m_GlobalCoordinateWest = value;
+            }
+        }
+
+        public float GlobalCoordinateEast
+        {
+            get
+            {
+                return m_GlobalCoordinateEast;
+            }
+
+            set
+            {
+                m_GlobalCoordinateEast = value;
+            }
+        }
+
+        public float GlobalCoordinateNorth
+        {
+            get
+            {
+                return m_GlobalCoordinateNorth;
+            }
+
+            set
+            {
+                m_GlobalCoordinateNorth = value;
+            }
+        }
+
+        public float GlobalCoordinateSouth
+        {
+            get
+            {
+                return m_GlobalCoordinateSouth;
+            }
+
+            set
+            {
+                m_GlobalCoordinateSouth = value;
+            }
+        }
+
+		public LayerType Type
+		{
+			get
+			{
+				return m_Type;
+			}
+
+			set
+			{
+				m_Type = value;
+			}
+		}
+
         public bool LoadImage(string filePath)
         {
             // Load the image "as is"
@@ -72,22 +176,23 @@ namespace Yggdrasil
 
                 try
                 {
-                    FileStream fileStream = new FileStream(filePath, FileMode.Open);
-
-                    int fileLength = (int)fileStream.Length;
-                    m_ImageData = new byte[fileLength];
-                    fileStream.Read(m_ImageData, 0, fileLength);
-
-                    // Load the image into ImageMagick to extract some basic information
-                    using (MagickImage image = new MagickImage(filePath))
+                    using (FileStream fileStream = new FileStream(filePath, FileMode.Open))
                     {
-                        m_ImageBitDepth = image.BitDepth();
+                        int fileLength = (int)fileStream.Length;
+                        m_ImageData = new byte[fileLength];
+                        fileStream.Read(m_ImageData, 0, fileLength);
 
-                        m_ImageWidth = image.Width;
-                        m_ImageHeight = image.Height;
+                        // Load the image into ImageMagick to extract some basic information
+                        using (MagickImage image = new MagickImage(m_ImageData))
+                        {
+                            m_ImageBitDepth = image.BitDepth();
+
+                            m_ImageWidth = image.Width;
+                            m_ImageHeight = image.Height;
+                        }
+
+                        return true;
                     }
-
-                    return true;
                 }
                 catch (Exception)
                 {
@@ -99,9 +204,8 @@ namespace Yggdrasil
         }
 
         private uint m_Version = 1;
-
+ 
         private string m_Remarks = "";
-        private string m_SourceURL = "";
 
         private int m_ElevationMinimum = 0;
         private int m_ElevationMaximum = 0;
@@ -114,7 +218,7 @@ namespace Yggdrasil
         private float m_GlobalCoordinateNorth = 0.0f;
         private float m_GlobalCoordinateSouth = 0.0f;
 
-        private Type m_Type = Type.Invalid;
+        private LayerType m_Type = LayerType.Invalid;
 
         private string m_OriginalPath = "";
 
