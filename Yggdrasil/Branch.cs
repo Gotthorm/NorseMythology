@@ -20,8 +20,8 @@ namespace Yggdrasil
 
         public Branch()
         {
-
-        }
+			m_GUID = Guid.NewGuid();
+		}
 
         public int ImageWidth
         {
@@ -167,6 +167,14 @@ namespace Yggdrasil
 			}
 		}
 
+		public Guid GUID
+		{
+			get
+			{
+				return m_GUID;
+			}
+		}
+
         public bool LoadImage(string filePath)
         {
             // Load the image "as is"
@@ -203,9 +211,52 @@ namespace Yggdrasil
             return false;
         }
 
+		public bool Save(string path)
+		{
+			try
+			{
+				string filePath = Path.Combine(path, m_GUID.ToString() + ".branch");
+
+				using (FileStream stream = new FileStream(filePath, FileMode.Create))
+				{
+					using (BinaryWriter writer = new BinaryWriter(stream))
+					{
+						writer.Write(m_FileSignature);
+						writer.Write(m_Version);
+						writer.Write((int)m_Type);
+						writer.Write(m_ElevationMinimum);
+						writer.Write(m_ElevationMaximum);
+						writer.Write(m_ImageWidth);
+						writer.Write(m_ImageHeight);
+						writer.Write(m_ImageBitDepth);
+						writer.Write(m_GlobalCoordinateWest);
+						writer.Write(m_GlobalCoordinateEast);
+						writer.Write(m_GlobalCoordinateNorth);
+						writer.Write(m_GlobalCoordinateSouth);
+						writer.Write(m_OriginalPath);
+						writer.Write(m_Remarks);
+						writer.Write(m_ImageData);
+
+						writer.Close();
+					}
+				}
+			}
+			catch (Exception)
+			{
+				// Abort
+				return false;
+			}
+
+			return true;
+		}
+
+		private Guid m_GUID;
         private uint m_Version = 1;
- 
-        private string m_Remarks = "";
+
+		// 19 90 19 90
+		private UInt32 m_FileSignature = 0x012FAE26;
+
+		private string m_Remarks = "";
 
         private int m_ElevationMinimum = 0;
         private int m_ElevationMaximum = 0;

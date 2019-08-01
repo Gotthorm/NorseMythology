@@ -118,12 +118,6 @@ namespace Yggdrasil
 
         private void LoadWorld( string filePath )
         {
-            if ( null != m_Data )
-            {
-                // Unload old world
-                m_Data = null;
-            }
-
             // Load new world
             m_Data = new WorldData();
 
@@ -160,24 +154,7 @@ namespace Yggdrasil
 				}
             }
 
-            // Create a GUID
-
-            // Create a new Branch instance
-            Branch newBranch = new Branch();
-
-            if(newBranch.LoadImage(filePath))
-            {
-                // Prompt user for additional information
-                FormBranch branchDialogBox = new FormBranch(newBranch);
-
-                if (branchDialogBox.ShowDialog() == DialogResult.OK)
-                {
-                    // Create and save new branch file
-
-                    // Import branch data into current world data
-                }
-            }
-
+			m_Data.ImportImage(filePath);
         }
 
         private void numericUpDownZoom_KeyPress( object sender, KeyPressEventArgs e )
@@ -234,5 +211,14 @@ namespace Yggdrasil
                 }
             }
         }
-    }
+
+		private void NewWorldToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			// Load new world
+			m_Data = new WorldData();
+
+			// Write to disk
+			m_Data.Save();
+		}
+	}
 }
