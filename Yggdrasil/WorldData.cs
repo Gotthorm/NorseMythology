@@ -34,8 +34,9 @@ namespace Yggdrasil
             m_Height = 0;
             m_Image = null;
             m_FilePath = "";
+			m_FileCreated = false;
 
-            if ( File.Exists( filePath ) )
+			if ( File.Exists( filePath ) )
             {
 				//reading from the file
 				try
@@ -44,12 +45,12 @@ namespace Yggdrasil
 					{
 						using (BinaryReader reader = new BinaryReader(stream))
 						{
-							if(m_FileSignature != reader.ReadUInt32())
+							if(Yggdrasil_FileSignature != reader.ReadUInt32())
 							{
 								throw new Exception();
 							}
 
-							if(m_Version != reader.ReadUInt32())
+							if(Yggdrasil_Version != reader.ReadUInt32())
 							{
 								throw new Exception();
 							}
@@ -66,19 +67,24 @@ namespace Yggdrasil
 							m_FilePath = filePath;
 						}
 					}
+
+					m_BranchDirectory = Path.Combine(Path.GetDirectoryName(m_FilePath), Path.GetFileNameWithoutExtension(m_FilePath));
+
+					m_FileCreated = true;
+
+					return Rebuild();
 				}
 				catch (Exception)
 				{
 					// Abort
-					return false;
 				}
 			}
 
-			return true;
-        }
+			return false;
+		}
 
-        // Save a yggdrasil file
-        public bool Save()
+		// Save a yggdrasil file
+		public bool Save()
         {
 			// If we have not created the save file, do it now
 			if(m_FileCreated == false)
@@ -139,8 +145,8 @@ namespace Yggdrasil
 					{
 						using (BinaryWriter writer = new BinaryWriter(stream))
 						{
-							writer.Write(m_FileSignature);
-							writer.Write(m_Version);
+							writer.Write(Yggdrasil_FileSignature);
+							writer.Write(Yggdrasil_Version);
 							writer.Write(m_Branches.Count);
 
 							foreach (Guid branchGUID in m_Branches)
@@ -182,44 +188,16 @@ namespace Yggdrasil
 
 					// Import branch data into current world data
 					m_Branches.Add(newBranch.GUID);
+					m_Dirty = true;
+
+					// Update the yggdrasil file
+					if (Save())
+					{
+						// Update the world data
+						return Rebuild();
+					}
 				}
 			}
-
-			if (File.Exists(filePath))
-            {
-                // Attempt to import the given file as image data
-                try
-                {
-                    using (MagickImage image = new MagickImage(filePath))
-                    {
-                        // Perform any extra verification here?
-
-                        // The image has been loaded
-
-                        // Extract the needed information
-
-                        // Add the image to our yggdrasil data
-
-                        int bitDepth = image.BitDepth();
-
-                        m_Width = image.Width;
-                        m_Height = image.Height;
-
-                        m_Image = image.ToBitmap();
-
-                        if (bitDepth == 8)
-                        {
-                            Console.WriteLine("8 Bit");
-                        }
-                    }
-
-                    return true;
-                }
-                catch (Exception)
-                {
-                    // Catch everything and ignore
-                }
-            }
 
             return false;
         }
@@ -230,9 +208,44 @@ namespace Yggdrasil
             return false;
         }
 
+		// Rebuild data after initial load, and any time a branch is added, removed, or modified
+		private bool Rebuild()
+		{
+			if (m_FileCreated)
+			{
+				// Reset or empty the branch status table
+
+				// Load each branch
+				foreach (Guid branchGuid in m_Branches)
+				{
+					Branch branch = new Branch(branchGuid);
+
+					if(branch.Load(m_BranchDirectory))
+					{
+						// Mark the status as loaded
+						// Extract any other info the branch status table requires (modification date)
+						Console.WriteLine(branch.LastModified);
+
+						// Use Image Magick to extract the payload and merge it into display
+
+						return true;
+					}
+					else
+					{
+						// Mark the status of the branch as load failure
+						// TODO: If we want to have more details of the failure
+						// we could add an error state to the branch that could be read here.
+						Console.WriteLine("Failure");
+					}
+				}
+			}
+
+			return false;
+		}
+
 		// 19 66 19 68
-		private UInt32 m_FileSignature = 0x012C0490;
-		private UInt32 m_Version = 0x00000001;
+		private const UInt32 Yggdrasil_FileSignature = 0x012C0490;
+		private const UInt32 Yggdrasil_Version = 0x00000001;
 		private bool m_FileCreated = false;
 		private bool m_Dirty = true;
 

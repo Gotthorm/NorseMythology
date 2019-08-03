@@ -15,12 +15,17 @@ namespace Yggdrasil
         public enum LayerType
         {
             Invalid,
-            Elevation
-        };
+            Elevation,
+		};
 
         public Branch()
         {
 			m_GUID = Guid.NewGuid();
+		}
+
+		public Branch(Guid newGuid)
+		{
+			m_GUID = newGuid;
 		}
 
         public int ImageWidth
@@ -51,7 +56,7 @@ namespace Yggdrasil
         {
             get
             {
-                return m_Version;
+                return Branch_Version;
             }
         }
 
@@ -175,6 +180,14 @@ namespace Yggdrasil
 			}
 		}
 
+		public string LastModified
+		{
+			get
+			{
+				return m_LastModified.ToString();
+			}
+		}
+
         public bool LoadImage(string filePath)
         {
             // Load the image "as is"
@@ -215,15 +228,18 @@ namespace Yggdrasil
 		{
 			try
 			{
-				string filePath = Path.Combine(path, m_GUID.ToString() + ".branch");
+				string filePath = Path.Combine(path, m_GUID.ToString() + Branch_FileExtension);
 
 				using (FileStream stream = new FileStream(filePath, FileMode.Create))
 				{
 					using (BinaryWriter writer = new BinaryWriter(stream))
 					{
-						writer.Write(m_FileSignature);
-						writer.Write(m_Version);
-						writer.Write((int)m_Type);
+						m_LastModified = DateTime.Now;
+
+						writer.Write(Branch_FileSignature);
+						writer.Write(Version);
+						writer.Write(m_LastModified.ToString(DateTimeOffsetFormatString));
+						writer.Write((uint)m_Type);
 						writer.Write(m_ElevationMinimum);
 						writer.Write(m_ElevationMaximum);
 						writer.Write(m_ImageWidth);
@@ -250,11 +266,54 @@ namespace Yggdrasil
 			return true;
 		}
 
-		private Guid m_GUID;
-        private uint m_Version = 1;
+		public bool Load(string path)
+		{
+			try
+			{
+				string filePath = Path.Combine(path, m_GUID.ToString() + Branch_FileExtension);
+
+				using (FileStream stream = new FileStream(filePath, FileMode.Open))
+				{
+					using (BinaryReader reader = new BinaryReader(stream))
+					{
+						if (Branch_FileSignature != reader.ReadUInt32())
+						{
+							throw new Exception();
+						}
+
+						if (Version != reader.ReadUInt32())
+						{
+							throw new Exception();
+						}
+
+						m_LastModified = DateTime.Parse(reader.ReadString());
+
+						uint layerType = reader.ReadUInt32();
+						if(Enum.IsDefined(typeof(LayerType), (LayerType)layerType) == false)
+						{
+							throw new Exception();
+						}
+						m_Type = (LayerType)layerType;
+
+						return true;
+					}
+				}
+			}
+			catch (Exception)
+			{
+			}
+
+			return false;
+		}
 
 		// 19 90 19 90
-		private UInt32 m_FileSignature = 0x012FAE26;
+		private const UInt32 Branch_FileSignature = 0x012FAE26;
+		private const UInt32 Branch_Version = 0x00000001;
+		private const string Branch_FileExtension = ".branch";
+		private const string DateTimeOffsetFormatString = "yyyy-MM-ddTHH:mm:sszzz";
+
+		private Guid m_GUID;
+		private DateTime m_LastModified = new DateTime();
 
 		private string m_Remarks = "";
 
@@ -272,8 +331,6 @@ namespace Yggdrasil
         private LayerType m_Type = LayerType.Invalid;
 
         private string m_OriginalPath = "";
-
-        // m_GUID?
         
         private byte[] m_ImageData = null;
     }
