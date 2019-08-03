@@ -1,6 +1,7 @@
 ﻿using ImageMagick;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -16,7 +17,14 @@ namespace Yggdrasil
 
 		//public string BranchDirectory { get { return m_BranchDirectory; } }
 
-        public int Width { get { return m_Width; } }
+		public WorldData()
+		{
+			m_BranchDataTable.Columns.Add("Guid", typeof(string));
+			m_BranchDataTable.Columns.Add("Last Modified", typeof(string));
+			m_BranchDataTable.Columns.Add("Status", typeof(string));
+		}
+
+		public int Width { get { return m_Width; } }
 
         public int Height { get { return m_Height; } }
 
@@ -208,19 +216,31 @@ namespace Yggdrasil
             return false;
         }
 
+		public DataTable BranchDataTable
+		{
+			get
+			{
+				return m_BranchDataTable;
+			}
+		}
+
 		// Rebuild data after initial load, and any time a branch is added, removed, or modified
 		private bool Rebuild()
 		{
 			if (m_FileCreated)
 			{
 				// Reset or empty the branch status table
+				m_BranchDataTable.Clear();
 
 				// Load each branch
 				foreach (Guid branchGuid in m_Branches)
 				{
 					Branch branch = new Branch(branchGuid);
 
-					if(branch.Load(m_BranchDirectory))
+					DataRow newDataRow = m_BranchDataTable.NewRow();
+					newDataRow["Guid"] = branchGuid.ToString();
+
+					if (branch.Load(m_BranchDirectory))
 					{
 						// Mark the status as loaded
 						// Extract any other info the branch status table requires (modification date)
@@ -228,7 +248,6 @@ namespace Yggdrasil
 
 						// Use Image Magick to extract the payload and merge it into display
 
-						return true;
 					}
 					else
 					{
@@ -237,7 +256,11 @@ namespace Yggdrasil
 						// we could add an error state to the branch that could be read here.
 						Console.WriteLine("Failure");
 					}
+
+					m_BranchDataTable.Rows.Add(newDataRow);
 				}
+
+				return true;
 			}
 
 			return false;
@@ -251,6 +274,8 @@ namespace Yggdrasil
 
 		// A list of project relative branch paths that are currently loaded
 		private List<Guid> m_Branches = new List<Guid>();
+
+		private DataTable m_BranchDataTable = new DataTable();
 
 		private string m_FilePath = "";
 		private string m_BranchDirectory = "";

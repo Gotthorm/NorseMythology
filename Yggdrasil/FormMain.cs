@@ -20,28 +20,45 @@ namespace Yggdrasil
 
             this.m_DataFolderPath = Properties.Settings.Default.WorldDataFolder;
 
-            // Cache a reference to the picture box control that we will display the loaded data with
+            // Cache references to any controls that we will need
             foreach ( Control mainFormControl in this.Controls )
             {
-                if( mainFormControl is SplitContainer )
+				// We expect to find a tab control in the root
+                if( mainFormControl is TabControl )
                 {
-                    SplitContainer splitContainer = mainFormControl as SplitContainer;
+					TabControl tabControl = (mainFormControl as TabControl);
 
-                    // Set the parent panel to the picturebox as being scrollable
-                    splitContainer.Panel1.AutoScroll = true;
+					foreach(TabPage tabPage in tabControl.TabPages)
+					{
+						if(m_BranchGridView == null && tabPage.Name == "tabPageBranches")
+						{
+							foreach (Control tabPageChildControl in tabPage.Controls)
+							{
+								// We expect to find a DataGridView
+								if(tabPageChildControl is DataGridView)
+								{
+									m_BranchGridView = (tabPageChildControl as DataGridView);
+								}
+							}
+						}
+					}
 
-                    foreach ( Control splitContainerControl in splitContainer.Panel1.Controls )
-                    {
-                        m_PictureBox = splitContainerControl as PictureBox;
 
-                        if ( null != m_PictureBox )
-                        {
-                            break;
-                        }
-                    }
+            //        // Set the parent panel to the picturebox as being scrollable
+            //        splitContainer.Panel1.AutoScroll = true;
 
-                    // Abort from main form children control loop
-                    break;
+            //        foreach ( Control splitContainerControl in splitContainer.Panel1.Controls )
+            //        {
+            //            m_PictureBox = splitContainerControl as PictureBox;
+
+            //            if ( null != m_PictureBox )
+            //            {
+            //                break;
+            //            }
+            //        }
+
+            //        // Abort from main form children control loop
+            //        break;
                 }
             }
         }
@@ -86,7 +103,8 @@ namespace Yggdrasil
 
         private string m_DataFolderPath;
         private WorldData m_Data = null;
-        private PictureBox m_PictureBox = null;
+        //private PictureBox m_PictureBox = null;
+		private DataGridView m_BranchGridView = null;
 
         private void FormMain_FormClosed( object sender, FormClosedEventArgs e )
         {
@@ -130,12 +148,14 @@ namespace Yggdrasil
                 DialogResult result = MessageBox.Show( message, title, buttons, MessageBoxIcon.Warning );
             }
 
-            m_PictureBox.Image = m_Data.Image;
+			m_BranchGridView.DataSource = m_Data.BranchDataTable;
 
-            // Based on the current zoom value
-            m_PictureBox.Width = m_Data.Width;
-            m_PictureBox.Height = m_Data.Height;
-        }
+			//m_PictureBox.Image = m_Data.Image;
+
+			//// Based on the current zoom value
+			//m_PictureBox.Width = m_Data.Width;
+			//m_PictureBox.Height = m_Data.Height;
+		}
 
         private void ImportImage(string filePath)
         {
@@ -157,28 +177,28 @@ namespace Yggdrasil
 			m_Data.ImportImage(filePath);
         }
 
-        private void numericUpDownZoom_KeyPress( object sender, KeyPressEventArgs e )
-        {
-            if ( !char.IsControl( e.KeyChar ) && !char.IsDigit( e.KeyChar ) )
-            {
-                e.Handled = true;
-            }
-        }
+        //private void numericUpDownZoom_KeyPress( object sender, KeyPressEventArgs e )
+        //{
+        //    if ( !char.IsControl( e.KeyChar ) && !char.IsDigit( e.KeyChar ) )
+        //    {
+        //        e.Handled = true;
+        //    }
+        //}
 
-        private void numericUpDownZoom_ValueChanged( object sender, EventArgs e )
-        {
-            NumericUpDown numericControl = sender as NumericUpDown;
+        //private void numericUpDownZoom_ValueChanged( object sender, EventArgs e )
+        //{
+        //    NumericUpDown numericControl = sender as NumericUpDown;
 
-            if( null != numericControl )
-            {
-                decimal zoomPercent = numericControl.Value / 100.0m;
-                decimal width = m_Data.Width * zoomPercent;
-                decimal height = m_Data.Height * zoomPercent;
+        //    if( null != numericControl )
+        //    {
+        //        decimal zoomPercent = numericControl.Value / 100.0m;
+        //        decimal width = m_Data.Width * zoomPercent;
+        //        decimal height = m_Data.Height * zoomPercent;
 
-                m_PictureBox.Width = Decimal.ToInt32(width);
-                m_PictureBox.Height = Decimal.ToInt32(height);
-            }
-        }
+        //        m_PictureBox.Width = Decimal.ToInt32(width);
+        //        m_PictureBox.Height = Decimal.ToInt32(height);
+        //    }
+        //}
 
         private void ImportImageToolStripMenuItem_Click(object sender, EventArgs e)
         {
