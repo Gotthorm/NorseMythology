@@ -22,6 +22,8 @@ namespace Yggdrasil
 			m_BranchDataTable.Columns.Add("Guid", typeof(string));
 			m_BranchDataTable.Columns.Add("Last Modified", typeof(string));
 			m_BranchDataTable.Columns.Add("Status", typeof(string));
+			m_BranchDataTable.Columns.Add("Original File Name", typeof(string));
+			m_BranchDataTable.Columns.Add("Remarks", typeof(string));
 		}
 
 		public int Width { get { return m_Width; } }
@@ -110,27 +112,24 @@ namespace Yggdrasil
 						{
 							m_FilePath = openFileDialog.FileName;
 
-							// If the file already exists we will prompt the user
-							// This is important because we are going to destroy all existing branches
-							if (File.Exists(m_FilePath))
+							string folderName = Path.GetFileNameWithoutExtension(m_FilePath);
+
+							m_BranchDirectory = Path.Combine(Path.GetDirectoryName(m_FilePath), folderName);
+
+							// Delete the existing branches
+							if (Directory.Exists(m_BranchDirectory))
 							{
-								if (MessageBox.Show("Are you sure? This will delete branch files.", "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation) == DialogResult.No)
+								if (MessageBox.Show("Confirm deletion of folder: " + folderName, "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation) == DialogResult.No)
 								{
 									// Abort the save
 									return false;
 								}
 
-								m_BranchDirectory = Path.Combine(Path.GetDirectoryName(m_FilePath), Path.GetFileNameWithoutExtension(m_FilePath));
-
-								// Delete the existing branches
-								if (Directory.Exists(m_BranchDirectory))
-								{
-									// You cant delete and immediately create a directory with the same name
-									// So we rename it first.
-									string tempDirectoryName = m_BranchDirectory + "_temp";
-									Directory.Move(m_BranchDirectory, tempDirectoryName);
-									Directory.Delete(tempDirectoryName, true);
-								}
+								// You cant delete and immediately create a directory with the same name
+								// So we rename it first.
+								string tempDirectoryName = m_BranchDirectory + "_temp";
+								Directory.Move(m_BranchDirectory, tempDirectoryName);
+								Directory.Delete(tempDirectoryName, true);
 							}
 						}
 
@@ -243,8 +242,14 @@ namespace Yggdrasil
 					if (branch.Load(m_BranchDirectory))
 					{
 						// Mark the status as loaded
+						newDataRow["Status"] = "Loaded";
+
 						// Extract any other info the branch status table requires (modification date)
-						Console.WriteLine(branch.LastModified);
+						newDataRow["Last Modified"] = branch.LastModified;
+
+						newDataRow["Original File Name"] = branch.OriginalFileName;
+
+						newDataRow["Remarks"] = branch.Remarks;
 
 						// Use Image Magick to extract the payload and merge it into display
 
@@ -254,7 +259,9 @@ namespace Yggdrasil
 						// Mark the status of the branch as load failure
 						// TODO: If we want to have more details of the failure
 						// we could add an error state to the branch that could be read here.
-						Console.WriteLine("Failure");
+						// Mark the status as loaded
+
+						newDataRow["Status"] = "Failure";
 					}
 
 					m_BranchDataTable.Rows.Add(newDataRow);

@@ -134,30 +134,42 @@ namespace Yggdrasil
             }
         }
 
-        private void LoadWorld( string filePath )
-        {
-            // Load new world
-            m_Data = new WorldData();
+		private void LoadWorld(string filePath)
+		{
+			// Load new world
+			NewWorld();
 
-            if( false == m_Data.Load( filePath ) )
-            {
-                // We report an error and leave the default empty world as being loaded
-                string message = "Failed to load world";
-                string title = "Failure";
-                MessageBoxButtons buttons = MessageBoxButtons.OK;
-                DialogResult result = MessageBox.Show( message, title, buttons, MessageBoxIcon.Warning );
-            }
+			if (false == m_Data.Load(filePath))
+			{
+				// We report an error and leave the default empty world as being loaded
+				string message = "Failed to load world";
+				string title = "Failure";
+				MessageBoxButtons buttons = MessageBoxButtons.OK;
+				MessageBox.Show(message, title, buttons, MessageBoxIcon.Warning);
+			}
+		}
+
+		private void NewWorld()
+		{
+			// Load new world
+			m_Data = new WorldData();
 
 			m_BranchGridView.DataSource = m_Data.BranchDataTable;
 
-			//m_PictureBox.Image = m_Data.Image;
-
-			//// Based on the current zoom value
-			//m_PictureBox.Width = m_Data.Width;
-			//m_PictureBox.Height = m_Data.Height;
+			// We cache this to allow us to handle the last column differently
+			int columnLastIndex = m_BranchGridView.Columns.Count - 1;
+			if (columnLastIndex >= 0)
+			{
+				for (int columnIndex = 0; columnIndex < columnLastIndex; ++columnIndex)
+				{
+					m_BranchGridView.Columns[columnIndex].AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
+				}
+				// Last entry
+				m_BranchGridView.Columns[columnLastIndex].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+			}
 		}
 
-        private void ImportImage(string filePath)
+		private void ImportImage(string filePath)
         {
             // Create a default empty world if one isnt already loaded?
             if (null == m_Data)
@@ -165,14 +177,16 @@ namespace Yggdrasil
                 // Load a new world
                 m_Data = new WorldData();
 
+				m_BranchGridView.DataSource = m_Data.BranchDataTable;
+
 				// Save the default world data to generate the location
-				if(m_Data.Save() == false)
+				if (m_Data.Save() == false)
 				{
 					// Something went wrong so we will not proceed
 					// The world data should report its own error
 					return;
 				}
-            }
+			}
 
 			m_Data.ImportImage(filePath);
         }
@@ -235,7 +249,7 @@ namespace Yggdrasil
 		private void NewWorldToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			// Load new world
-			m_Data = new WorldData();
+			NewWorld();
 
 			// Write to disk
 			m_Data.Save();

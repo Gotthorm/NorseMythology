@@ -188,6 +188,23 @@ namespace Yggdrasil
 			}
 		}
 
+		public string OriginalFileName
+		{
+			get
+			{
+				string fileName = "";
+				try
+				{
+					fileName = Path.GetFileName(m_OriginalPath);
+				}
+				catch(Exception)
+				{
+
+				}
+				return fileName;
+			}
+		}
+
         public bool LoadImage(string filePath)
         {
             // Load the image "as is"
@@ -251,6 +268,7 @@ namespace Yggdrasil
 						writer.Write(m_GlobalCoordinateSouth);
 						writer.Write(m_OriginalPath);
 						writer.Write(m_Remarks);
+						writer.Write(m_ImageData.Length);
 						writer.Write(m_ImageData);
 
 						writer.Close();
@@ -294,6 +312,21 @@ namespace Yggdrasil
 							throw new Exception();
 						}
 						m_Type = (LayerType)layerType;
+
+						m_ElevationMinimum = reader.ReadInt32();
+						m_ElevationMaximum = reader.ReadInt32();
+						m_ImageWidth = reader.ReadInt32();
+						m_ImageHeight = reader.ReadInt32();
+						m_ImageBitDepth = reader.ReadInt32();
+
+						m_GlobalCoordinateWest = reader.ReadSingle();
+						m_GlobalCoordinateEast = reader.ReadSingle();
+						m_GlobalCoordinateNorth = reader.ReadSingle();
+						m_GlobalCoordinateSouth = reader.ReadSingle();
+						m_OriginalPath = reader.ReadString();
+						m_Remarks = reader.ReadString();
+						int imageSize = reader.ReadInt32();
+						m_ImageData = reader.ReadBytes(imageSize);
 
 						return true;
 					}
