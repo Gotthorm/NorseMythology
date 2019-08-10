@@ -38,27 +38,41 @@ namespace Yggdrasil
 								if(tabPageChildControl is DataGridView)
 								{
 									m_BranchGridView = (tabPageChildControl as DataGridView);
+
+									// Abort from tab page children control loop
+									break;
+								}
+							}
+						}
+
+						if(m_PictureBox == null && tabPage.Name == "tabPageView")
+						{
+							foreach (Control tabPageChildControl in tabPage.Controls)
+							{
+								// We expect to find a SplitControl
+								if (tabPageChildControl is SplitContainer)
+								{
+									SplitContainer splitContainer = tabPageChildControl as SplitContainer;
+
+									// Set the parent panel to the picturebox as being scrollable
+									splitContainer.Panel1.AutoScroll = true;
+
+									foreach (Control splitContainerControl in splitContainer.Panel1.Controls)
+									{
+										m_PictureBox = splitContainerControl as PictureBox;
+
+										if (null != m_PictureBox)
+										{
+											break;
+										}
+									}
+
+									// Abort from tab page children control loop
+									break;
 								}
 							}
 						}
 					}
-
-
-            //        // Set the parent panel to the picturebox as being scrollable
-            //        splitContainer.Panel1.AutoScroll = true;
-
-            //        foreach ( Control splitContainerControl in splitContainer.Panel1.Controls )
-            //        {
-            //            m_PictureBox = splitContainerControl as PictureBox;
-
-            //            if ( null != m_PictureBox )
-            //            {
-            //                break;
-            //            }
-            //        }
-
-            //        // Abort from main form children control loop
-            //        break;
                 }
             }
         }
@@ -103,7 +117,7 @@ namespace Yggdrasil
 
         private string m_DataFolderPath;
         private WorldData m_Data = null;
-        //private PictureBox m_PictureBox = null;
+        private PictureBox m_PictureBox = null;
 		private DataGridView m_BranchGridView = null;
 
         private void FormMain_FormClosed( object sender, FormClosedEventArgs e )
@@ -155,6 +169,12 @@ namespace Yggdrasil
 			m_Data = new WorldData();
 
 			m_BranchGridView.DataSource = m_Data.BranchDataTable;
+			m_Data.ImageDisplayControl = m_PictureBox;
+			//m_PictureBox.Image = m_Data.Image;
+
+			// Based on the current zoom value
+			m_PictureBox.Width = m_Data.Width;
+			m_PictureBox.Height = m_Data.Height;
 
 			// We cache this to allow us to handle the last column differently
 			int columnLastIndex = m_BranchGridView.Columns.Count - 1;
@@ -253,6 +273,29 @@ namespace Yggdrasil
 
 			// Write to disk
 			m_Data.Save();
+		}
+
+		private void NumericUpDownZoom_ValueChanged(object sender, EventArgs e)
+		{
+			NumericUpDown numericControl = sender as NumericUpDown;
+
+			if (null != numericControl)
+			{
+				decimal zoomPercent = numericControl.Value / 100.0m;
+				decimal width = m_Data.Width * zoomPercent;
+				decimal height = m_Data.Height * zoomPercent;
+
+				m_PictureBox.Width = Decimal.ToInt32(width);
+				m_PictureBox.Height = Decimal.ToInt32(height);
+			}
+		}
+
+		private void NumericUpDownZoom_KeyPress(object sender, KeyPressEventArgs e)
+		{
+			if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+			{
+				e.Handled = true;
+			}
 		}
 	}
 }

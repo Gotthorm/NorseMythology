@@ -41,10 +41,20 @@
 			this.tabPageView = new System.Windows.Forms.TabPage();
 			this.tabPageBranches = new System.Windows.Forms.TabPage();
 			this.dataGridViewBranches = new System.Windows.Forms.DataGridView();
+			this.splitContainerView = new System.Windows.Forms.SplitContainer();
+			this.pictureBoxMain = new System.Windows.Forms.PictureBox();
+			this.numericUpDownZoom = new System.Windows.Forms.NumericUpDown();
 			this.menuStrip1.SuspendLayout();
 			this.tabControl_Main.SuspendLayout();
+			this.tabPageView.SuspendLayout();
 			this.tabPageBranches.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.dataGridViewBranches)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.splitContainerView)).BeginInit();
+			this.splitContainerView.Panel1.SuspendLayout();
+			this.splitContainerView.Panel2.SuspendLayout();
+			this.splitContainerView.SuspendLayout();
+			((System.ComponentModel.ISupportInitialize)(this.pictureBoxMain)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.numericUpDownZoom)).BeginInit();
 			this.SuspendLayout();
 			// 
 			// menuStrip1
@@ -134,6 +144,7 @@
 			// 
 			// tabPageView
 			// 
+			this.tabPageView.Controls.Add(this.splitContainerView);
 			this.tabPageView.Location = new System.Drawing.Point(4, 4);
 			this.tabPageView.Name = "tabPageView";
 			this.tabPageView.Padding = new System.Windows.Forms.Padding(3);
@@ -165,6 +176,54 @@
 			this.dataGridViewBranches.Size = new System.Drawing.Size(1154, 512);
 			this.dataGridViewBranches.TabIndex = 0;
 			// 
+			// splitContainerView
+			// 
+			this.splitContainerView.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.splitContainerView.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.splitContainerView.Location = new System.Drawing.Point(3, 3);
+			this.splitContainerView.Name = "splitContainerView";
+			// 
+			// splitContainerView.Panel1
+			// 
+			this.splitContainerView.Panel1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
+			this.splitContainerView.Panel1.Controls.Add(this.pictureBoxMain);
+			// 
+			// splitContainerView.Panel2
+			// 
+			this.splitContainerView.Panel2.Controls.Add(this.numericUpDownZoom);
+			this.splitContainerView.Size = new System.Drawing.Size(1154, 512);
+			this.splitContainerView.SplitterDistance = 848;
+			this.splitContainerView.TabIndex = 0;
+			// 
+			// pictureBoxMain
+			// 
+			this.pictureBoxMain.Location = new System.Drawing.Point(351, 281);
+			this.pictureBoxMain.Margin = new System.Windows.Forms.Padding(0);
+			this.pictureBoxMain.Name = "pictureBoxMain";
+			this.pictureBoxMain.Size = new System.Drawing.Size(100, 50);
+			this.pictureBoxMain.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+			this.pictureBoxMain.TabIndex = 0;
+			this.pictureBoxMain.TabStop = false;
+			// 
+			// numericUpDownZoom
+			// 
+			this.numericUpDownZoom.Location = new System.Drawing.Point(105, 140);
+			this.numericUpDownZoom.Maximum = new decimal(new int[] {
+            800,
+            0,
+            0,
+            0});
+			this.numericUpDownZoom.Name = "numericUpDownZoom";
+			this.numericUpDownZoom.Size = new System.Drawing.Size(120, 20);
+			this.numericUpDownZoom.TabIndex = 0;
+			this.numericUpDownZoom.Value = new decimal(new int[] {
+            100,
+            0,
+            0,
+            0});
+			this.numericUpDownZoom.ValueChanged += new System.EventHandler(this.NumericUpDownZoom_ValueChanged);
+			this.numericUpDownZoom.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.NumericUpDownZoom_KeyPress);
+			// 
 			// FormMain
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -182,8 +241,15 @@
 			this.menuStrip1.ResumeLayout(false);
 			this.menuStrip1.PerformLayout();
 			this.tabControl_Main.ResumeLayout(false);
+			this.tabPageView.ResumeLayout(false);
 			this.tabPageBranches.ResumeLayout(false);
 			((System.ComponentModel.ISupportInitialize)(this.dataGridViewBranches)).EndInit();
+			this.splitContainerView.Panel1.ResumeLayout(false);
+			this.splitContainerView.Panel2.ResumeLayout(false);
+			((System.ComponentModel.ISupportInitialize)(this.splitContainerView)).EndInit();
+			this.splitContainerView.ResumeLayout(false);
+			((System.ComponentModel.ISupportInitialize)(this.pictureBoxMain)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.numericUpDownZoom)).EndInit();
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -204,6 +270,9 @@
 		private System.Windows.Forms.TabPage tabPageView;
 		private System.Windows.Forms.TabPage tabPageBranches;
 		private System.Windows.Forms.DataGridView dataGridViewBranches;
+		private System.Windows.Forms.SplitContainer splitContainerView;
+		private System.Windows.Forms.PictureBox pictureBoxMain;
+		private System.Windows.Forms.NumericUpDown numericUpDownZoom;
 	}
 }
 

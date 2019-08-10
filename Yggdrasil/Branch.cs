@@ -8,18 +8,26 @@ using ImageMagick;
 
 namespace Yggdrasil
 {
-    // This represents a single imported data element
-    public class Branch
-    {
-        // This should end up in a more global location?
-        public enum LayerType
-        {
-            Invalid,
-            Elevation,
+	// This represents a single imported data element
+	public class Branch
+	{
+		// This should end up in a more global location?
+		public enum LayerType
+		{
+			Invalid,
+			Elevation,
 		};
 
-        public Branch()
-        {
+		public enum LoadState
+		{
+			None,
+			LoadFailure,
+			Deprecated,
+			Loaded,
+		};
+
+		public Branch()
+		{
 			m_GUID = Guid.NewGuid();
 		}
 
@@ -28,136 +36,136 @@ namespace Yggdrasil
 			m_GUID = newGuid;
 		}
 
-        public int ImageWidth
-        {
-            get
-            {
-                return m_ImageWidth;
-            }
-        }
+		public int ImageWidth
+		{
+			get
+			{
+				return m_ImageWidth;
+			}
+		}
 
-        public int ImageHeight
-        {
-            get
-            {
-                return m_ImageHeight;
-            }
-        }
+		public int ImageHeight
+		{
+			get
+			{
+				return m_ImageHeight;
+			}
+		}
 
-        public int ImageBitDepth
-        {
-            get
-            {
-                return m_ImageBitDepth;
-            }
-        }
+		public int ImageBitDepth
+		{
+			get
+			{
+				return m_ImageBitDepth;
+			}
+		}
 
-        public uint Version
-        {
-            get
-            {
-                return Branch_Version;
-            }
-        }
+		public uint Version
+		{
+			get
+			{
+				return Branch_Version;
+			}
+		}
 
-        public string SourcePath
-        {
-            get
-            {
-                return m_OriginalPath;
-            }
-        }
+		public string SourcePath
+		{
+			get
+			{
+				return m_OriginalPath;
+			}
+		}
 
-        public int ElevationMin
-        {
-            get
-            {
-                return m_ElevationMinimum;
-            }
+		public int ElevationMin
+		{
+			get
+			{
+				return m_ElevationMinimum;
+			}
 
-            set
-            {
-                m_ElevationMinimum = value;
-            }
-        }
+			set
+			{
+				m_ElevationMinimum = value;
+			}
+		}
 
-        public int ElevationMax
-        {
-            get
-            {
-                return m_ElevationMaximum;
-            }
+		public int ElevationMax
+		{
+			get
+			{
+				return m_ElevationMaximum;
+			}
 
-            set
-            {
-                m_ElevationMaximum = value;
-            }
-        }
+			set
+			{
+				m_ElevationMaximum = value;
+			}
+		}
 
-        public string Remarks
-        {
-            get
-            {
-                return m_Remarks;
-            }
+		public string Remarks
+		{
+			get
+			{
+				return m_Remarks;
+			}
 
-            set
-            {
-                m_Remarks = value;
-            }
-        }
+			set
+			{
+				m_Remarks = value;
+			}
+		}
 
-        public float GlobalCoordinateWest
-        {
-            get
-            {
-                return m_GlobalCoordinateWest;
-            }
+		public float GlobalCoordinateWest
+		{
+			get
+			{
+				return m_GlobalCoordinateWest;
+			}
 
-            set
-            {
-                m_GlobalCoordinateWest = value;
-            }
-        }
+			set
+			{
+				m_GlobalCoordinateWest = value;
+			}
+		}
 
-        public float GlobalCoordinateEast
-        {
-            get
-            {
-                return m_GlobalCoordinateEast;
-            }
+		public float GlobalCoordinateEast
+		{
+			get
+			{
+				return m_GlobalCoordinateEast;
+			}
 
-            set
-            {
-                m_GlobalCoordinateEast = value;
-            }
-        }
+			set
+			{
+				m_GlobalCoordinateEast = value;
+			}
+		}
 
-        public float GlobalCoordinateNorth
-        {
-            get
-            {
-                return m_GlobalCoordinateNorth;
-            }
+		public float GlobalCoordinateNorth
+		{
+			get
+			{
+				return m_GlobalCoordinateNorth;
+			}
 
-            set
-            {
-                m_GlobalCoordinateNorth = value;
-            }
-        }
+			set
+			{
+				m_GlobalCoordinateNorth = value;
+			}
+		}
 
-        public float GlobalCoordinateSouth
-        {
-            get
-            {
-                return m_GlobalCoordinateSouth;
-            }
+		public float GlobalCoordinateSouth
+		{
+			get
+			{
+				return m_GlobalCoordinateSouth;
+			}
 
-            set
-            {
-                m_GlobalCoordinateSouth = value;
-            }
-        }
+			set
+			{
+				m_GlobalCoordinateSouth = value;
+			}
+		}
 
 		public LayerType Type
 		{
@@ -197,7 +205,7 @@ namespace Yggdrasil
 				{
 					fileName = Path.GetFileName(m_OriginalPath);
 				}
-				catch(Exception)
+				catch (Exception)
 				{
 
 				}
@@ -205,7 +213,39 @@ namespace Yggdrasil
 			}
 		}
 
-        public bool LoadImage(string filePath)
+		public byte[] ImageData
+		{
+			get
+			{
+				return m_ImageData;
+			}
+		}
+
+		public float ResolutionX
+		{
+			get
+			{
+				return m_ResolutionX;
+			}
+		}
+
+		public float ResolutionY
+		{
+			get
+			{
+				return m_ResolutionY;
+			}
+		}
+
+		public LoadState State
+		{
+			get
+			{
+				return m_State;
+			}
+		}
+
+		public bool ImportHeightMapImage(string filePath)
         {
             // Load the image "as is"
             if (File.Exists(filePath))
@@ -323,10 +363,29 @@ namespace Yggdrasil
 						m_GlobalCoordinateEast = reader.ReadSingle();
 						m_GlobalCoordinateNorth = reader.ReadSingle();
 						m_GlobalCoordinateSouth = reader.ReadSingle();
+
 						m_OriginalPath = reader.ReadString();
 						m_Remarks = reader.ReadString();
 						int imageSize = reader.ReadInt32();
 						m_ImageData = reader.ReadBytes(imageSize);
+
+						// Determine the width of the map in meters
+						double metersWidth = Utility.GlobalCoordinateToMeters(m_GlobalCoordinateNorth,
+																				m_GlobalCoordinateWest,
+																				m_GlobalCoordinateNorth,
+																				m_GlobalCoordinateEast);
+
+						// Determine the width of the map in meters
+						double metersHeight = Utility.GlobalCoordinateToMeters(m_GlobalCoordinateNorth,
+																				m_GlobalCoordinateWest,
+																				m_GlobalCoordinateSouth,
+																				m_GlobalCoordinateWest);
+
+						// Calculate the resolution of the data.  For now I am assuming the target will be 1 meter resolution
+						m_ResolutionX = (float)metersWidth / m_ImageWidth;
+						m_ResolutionY = (float)metersHeight / m_ImageHeight;
+
+						m_State = LoadState.Loaded;
 
 						return true;
 					}
@@ -336,8 +395,67 @@ namespace Yggdrasil
 			{
 			}
 
+			m_State = LoadState.LoadFailure;
+
 			return false;
 		}
+
+		public static int CompareBranchesByResolution(Branch alpha, Branch beta)
+		{
+			// Not expecting a big discrepency between these two values
+
+			if (alpha == null)
+			{
+				if (beta == null)
+				{
+					// If alpha is null and beta is null, they are equal. 
+					return 0;
+				}
+				else
+				{
+					// If alpha is null and beta is not null, beta
+					// is greater. 
+					return 1;
+				}
+			}
+			else
+			{
+				// If alpha is not null and beta is null, alpha is greater
+				if (beta == null)
+				{
+					return -1;
+				}
+				else
+				{
+					// If alpha is not null and beta is not null, compare the resolutions of the two branches.
+					if( alpha.ResolutionX == beta.ResolutionX )
+					{
+						if (alpha.ResolutionY == beta.ResolutionY)
+						{
+							return 0;
+						}
+						else
+						{
+							return (alpha.ResolutionY > beta.ResolutionY) ? -1 : 1;
+						}
+					}
+					else
+					{
+						return (alpha.ResolutionX > beta.ResolutionX) ? -1 : 1;
+					}
+				}
+			}
+		}
+
+		#region Non Serializable Data
+
+		private float m_ResolutionX = 0.0f;
+		private float m_ResolutionY = 0.0f;
+		private LoadState m_State = LoadState.None;
+
+		#endregion
+
+		#region Serializable Data
 
 		// 19 90 19 90
 		private const UInt32 Branch_FileSignature = 0x012FAE26;
@@ -366,5 +484,7 @@ namespace Yggdrasil
         private string m_OriginalPath = "";
         
         private byte[] m_ImageData = null;
-    }
+
+		#endregion
+	}
 }
