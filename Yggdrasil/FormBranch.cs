@@ -70,7 +70,7 @@ namespace Yggdrasil
 
                 return min < max;
             }
-            catch(Exception)
+            catch (Exception)
             {
                 // Catch everything
             }
@@ -114,7 +114,7 @@ namespace Yggdrasil
         private bool GlobalCoordinateTextInputIsValid(char newChar, string currentText)
         {
             // Only allow digits
-            if (!char.IsControl(newChar) && !char.IsDigit(newChar) && (newChar != '-'))
+            if (!char.IsControl(newChar) && !char.IsDigit(newChar) && (newChar != '-') && (newChar != '.'))
             {
                 return false;
             }
@@ -139,9 +139,9 @@ namespace Yggdrasil
         {
             // Elevation range and global coordinates are mandatory to proceed.
             // so generate a warning if either of them have not been edited.
-            if(m_UserModifiedElevation == false)
+            if (m_UserModifiedElevation == false)
             {
-                if(MessageBox.Show("Did you remember to set the elevation extents?", "Important Question", MessageBoxButtons.YesNo) == DialogResult.No)
+                if (MessageBox.Show("Did you remember to set the elevation extents?", "Important Question", MessageBoxButtons.YesNo) == DialogResult.No)
                 {
                     return;
                 }
@@ -154,7 +154,7 @@ namespace Yggdrasil
                     return;
                 }
             }
-            
+
             // Accept the OK
             this.DialogResult = DialogResult.OK;
 
@@ -168,7 +168,7 @@ namespace Yggdrasil
                 m_BranchData.GlobalCoordinateNorth = Convert.ToSingle(textBox_BranchGlobalCoordinatesN.Text);
                 m_BranchData.GlobalCoordinateSouth = Convert.ToSingle(textBox_BranchGlobalCoordinatesS.Text);
                 m_BranchData.Remarks = textBox_BranchRemarks.Text;
-				m_BranchData.Type = Branch.LayerType.Elevation;
+                m_BranchData.Type = Branch.LayerType.Elevation;
             }
             catch (Exception)
             {
@@ -178,7 +178,7 @@ namespace Yggdrasil
 
         private void TextBox_BranchElevationMin_KeyPress(object sender, KeyPressEventArgs e)
         {
-            if(ElevationInputIsValid(e.KeyChar, (sender as TextBox).Text) == false)
+            if (ElevationInputIsValid(e.KeyChar, (sender as TextBox).Text) == false)
             {
                 e.Handled = true;
             }
@@ -186,7 +186,7 @@ namespace Yggdrasil
 
         private void TextBox_BranchElevationMin_Validating(object sender, CancelEventArgs e)
         {
-            if (ElevationTextIsValid((sender as TextBox).Text) == false || ElevationsAreValid() == false)
+            if (ElevationTextIsValid((sender as TextBox).Text) == false)
             {
                 // Elevation text appears to be invalid
                 e.Cancel = true;
@@ -205,7 +205,7 @@ namespace Yggdrasil
 
         private void TextBox_BranchElevationMax_Validating(object sender, CancelEventArgs e)
         {
-            if (ElevationTextIsValid((sender as TextBox).Text) == false || ElevationsAreValid() == false)
+            if (ElevationTextIsValid((sender as TextBox).Text) == false)
             {
                 // Elevation text appears to be invalid
                 e.Cancel = true;
@@ -266,7 +266,7 @@ namespace Yggdrasil
 
         private void TextBox_BranchGlobalCoordinatesW_Validating(object sender, CancelEventArgs e)
         {
-            if (GlobalCoordinateIsValid((sender as TextBox).Text) == false || GlobalCoordinatesAreValid() == false)
+            if (GlobalCoordinateIsValid((sender as TextBox).Text) == false)
             {
                 // Global coordinate text appears to be invalid
                 e.Cancel = true;
@@ -277,7 +277,7 @@ namespace Yggdrasil
 
         private void TextBox_BranchGlobalCoordinatesN_Validating(object sender, CancelEventArgs e)
         {
-            if (GlobalCoordinateIsValid((sender as TextBox).Text) == false || GlobalCoordinatesAreValid() == false)
+            if (GlobalCoordinateIsValid((sender as TextBox).Text) == false)
             {
                 // Global coordinate text appears to be invalid
                 e.Cancel = true;
@@ -300,7 +300,7 @@ namespace Yggdrasil
 
         private void TextBox_BranchGlobalCoordinatesE_Validating(object sender, CancelEventArgs e)
         {
-            if (GlobalCoordinateIsValid((sender as TextBox).Text) == false || GlobalCoordinatesAreValid() == false)
+            if (GlobalCoordinateIsValid((sender as TextBox).Text) == false)
             {
                 // Global coordinate text appears to be invalid
                 e.Cancel = true;
@@ -317,13 +317,19 @@ namespace Yggdrasil
 
         private void TextBox_BranchGlobalCoordinatesS_Validating(object sender, CancelEventArgs e)
         {
-            if (GlobalCoordinateIsValid((sender as TextBox).Text) == false || GlobalCoordinatesAreValid() == false)
+            if (GlobalCoordinateIsValid((sender as TextBox).Text) == false)
             {
                 // Global coordinate text appears to be invalid
                 e.Cancel = true;
 
                 this.errorProviderBranch.SetError(textBox_BranchGlobalCoordinatesS, "South coordinate must be less than North coordinate!");
             }
+        }
+
+        private void TextBox_ValidatedField_TextChanged(object sender, EventArgs e)
+        {
+            // Enable or disable the OK button depending on if input fields are all valid
+            button_BranchOK.Enabled = (GlobalCoordinatesAreValid() && ElevationsAreValid());
         }
     }
 }

@@ -106,6 +106,7 @@
             this.textBox_BranchElevationMin.Size = new System.Drawing.Size(100, 20);
             this.textBox_BranchElevationMin.TabIndex = 6;
             this.textBox_BranchElevationMin.Text = "0";
+            this.textBox_BranchElevationMin.TextChanged += new System.EventHandler(this.TextBox_ValidatedField_TextChanged);
             this.textBox_BranchElevationMin.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBox_BranchElevationMin_KeyPress);
             this.textBox_BranchElevationMin.Validating += new System.ComponentModel.CancelEventHandler(this.TextBox_BranchElevationMin_Validating);
             this.textBox_BranchElevationMin.Validated += new System.EventHandler(this.TextBox_BranchElevationMin_Validated);
@@ -117,6 +118,7 @@
             this.textBox_BranchElevationMax.Size = new System.Drawing.Size(100, 20);
             this.textBox_BranchElevationMax.TabIndex = 8;
             this.textBox_BranchElevationMax.Text = "1000";
+            this.textBox_BranchElevationMax.TextChanged += new System.EventHandler(this.TextBox_ValidatedField_TextChanged);
             this.textBox_BranchElevationMax.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBox_BranchElevationMax_KeyPress);
             this.textBox_BranchElevationMax.Validating += new System.ComponentModel.CancelEventHandler(this.TextBox_BranchElevationMax_Validating);
             this.textBox_BranchElevationMax.Validated += new System.EventHandler(this.TextBox_BranchElevationMax_Validated);
@@ -128,6 +130,7 @@
             this.textBox_BranchGlobalCoordinatesN.Size = new System.Drawing.Size(100, 20);
             this.textBox_BranchGlobalCoordinatesN.TabIndex = 11;
             this.textBox_BranchGlobalCoordinatesN.Text = "100.0";
+            this.textBox_BranchGlobalCoordinatesN.TextChanged += new System.EventHandler(this.TextBox_ValidatedField_TextChanged);
             this.textBox_BranchGlobalCoordinatesN.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBox_BranchGlobalCoordinatesN_KeyPress);
             this.textBox_BranchGlobalCoordinatesN.Validating += new System.ComponentModel.CancelEventHandler(this.TextBox_BranchGlobalCoordinatesN_Validating);
             this.textBox_BranchGlobalCoordinatesN.Validated += new System.EventHandler(this.TextBox_BranchGlobalCoordinatesN_Validated);
@@ -148,6 +151,7 @@
             this.textBox_BranchGlobalCoordinatesW.Size = new System.Drawing.Size(100, 20);
             this.textBox_BranchGlobalCoordinatesW.TabIndex = 9;
             this.textBox_BranchGlobalCoordinatesW.Text = "-100.0";
+            this.textBox_BranchGlobalCoordinatesW.TextChanged += new System.EventHandler(this.TextBox_ValidatedField_TextChanged);
             this.textBox_BranchGlobalCoordinatesW.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBox_BranchGlobalCoordinatesW_KeyPress);
             this.textBox_BranchGlobalCoordinatesW.Validating += new System.ComponentModel.CancelEventHandler(this.TextBox_BranchGlobalCoordinatesW_Validating);
             this.textBox_BranchGlobalCoordinatesW.Validated += new System.EventHandler(this.TextBox_BranchGlobalCoordinatesW_Validated);
@@ -159,6 +163,7 @@
             this.textBox_BranchGlobalCoordinatesS.Size = new System.Drawing.Size(100, 20);
             this.textBox_BranchGlobalCoordinatesS.TabIndex = 13;
             this.textBox_BranchGlobalCoordinatesS.Text = "99.0";
+            this.textBox_BranchGlobalCoordinatesS.TextChanged += new System.EventHandler(this.TextBox_ValidatedField_TextChanged);
             this.textBox_BranchGlobalCoordinatesS.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBox_BranchGlobalCoordinatesS_KeyPress);
             this.textBox_BranchGlobalCoordinatesS.Validating += new System.ComponentModel.CancelEventHandler(this.TextBox_BranchGlobalCoordinatesS_Validating);
             this.textBox_BranchGlobalCoordinatesS.Validated += new System.EventHandler(this.TextBox_BranchGlobalCoordinatesS_Validated);
@@ -170,6 +175,7 @@
             this.textBox_BranchGlobalCoordinatesE.Size = new System.Drawing.Size(100, 20);
             this.textBox_BranchGlobalCoordinatesE.TabIndex = 12;
             this.textBox_BranchGlobalCoordinatesE.Text = "-99.0";
+            this.textBox_BranchGlobalCoordinatesE.TextChanged += new System.EventHandler(this.TextBox_ValidatedField_TextChanged);
             this.textBox_BranchGlobalCoordinatesE.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBox_BranchGlobalCoordinatesE_KeyPress);
             this.textBox_BranchGlobalCoordinatesE.Validating += new System.ComponentModel.CancelEventHandler(this.TextBox_BranchGlobalCoordinatesE_Validating);
             this.textBox_BranchGlobalCoordinatesE.Validated += new System.EventHandler(this.TextBox_BranchGlobalCoordinatesE_Validated);
