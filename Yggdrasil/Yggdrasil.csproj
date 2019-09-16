@@ -58,6 +58,9 @@
       <DependentUpon>AboutBox.cs</DependentUpon>
     </Compile>
     <Compile Include="Branch.cs" />
+    <Compile Include="BranchDataCache.cs" />
+    <Compile Include="BranchInfo.cs" />
+    <Compile Include="BranchRedundancyTest.cs" />
     <Compile Include="FormBranch.cs">
       <SubType>Form</SubType>
     </Compile>

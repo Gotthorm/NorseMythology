@@ -249,7 +249,7 @@ namespace Yggdrasil
 				// It would be optimal to merge the branches from the lowest resolution to the highest
 				// This way as each branch is merged it simply overwrites any overlapping areas.
 				// So we perform an initial pass where sort the branches.
-				List<Branch> sortedBranchList = new List<Branch>();
+				List<BranchInfo> sortedBranchList = new List<BranchInfo>();
 
 				// If we have the branches sorted from lowest resolution to highest, we might also detect
 				// branches that are completely covered by other branches of equal or higher resolution.
@@ -260,15 +260,15 @@ namespace Yggdrasil
 				// Load each branch
 				foreach (Guid branchGuid in m_Branches)
 				{
-					// Branches start in a "unloaded" state
-					Branch branch = new Branch(branchGuid);
+                    // Branches start in a "unloaded" state
+                    BranchInfo branchInfo = new BranchInfo(branchGuid);
 
 					// Lets delay populating the view table until the branch processing is done
 
 					//DataRow newDataRow = m_BranchDataTable.NewRow();
 					//newDataRow["Guid"] = branchGuid.ToString();
 
-					if (branch.Load(m_BranchDirectory))
+					if (branchInfo.Load(m_BranchDirectory))
 					{
 						// Branch is now in a "loaded" state
 						
@@ -282,7 +282,7 @@ namespace Yggdrasil
 
 						//newDataRow["Remarks"] = branch.Remarks;
 
-						sortedBranchList.Add(branch);
+						sortedBranchList.Add(branchInfo);
 
 						// Use Image Magick to extract the payload and merge it into display
 						//try
@@ -322,13 +322,21 @@ namespace Yggdrasil
 				}
 
 				// Sort the brances by resolution
-				sortedBranchList.Sort(Branch.CompareBranchesByResolution);
+				sortedBranchList.Sort(BranchInfo.CompareBranchesByResolution);
 
-				// Identify branches that can be deprecated
-				// 
+                // Identify branches that can be deprecated
+                DeprecateRedundantBranches(sortedBranchList);
 
-				// Populate the view with the branches
-				foreach(Branch branch in sortedBranchList)
+                // Cache the bounds of brances we are about to merge while we iterate through them all
+                //float west = float.MaxValue;
+                //float east = float.MinValue;
+                //float north = float.MinValue;
+                //float south = float.MaxValue;
+
+                List<BranchInfo> loadedBranches = new List<BranchInfo>();
+
+                // Iterate through all of the branches and populate the view data
+                foreach (BranchInfo branch in sortedBranchList)
 				{
 					DataRow newDataRow = m_BranchDataTable.NewRow();
 					newDataRow["Guid"] = branch.GUID.ToString();
@@ -336,9 +344,39 @@ namespace Yggdrasil
 					switch(branch.State)
 					{
 						case Branch.LoadState.Loaded:
-						case Branch.LoadState.Deprecated:
+                            {
+                                newDataRow["Status"] = "Ready";
+
+                                newDataRow["Last Modified"] = branch.LastModified;
+
+                                newDataRow["Original File Name"] = branch.OriginalFileName;
+
+                                newDataRow["Remarks"] = branch.Remarks;
+
+                                //// Update the bounds
+                                //if (branch.GlobalCoordinateWest < west)
+                                //{
+                                //    west = branch.GlobalCoordinateWest;
+                                //}
+                                //if (branch.GlobalCoordinateEast > east)
+                                //{
+                                //    east = branch.GlobalCoordinateEast;
+                                //}
+                                //if (branch.GlobalCoordinateNorth > north)
+                                //{
+                                //    north = branch.GlobalCoordinateNorth;
+                                //}
+                                //if (branch.GlobalCoordinateSouth < south)
+                                //{
+                                //    south = branch.GlobalCoordinateSouth;
+                                //}
+
+                                loadedBranches.Add(branch);
+                            }
+                            break;
+                        case Branch.LoadState.Deprecated:
 							{
-								newDataRow["Status"] = (branch.State == Branch.LoadState.Loaded) ? "Loaded" : "Deprecated";
+								newDataRow["Status"] = "Deprecated";
 
 								newDataRow["Last Modified"] = branch.LastModified;
 
@@ -350,22 +388,60 @@ namespace Yggdrasil
 						case Branch.LoadState.LoadFailure:
 						default:
 							{
-								newDataRow["Status"] = "Load Failure";
+								newDataRow["Status"] = "Failure";
 							}
 							break;
 					}
 
 					m_BranchDataTable.Rows.Add(newDataRow);
-				}
+                }
 
-				return true;
+                if (loadedBranches.Count > 0)
+                {
+                    if(m_DataCache.Initialize(loadedBranches))
+                    {
+                        // Examine attributes
+
+                        //
+                        if(m_DataCache.GenerateCache(0, 0))
+                        {
+                            return true;
+                        }
+                    }
+
+                    // Some kind of data cache manager
+                    // new DataCacheManager(loadedBranches)
+
+                    // Allocate the memory for the new image
+                    {
+                        // Determine the width of the new map in meters
+                        //double metersWidth = Utility.GlobalCoordinateToMeters(north, west, north, east);
+                        //m_Width = (int)(metersWidth / Utility.MetersPerPixel + 0.99);
+
+                        //// Determine the width of the new map in meters
+                        //double metersHeight = Utility.GlobalCoordinateToMeters(north, west, south, west);
+                        //m_Height = (int)(metersHeight / Utility.MetersPerPixel + 0.99);
+
+                        //m_ImageData = new short[m_Width * m_Height];
+                    }
+
+                    // Iterate through the loaded branches, merging the data
+                }
 			}
 
 			return false;
 		}
 
-		// 19 66 19 68
-		private const UInt32 Yggdrasil_FileSignature = 0x012C0490;
+        // This method assumes the branch list is sorted from lowest resolution to highest resolution
+        private void DeprecateRedundantBranches(List<BranchInfo> branchList)
+        {
+            // Each branch is converted to a BBox and then all subsequent branches are subtracted from it.
+            // Any bounding box that becomes empty indicates that its branch is redundant.
+            // The load state of any redundant branch will be updated.
+        }
+
+        // 19 66 19 68
+        private const UInt32 Yggdrasil_FileSignature = 0x012C0490;
 		private const UInt32 Yggdrasil_Version = 0x00000001;
 		private bool m_FileCreated = false;
 		private bool m_Dirty = true;
@@ -374,6 +450,7 @@ namespace Yggdrasil
 		private List<Guid> m_Branches = new List<Guid>();
 
 		private DataTable m_BranchDataTable = new DataTable();
+        private BranchDataCache m_DataCache = new BranchDataCache();
 
 		private string m_FilePath = "";
 		private string m_BranchDirectory = "";
@@ -381,5 +458,6 @@ namespace Yggdrasil
         private int m_Height;
 		private Image m_Image = null;
 		private PictureBox m_ImageDisplay = null;
+        private short[] m_ImageData = null;
     }
 }
