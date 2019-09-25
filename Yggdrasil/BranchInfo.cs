@@ -269,6 +269,11 @@ namespace Yggdrasil
             m_State = LoadState.Deprecated;
         }
 
+		public void LoadFail()
+		{
+			m_State = LoadState.LoadFailure;
+		}
+
         protected void Read(BinaryReader reader)
         {
             if (Branch_FileSignature != reader.ReadUInt32())

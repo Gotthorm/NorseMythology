@@ -248,7 +248,7 @@ namespace Yggdrasil
 
 				// It would be optimal to merge the branches from the lowest resolution to the highest
 				// This way as each branch is merged it simply overwrites any overlapping areas.
-				// So we perform an initial pass where sort the branches.
+				// So we perform an initial pass where we sort the branches.
 				List<BranchInfo> sortedBranchList = new List<BranchInfo>();
 
 				// If we have the branches sorted from lowest resolution to highest, we might also detect
@@ -256,6 +256,9 @@ namespace Yggdrasil
 				// These branched could be flagged as "deprecated"
 
 				// When merging two areas together, undefined areas will be set to 0 elevation (sea level)
+
+				// We will cache the load failures seperately and merge them to the sorted list afterwards
+				List<BranchInfo> failedBranchList = new List<BranchInfo>();
 
 				// Load each branch
 				foreach (Guid branchGuid in m_Branches)
@@ -272,16 +275,6 @@ namespace Yggdrasil
 					{
 						// Branch is now in a "loaded" state
 						
-						// Mark the status as loaded
-						//newDataRow["Status"] = "Processing";
-
-						// Extract any other info the branch status table requires (modification date)
-						//newDataRow["Last Modified"] = branch.LastModified;
-
-						//newDataRow["Original File Name"] = branch.OriginalFileName;
-
-						//newDataRow["Remarks"] = branch.Remarks;
-
 						sortedBranchList.Add(branchInfo);
 
 						// Use Image Magick to extract the payload and merge it into display
@@ -307,13 +300,11 @@ namespace Yggdrasil
 					else
 					{
 						// Branch is in a "load failure" state
+						branchInfo.LoadFail();
+						failedBranchList.Add(branchInfo);
 
-						// Mark the status of the branch as load failure
 						// TODO: If we want to have more details of the failure
 						// we could add an error state to the branch that could be read here.
-						// Mark the status as loaded
-
-						//newDataRow["Status"] = "Load Failure";
 					}
 
 					//branch.TableIndex = m_BranchDataTable.Rows.Count;
@@ -327,11 +318,14 @@ namespace Yggdrasil
                 // Identify branches that can be deprecated
                 DeprecateRedundantBranches(sortedBranchList);
 
-                // Cache the bounds of brances we are about to merge while we iterate through them all
-                //float west = float.MaxValue;
-                //float east = float.MinValue;
-                //float north = float.MinValue;
-                //float south = float.MaxValue;
+				// Cache the bounds of branches we are about to merge while we iterate through them all
+				//float west = float.MaxValue;
+				//float east = float.MinValue;
+				//float north = float.MinValue;
+				//float south = float.MaxValue;
+
+				// Append the failures to the sorted list
+				sortedBranchList.AddRange(failedBranchList);
 
                 List<BranchInfo> loadedBranches = new List<BranchInfo>();
 
