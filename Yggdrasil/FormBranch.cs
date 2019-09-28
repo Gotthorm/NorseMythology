@@ -24,7 +24,10 @@ namespace Yggdrasil
             textBox_BranchImageBitDepth.Text = branchData.ImageBitDepth.ToString();
 
             m_BranchData = branchData;
-        }
+
+			GlobalCoordinatesAreValid();
+
+		}
 
         private bool m_UserModifiedElevation = false;
         private bool m_UserModifiedGlobalCoordinates = false;
@@ -93,15 +96,37 @@ namespace Yggdrasil
         {
             try
             {
-                // Convert global coordinates to floats and ensure thwy are valid
-                float north = Convert.ToSingle(textBox_BranchGlobalCoordinatesN.Text);
-                float south = Convert.ToSingle(textBox_BranchGlobalCoordinatesS.Text);
-                float west = Convert.ToSingle(textBox_BranchGlobalCoordinatesW.Text);
-                float east = Convert.ToSingle(textBox_BranchGlobalCoordinatesE.Text);
+				// Convert global coordinates to floats and ensure thwy are valid
+				float north = Convert.ToSingle(textBox_BranchGlobalCoordinatesN.Text);
+				float south = Convert.ToSingle(textBox_BranchGlobalCoordinatesS.Text);
+				float west = Convert.ToSingle(textBox_BranchGlobalCoordinatesW.Text);
+				float east = Convert.ToSingle(textBox_BranchGlobalCoordinatesE.Text);
 
-                // Add some range boundary tests also?
+				bool heightOK = (south < north);
+				bool widthOK = (west < east);
 
-                return (south < north) && (west < east);
+				// Update the global approximations
+				if (heightOK)
+				{
+					double heightInMeters = Utility.GlobalCoordinateToMeters(west, north, west, south);
+					textBox_ApproximateDimensionsHeight.Text = (heightInMeters / 1000.0).ToString("0.##");
+				}
+				else
+				{
+					textBox_ApproximateDimensionsHeight.Text = "Invalid";
+				}
+				if (widthOK)
+				{
+					double widthInMeters = Utility.GlobalCoordinateToMeters(west, north, east, north);
+					textBox_ApproximateDimensionsWidth.Text = (widthInMeters / 1000.0).ToString("0.##");
+				}
+				else
+				{
+					textBox_ApproximateDimensionsHeight.Text = "Invalid";
+				}
+
+				// Add some range boundary tests also?
+				return heightOK && widthOK;
             }
             catch (Exception)
             {
