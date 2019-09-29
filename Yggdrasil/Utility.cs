@@ -15,15 +15,15 @@ namespace Yggdrasil
 			// One degree in radians
 			const double oneDegree = Math.PI / 180;
 
-			// distance between latitudes and longitudes 
+			// Distances between latitudes and longitudes in radians
 			double dLat = oneDegree * (lat2 - lat1);
 			double dLon = oneDegree * (lon2 - lon1);
 
-			// convert to radians 
+			// Convert latitude values to radians 
 			double lat1Radians = oneDegree * (lat1);
 			double lat2Radians = oneDegree * (lat2);
 
-			// apply formulae 
+			// Apply formula
 			double a = Math.Pow(Math.Sin(dLat / 2), 2) + Math.Pow(Math.Sin(dLon / 2), 2) * Math.Cos(lat1Radians) * Math.Cos(lat2Radians);
 
 			return 12742000 * Math.Asin(Math.Sqrt(a));

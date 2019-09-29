@@ -52,8 +52,13 @@
 			this.label_BranchImageBitDepth = new System.Windows.Forms.Label();
 			this.textBox_BranchImageBitDepth = new System.Windows.Forms.TextBox();
 			this.textBox_ApproximateDimensionsHeight = new System.Windows.Forms.TextBox();
-			this.label1 = new System.Windows.Forms.Label();
+			this.label_AproximateDimensions = new System.Windows.Forms.Label();
 			this.textBox_ApproximateDimensionsWidth = new System.Windows.Forms.TextBox();
+			this.textBox_BranchSimpleCoordinatesS = new System.Windows.Forms.TextBox();
+			this.textBox_BranchSimpleCoordinatesE = new System.Windows.Forms.TextBox();
+			this.textBox_BranchSimpleCoordinatesN = new System.Windows.Forms.TextBox();
+			this.label_BranchSimpleCoordinates = new System.Windows.Forms.Label();
+			this.textBox_BranchSimpleCoordinatesW = new System.Windows.Forms.TextBox();
 			((System.ComponentModel.ISupportInitialize)(this.errorProviderBranch)).BeginInit();
 			this.SuspendLayout();
 			// 
@@ -70,9 +75,9 @@
 			this.label_BranchVersion.AutoSize = true;
 			this.label_BranchVersion.Location = new System.Drawing.Point(12, 18);
 			this.label_BranchVersion.Name = "label_BranchVersion";
-			this.label_BranchVersion.Size = new System.Drawing.Size(79, 13);
+			this.label_BranchVersion.Size = new System.Drawing.Size(42, 13);
 			this.label_BranchVersion.TabIndex = 1;
-			this.label_BranchVersion.Text = "Branch Version";
+			this.label_BranchVersion.Text = "Version";
 			// 
 			// label_BranchRemarks
 			// 
@@ -109,7 +114,7 @@
 			this.textBox_BranchElevationMin.Size = new System.Drawing.Size(100, 20);
 			this.textBox_BranchElevationMin.TabIndex = 6;
 			this.textBox_BranchElevationMin.Text = "0";
-			this.textBox_BranchElevationMin.TextChanged += new System.EventHandler(this.TextBox_ValidatedField_TextChanged);
+			this.textBox_BranchElevationMin.TextChanged += new System.EventHandler(this.TextBox_GlobalCoordinate_TextChanged);
 			this.textBox_BranchElevationMin.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBox_BranchElevationMin_KeyPress);
 			this.textBox_BranchElevationMin.Validating += new System.ComponentModel.CancelEventHandler(this.TextBox_BranchElevationMin_Validating);
 			this.textBox_BranchElevationMin.Validated += new System.EventHandler(this.TextBox_BranchElevationMin_Validated);
@@ -121,7 +126,7 @@
 			this.textBox_BranchElevationMax.Size = new System.Drawing.Size(100, 20);
 			this.textBox_BranchElevationMax.TabIndex = 8;
 			this.textBox_BranchElevationMax.Text = "1000";
-			this.textBox_BranchElevationMax.TextChanged += new System.EventHandler(this.TextBox_ValidatedField_TextChanged);
+			this.textBox_BranchElevationMax.TextChanged += new System.EventHandler(this.TextBox_GlobalCoordinate_TextChanged);
 			this.textBox_BranchElevationMax.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBox_BranchElevationMax_KeyPress);
 			this.textBox_BranchElevationMax.Validating += new System.ComponentModel.CancelEventHandler(this.TextBox_BranchElevationMax_Validating);
 			this.textBox_BranchElevationMax.Validated += new System.EventHandler(this.TextBox_BranchElevationMax_Validated);
@@ -133,7 +138,8 @@
 			this.textBox_BranchGlobalCoordinatesN.Size = new System.Drawing.Size(100, 20);
 			this.textBox_BranchGlobalCoordinatesN.TabIndex = 11;
 			this.textBox_BranchGlobalCoordinatesN.Text = "100.0";
-			this.textBox_BranchGlobalCoordinatesN.TextChanged += new System.EventHandler(this.TextBox_ValidatedField_TextChanged);
+			this.textBox_BranchGlobalCoordinatesN.MouseClick += new System.Windows.Forms.MouseEventHandler(this.TextBox_BranchGlobalCoordinates_MouseClick);
+			this.textBox_BranchGlobalCoordinatesN.TextChanged += new System.EventHandler(this.TextBox_GlobalCoordinate_TextChanged);
 			this.textBox_BranchGlobalCoordinatesN.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBox_BranchGlobalCoordinatesN_KeyPress);
 			this.textBox_BranchGlobalCoordinatesN.Validating += new System.ComponentModel.CancelEventHandler(this.TextBox_BranchGlobalCoordinatesN_Validating);
 			this.textBox_BranchGlobalCoordinatesN.Validated += new System.EventHandler(this.TextBox_BranchGlobalCoordinatesN_Validated);
@@ -154,7 +160,8 @@
 			this.textBox_BranchGlobalCoordinatesW.Size = new System.Drawing.Size(100, 20);
 			this.textBox_BranchGlobalCoordinatesW.TabIndex = 9;
 			this.textBox_BranchGlobalCoordinatesW.Text = "-100.0";
-			this.textBox_BranchGlobalCoordinatesW.TextChanged += new System.EventHandler(this.TextBox_ValidatedField_TextChanged);
+			this.textBox_BranchGlobalCoordinatesW.MouseClick += new System.Windows.Forms.MouseEventHandler(this.TextBox_BranchGlobalCoordinates_MouseClick);
+			this.textBox_BranchGlobalCoordinatesW.TextChanged += new System.EventHandler(this.TextBox_GlobalCoordinate_TextChanged);
 			this.textBox_BranchGlobalCoordinatesW.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBox_BranchGlobalCoordinatesW_KeyPress);
 			this.textBox_BranchGlobalCoordinatesW.Validating += new System.ComponentModel.CancelEventHandler(this.TextBox_BranchGlobalCoordinatesW_Validating);
 			this.textBox_BranchGlobalCoordinatesW.Validated += new System.EventHandler(this.TextBox_BranchGlobalCoordinatesW_Validated);
@@ -166,7 +173,8 @@
 			this.textBox_BranchGlobalCoordinatesS.Size = new System.Drawing.Size(100, 20);
 			this.textBox_BranchGlobalCoordinatesS.TabIndex = 13;
 			this.textBox_BranchGlobalCoordinatesS.Text = "99.0";
-			this.textBox_BranchGlobalCoordinatesS.TextChanged += new System.EventHandler(this.TextBox_ValidatedField_TextChanged);
+			this.textBox_BranchGlobalCoordinatesS.MouseClick += new System.Windows.Forms.MouseEventHandler(this.TextBox_BranchGlobalCoordinates_MouseClick);
+			this.textBox_BranchGlobalCoordinatesS.TextChanged += new System.EventHandler(this.TextBox_GlobalCoordinate_TextChanged);
 			this.textBox_BranchGlobalCoordinatesS.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBox_BranchGlobalCoordinatesS_KeyPress);
 			this.textBox_BranchGlobalCoordinatesS.Validating += new System.ComponentModel.CancelEventHandler(this.TextBox_BranchGlobalCoordinatesS_Validating);
 			this.textBox_BranchGlobalCoordinatesS.Validated += new System.EventHandler(this.TextBox_BranchGlobalCoordinatesS_Validated);
@@ -178,7 +186,8 @@
 			this.textBox_BranchGlobalCoordinatesE.Size = new System.Drawing.Size(100, 20);
 			this.textBox_BranchGlobalCoordinatesE.TabIndex = 12;
 			this.textBox_BranchGlobalCoordinatesE.Text = "-99.0";
-			this.textBox_BranchGlobalCoordinatesE.TextChanged += new System.EventHandler(this.TextBox_ValidatedField_TextChanged);
+			this.textBox_BranchGlobalCoordinatesE.MouseClick += new System.Windows.Forms.MouseEventHandler(this.TextBox_BranchGlobalCoordinates_MouseClick);
+			this.textBox_BranchGlobalCoordinatesE.TextChanged += new System.EventHandler(this.TextBox_GlobalCoordinate_TextChanged);
 			this.textBox_BranchGlobalCoordinatesE.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBox_BranchGlobalCoordinatesE_KeyPress);
 			this.textBox_BranchGlobalCoordinatesE.Validating += new System.ComponentModel.CancelEventHandler(this.TextBox_BranchGlobalCoordinatesE_Validating);
 			this.textBox_BranchGlobalCoordinatesE.Validated += new System.EventHandler(this.TextBox_BranchGlobalCoordinatesE_Validated);
@@ -186,7 +195,7 @@
 			// label_BranchImageDimensions
 			// 
 			this.label_BranchImageDimensions.AutoSize = true;
-			this.label_BranchImageDimensions.Location = new System.Drawing.Point(12, 196);
+			this.label_BranchImageDimensions.Location = new System.Drawing.Point(12, 222);
 			this.label_BranchImageDimensions.Name = "label_BranchImageDimensions";
 			this.label_BranchImageDimensions.Size = new System.Drawing.Size(124, 13);
 			this.label_BranchImageDimensions.TabIndex = 15;
@@ -194,7 +203,7 @@
 			// 
 			// textBox_BranchImageDimensionsWidth
 			// 
-			this.textBox_BranchImageDimensionsWidth.Location = new System.Drawing.Point(174, 193);
+			this.textBox_BranchImageDimensionsWidth.Location = new System.Drawing.Point(174, 219);
 			this.textBox_BranchImageDimensionsWidth.Name = "textBox_BranchImageDimensionsWidth";
 			this.textBox_BranchImageDimensionsWidth.ReadOnly = true;
 			this.textBox_BranchImageDimensionsWidth.Size = new System.Drawing.Size(100, 20);
@@ -203,7 +212,7 @@
 			// label_BranchImagePath
 			// 
 			this.label_BranchImagePath.AutoSize = true;
-			this.label_BranchImagePath.Location = new System.Drawing.Point(12, 248);
+			this.label_BranchImagePath.Location = new System.Drawing.Point(12, 274);
 			this.label_BranchImagePath.Name = "label_BranchImagePath";
 			this.label_BranchImagePath.Size = new System.Drawing.Size(61, 13);
 			this.label_BranchImagePath.TabIndex = 17;
@@ -211,7 +220,7 @@
 			// 
 			// textBox_BranchImagePath
 			// 
-			this.textBox_BranchImagePath.Location = new System.Drawing.Point(174, 245);
+			this.textBox_BranchImagePath.Location = new System.Drawing.Point(174, 271);
 			this.textBox_BranchImagePath.Name = "textBox_BranchImagePath";
 			this.textBox_BranchImagePath.ReadOnly = true;
 			this.textBox_BranchImagePath.Size = new System.Drawing.Size(465, 20);
@@ -219,7 +228,7 @@
 			// 
 			// textBox_BranchImageDimensionsHeight
 			// 
-			this.textBox_BranchImageDimensionsHeight.Location = new System.Drawing.Point(280, 193);
+			this.textBox_BranchImageDimensionsHeight.Location = new System.Drawing.Point(280, 219);
 			this.textBox_BranchImageDimensionsHeight.Name = "textBox_BranchImageDimensionsHeight";
 			this.textBox_BranchImageDimensionsHeight.ReadOnly = true;
 			this.textBox_BranchImageDimensionsHeight.Size = new System.Drawing.Size(100, 20);
@@ -227,7 +236,7 @@
 			// 
 			// button_BranchOK
 			// 
-			this.button_BranchOK.Location = new System.Drawing.Point(564, 271);
+			this.button_BranchOK.Location = new System.Drawing.Point(564, 297);
 			this.button_BranchOK.Name = "button_BranchOK";
 			this.button_BranchOK.Size = new System.Drawing.Size(75, 23);
 			this.button_BranchOK.TabIndex = 19;
@@ -238,7 +247,7 @@
 			// button_BranchCancel
 			// 
 			this.button_BranchCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-			this.button_BranchCancel.Location = new System.Drawing.Point(480, 271);
+			this.button_BranchCancel.Location = new System.Drawing.Point(480, 297);
 			this.button_BranchCancel.Name = "button_BranchCancel";
 			this.button_BranchCancel.Size = new System.Drawing.Size(75, 23);
 			this.button_BranchCancel.TabIndex = 20;
@@ -252,7 +261,7 @@
 			// label_BranchImageBitDepth
 			// 
 			this.label_BranchImageBitDepth.AutoSize = true;
-			this.label_BranchImageBitDepth.Location = new System.Drawing.Point(12, 222);
+			this.label_BranchImageBitDepth.Location = new System.Drawing.Point(12, 248);
 			this.label_BranchImageBitDepth.Name = "label_BranchImageBitDepth";
 			this.label_BranchImageBitDepth.Size = new System.Drawing.Size(83, 13);
 			this.label_BranchImageBitDepth.TabIndex = 22;
@@ -260,7 +269,7 @@
 			// 
 			// textBox_BranchImageBitDepth
 			// 
-			this.textBox_BranchImageBitDepth.Location = new System.Drawing.Point(174, 219);
+			this.textBox_BranchImageBitDepth.Location = new System.Drawing.Point(174, 245);
 			this.textBox_BranchImageBitDepth.Name = "textBox_BranchImageBitDepth";
 			this.textBox_BranchImageBitDepth.ReadOnly = true;
 			this.textBox_BranchImageBitDepth.Size = new System.Drawing.Size(100, 20);
@@ -268,36 +277,90 @@
 			// 
 			// textBox_ApproximateDimensionsHeight
 			// 
-			this.textBox_ApproximateDimensionsHeight.Location = new System.Drawing.Point(280, 167);
+			this.textBox_ApproximateDimensionsHeight.Location = new System.Drawing.Point(280, 193);
 			this.textBox_ApproximateDimensionsHeight.Name = "textBox_ApproximateDimensionsHeight";
 			this.textBox_ApproximateDimensionsHeight.ReadOnly = true;
 			this.textBox_ApproximateDimensionsHeight.Size = new System.Drawing.Size(100, 20);
 			this.textBox_ApproximateDimensionsHeight.TabIndex = 25;
 			// 
-			// label1
+			// label_AproximateDimensions
 			// 
-			this.label1.AutoSize = true;
-			this.label1.Location = new System.Drawing.Point(12, 170);
-			this.label1.Name = "label1";
-			this.label1.Size = new System.Drawing.Size(147, 13);
-			this.label1.TabIndex = 24;
-			this.label1.Text = "Approximate Dimensions (KM)";
+			this.label_AproximateDimensions.AutoSize = true;
+			this.label_AproximateDimensions.Location = new System.Drawing.Point(12, 196);
+			this.label_AproximateDimensions.Name = "label_AproximateDimensions";
+			this.label_AproximateDimensions.Size = new System.Drawing.Size(147, 13);
+			this.label_AproximateDimensions.TabIndex = 24;
+			this.label_AproximateDimensions.Text = "Approximate Dimensions (KM)";
 			// 
 			// textBox_ApproximateDimensionsWidth
 			// 
-			this.textBox_ApproximateDimensionsWidth.Location = new System.Drawing.Point(174, 167);
+			this.textBox_ApproximateDimensionsWidth.Location = new System.Drawing.Point(174, 193);
 			this.textBox_ApproximateDimensionsWidth.Name = "textBox_ApproximateDimensionsWidth";
 			this.textBox_ApproximateDimensionsWidth.ReadOnly = true;
 			this.textBox_ApproximateDimensionsWidth.Size = new System.Drawing.Size(100, 20);
 			this.textBox_ApproximateDimensionsWidth.TabIndex = 23;
 			// 
+			// textBox_BranchSimpleCoordinatesS
+			// 
+			this.textBox_BranchSimpleCoordinatesS.Location = new System.Drawing.Point(492, 167);
+			this.textBox_BranchSimpleCoordinatesS.Name = "textBox_BranchSimpleCoordinatesS";
+			this.textBox_BranchSimpleCoordinatesS.ReadOnly = true;
+			this.textBox_BranchSimpleCoordinatesS.Size = new System.Drawing.Size(100, 20);
+			this.textBox_BranchSimpleCoordinatesS.TabIndex = 30;
+			this.textBox_BranchSimpleCoordinatesS.MouseClick += new System.Windows.Forms.MouseEventHandler(this.TextBox_BranchSimpleCoordinates_MouseClick);
+			this.textBox_BranchSimpleCoordinatesS.TextChanged += new System.EventHandler(this.TextBox_SimpleCoordinate_TextChanged);
+			// 
+			// textBox_BranchSimpleCoordinatesE
+			// 
+			this.textBox_BranchSimpleCoordinatesE.Location = new System.Drawing.Point(386, 167);
+			this.textBox_BranchSimpleCoordinatesE.Name = "textBox_BranchSimpleCoordinatesE";
+			this.textBox_BranchSimpleCoordinatesE.ReadOnly = true;
+			this.textBox_BranchSimpleCoordinatesE.Size = new System.Drawing.Size(100, 20);
+			this.textBox_BranchSimpleCoordinatesE.TabIndex = 29;
+			this.textBox_BranchSimpleCoordinatesE.MouseClick += new System.Windows.Forms.MouseEventHandler(this.TextBox_BranchSimpleCoordinates_MouseClick);
+			this.textBox_BranchSimpleCoordinatesE.TextChanged += new System.EventHandler(this.TextBox_SimpleCoordinate_TextChanged);
+			// 
+			// textBox_BranchSimpleCoordinatesN
+			// 
+			this.textBox_BranchSimpleCoordinatesN.Location = new System.Drawing.Point(280, 167);
+			this.textBox_BranchSimpleCoordinatesN.Name = "textBox_BranchSimpleCoordinatesN";
+			this.textBox_BranchSimpleCoordinatesN.ReadOnly = true;
+			this.textBox_BranchSimpleCoordinatesN.Size = new System.Drawing.Size(100, 20);
+			this.textBox_BranchSimpleCoordinatesN.TabIndex = 28;
+			this.textBox_BranchSimpleCoordinatesN.MouseClick += new System.Windows.Forms.MouseEventHandler(this.TextBox_BranchSimpleCoordinates_MouseClick);
+			this.textBox_BranchSimpleCoordinatesN.TextChanged += new System.EventHandler(this.TextBox_SimpleCoordinate_TextChanged);
+			// 
+			// label_BranchSimpleCoordinates
+			// 
+			this.label_BranchSimpleCoordinates.AutoSize = true;
+			this.label_BranchSimpleCoordinates.Location = new System.Drawing.Point(12, 170);
+			this.label_BranchSimpleCoordinates.Name = "label_BranchSimpleCoordinates";
+			this.label_BranchSimpleCoordinates.Size = new System.Drawing.Size(148, 13);
+			this.label_BranchSimpleCoordinates.TabIndex = 27;
+			this.label_BranchSimpleCoordinates.Text = "Simple Coordinates (W,N,E,S)";
+			// 
+			// textBox_BranchSimpleCoordinatesW
+			// 
+			this.textBox_BranchSimpleCoordinatesW.Location = new System.Drawing.Point(174, 167);
+			this.textBox_BranchSimpleCoordinatesW.Name = "textBox_BranchSimpleCoordinatesW";
+			this.textBox_BranchSimpleCoordinatesW.ReadOnly = true;
+			this.textBox_BranchSimpleCoordinatesW.Size = new System.Drawing.Size(100, 20);
+			this.textBox_BranchSimpleCoordinatesW.TabIndex = 26;
+			this.textBox_BranchSimpleCoordinatesW.MouseClick += new System.Windows.Forms.MouseEventHandler(this.TextBox_BranchSimpleCoordinates_MouseClick);
+			this.textBox_BranchSimpleCoordinatesW.TextChanged += new System.EventHandler(this.TextBox_SimpleCoordinate_TextChanged);
+			// 
 			// FormBranch
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(651, 305);
+			this.ClientSize = new System.Drawing.Size(651, 337);
+			this.Controls.Add(this.textBox_BranchSimpleCoordinatesS);
+			this.Controls.Add(this.textBox_BranchSimpleCoordinatesE);
+			this.Controls.Add(this.textBox_BranchSimpleCoordinatesN);
+			this.Controls.Add(this.label_BranchSimpleCoordinates);
+			this.Controls.Add(this.textBox_BranchSimpleCoordinatesW);
 			this.Controls.Add(this.textBox_ApproximateDimensionsHeight);
-			this.Controls.Add(this.label1);
+			this.Controls.Add(this.label_AproximateDimensions);
 			this.Controls.Add(this.textBox_ApproximateDimensionsWidth);
 			this.Controls.Add(this.label_BranchImageBitDepth);
 			this.Controls.Add(this.textBox_BranchImageBitDepth);
@@ -321,7 +384,7 @@
 			this.Controls.Add(this.label_BranchVersion);
 			this.Controls.Add(this.textBox_BranchVersion);
 			this.Name = "FormBranch";
-			this.Text = "FormBranch";
+			this.Text = "New Branch";
 			((System.ComponentModel.ISupportInitialize)(this.errorProviderBranch)).EndInit();
 			this.ResumeLayout(false);
 			this.PerformLayout();
@@ -353,7 +416,12 @@
         private System.Windows.Forms.Label label_BranchImageBitDepth;
         private System.Windows.Forms.TextBox textBox_BranchImageBitDepth;
 		private System.Windows.Forms.TextBox textBox_ApproximateDimensionsHeight;
-		private System.Windows.Forms.Label label1;
+		private System.Windows.Forms.Label label_AproximateDimensions;
 		private System.Windows.Forms.TextBox textBox_ApproximateDimensionsWidth;
+		private System.Windows.Forms.TextBox textBox_BranchSimpleCoordinatesS;
+		private System.Windows.Forms.TextBox textBox_BranchSimpleCoordinatesE;
+		private System.Windows.Forms.TextBox textBox_BranchSimpleCoordinatesN;
+		private System.Windows.Forms.Label label_BranchSimpleCoordinates;
+		private System.Windows.Forms.TextBox textBox_BranchSimpleCoordinatesW;
 	}
 }

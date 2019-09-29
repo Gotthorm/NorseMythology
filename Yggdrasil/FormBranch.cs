@@ -31,6 +31,7 @@ namespace Yggdrasil
 
         private bool m_UserModifiedElevation = false;
         private bool m_UserModifiedGlobalCoordinates = false;
+		private bool m_UseGlobal = true;
         private Branch m_BranchData = null;
 
         private bool ElevationInputIsValid(char newChar, string currentText)
@@ -96,37 +97,18 @@ namespace Yggdrasil
         {
             try
             {
-				// Convert global coordinates to floats and ensure thwy are valid
+				// Convert global coordinates to floats and ensure they are valid
 				float north = Convert.ToSingle(textBox_BranchGlobalCoordinatesN.Text);
 				float south = Convert.ToSingle(textBox_BranchGlobalCoordinatesS.Text);
 				float west = Convert.ToSingle(textBox_BranchGlobalCoordinatesW.Text);
 				float east = Convert.ToSingle(textBox_BranchGlobalCoordinatesE.Text);
 
-				bool heightOK = (south < north);
-				bool widthOK = (west < east);
+				UpdateGlobalApproximationsInDegrees(west, north, east, south);
 
-				// Update the global approximations
-				if (heightOK)
-				{
-					double heightInMeters = Utility.GlobalCoordinateToMeters(west, north, west, south);
-					textBox_ApproximateDimensionsHeight.Text = (heightInMeters / 1000.0).ToString("0.##");
-				}
-				else
-				{
-					textBox_ApproximateDimensionsHeight.Text = "Invalid";
-				}
-				if (widthOK)
-				{
-					double widthInMeters = Utility.GlobalCoordinateToMeters(west, north, east, north);
-					textBox_ApproximateDimensionsWidth.Text = (widthInMeters / 1000.0).ToString("0.##");
-				}
-				else
-				{
-					textBox_ApproximateDimensionsHeight.Text = "Invalid";
-				}
+				UpdateSimpleCoordinatesFromGlobal(west, north, east, south);
 
 				// Add some range boundary tests also?
-				return heightOK && widthOK;
+				return (south < north) & (west < east);
             }
             catch (Exception)
             {
@@ -136,7 +118,116 @@ namespace Yggdrasil
             return false;
         }
 
-        private bool GlobalCoordinateTextInputIsValid(char newChar, string currentText)
+		private bool SimpleCoordinatesAreValid()
+		{
+			try
+			{
+				// Convert simple coordinates to floats and ensure they are valid
+				float north = Convert.ToSingle(textBox_BranchSimpleCoordinatesN.Text);
+				float south = Convert.ToSingle(textBox_BranchSimpleCoordinatesS.Text);
+				float west = Convert.ToSingle(textBox_BranchSimpleCoordinatesW.Text);
+				float east = Convert.ToSingle(textBox_BranchSimpleCoordinatesE.Text);
+
+				UpdateGlobalApproximationsInKM(west, north, east, south);
+
+				// Add some range boundary tests also?
+				return (south < north) & (west < east);
+			}
+			catch (Exception)
+			{
+				// Catch everything
+			}
+
+			return false;
+		}
+
+		private void UpdateSimpleCoordinatesFromGlobal(float west, float north, float east, float south)
+		{
+			string westText = "Invalid";
+			string northText = "Invalid";
+			string eastText = "Invalid";
+			string southText = "Invalid";
+
+			if ((south < north) && (west < east))
+			{
+				double heightInMeters = Utility.GlobalCoordinateToMeters(west, north, west, south);
+				double widthInMeters = Utility.GlobalCoordinateToMeters(west, north, east, north);
+
+				double westBase = 0;
+				if (west < 0)
+				{
+					westBase = -Utility.GlobalCoordinateToMeters(west, north, 0, north);
+				}
+				else if (west > 0)
+				{
+					westBase = Utility.GlobalCoordinateToMeters(0, north, west, north);
+				}
+
+				double southBase = 0;
+				if (south < 0)
+				{
+					southBase = -Utility.GlobalCoordinateToMeters(west, 0, west, south);
+				}
+				else if (south > 0)
+				{
+					southBase = Utility.GlobalCoordinateToMeters(west, south, west, 0);
+				}
+
+				westText = (westBase / 1000.0).ToString("0.##");
+				eastText = ((westBase + widthInMeters) / 1000.0).ToString("0.##");
+				southText = (southBase / 1000.0).ToString("0.##");
+				northText = ((southBase + heightInMeters) / 1000.0).ToString("0.##");
+			}
+
+			textBox_BranchSimpleCoordinatesW.Text = westText;
+			textBox_BranchSimpleCoordinatesN.Text = northText;
+			textBox_BranchSimpleCoordinatesE.Text = eastText;
+			textBox_BranchSimpleCoordinatesS.Text = southText;
+		}
+
+		private void UpdateGlobalApproximationsInDegrees(float west, float north, float east, float south)
+		{
+			if (south < north)
+			{
+				double heightInMeters = Utility.GlobalCoordinateToMeters(west, north, west, south);
+				textBox_ApproximateDimensionsHeight.Text = (heightInMeters / 1000.0).ToString("0.##");
+			}
+			else
+			{
+				textBox_ApproximateDimensionsHeight.Text = "Invalid";
+			}
+			if (west < east)
+			{
+				double widthInMeters = Utility.GlobalCoordinateToMeters(west, north, east, north);
+				textBox_ApproximateDimensionsWidth.Text = (widthInMeters / 1000.0).ToString("0.##");
+			}
+			else
+			{
+				textBox_ApproximateDimensionsHeight.Text = "Invalid";
+			}
+		}
+
+		private void UpdateGlobalApproximationsInKM(float west, float north, float east, float south)
+		{
+			if (south < north)
+			{
+				textBox_ApproximateDimensionsHeight.Text = (north - south).ToString("0.##");
+			}
+			else
+			{
+				textBox_ApproximateDimensionsHeight.Text = "Invalid";
+			}
+			if (west < east)
+			{
+				textBox_ApproximateDimensionsWidth.Text = (east - west).ToString("0.##");
+			}
+			else
+			{
+				textBox_ApproximateDimensionsHeight.Text = "Invalid";
+			}
+		}
+
+		private bool GlobalCoordinateTextInputIsValid(char newChar, string currentText)
         {
             // Only allow digits
             if (!char.IsControl(newChar) && !char.IsDigit(newChar) && (newChar != '-') && (newChar != '.'))
@@ -159,8 +250,22 @@ namespace Yggdrasil
             return true;
         }
 
+		private void EnableGlobalCoordinates(bool enable)
+		{
+			textBox_BranchSimpleCoordinatesW.ReadOnly = enable;
+			textBox_BranchSimpleCoordinatesN.ReadOnly = enable;
+			textBox_BranchSimpleCoordinatesE.ReadOnly = enable;
+			textBox_BranchSimpleCoordinatesS.ReadOnly = enable;
 
-        private void Button_BranchOK_Click(object sender, EventArgs e)
+			textBox_BranchGlobalCoordinatesW.ReadOnly = !enable;
+			textBox_BranchGlobalCoordinatesN.ReadOnly = !enable;
+			textBox_BranchGlobalCoordinatesE.ReadOnly = !enable;
+			textBox_BranchGlobalCoordinatesS.ReadOnly = !enable;
+
+			m_UseGlobal = enable;
+		}
+
+		private void Button_BranchOK_Click(object sender, EventArgs e)
         {
             // Elevation range and global coordinates are mandatory to proceed.
             // so generate a warning if either of them have not been edited.
@@ -351,10 +456,26 @@ namespace Yggdrasil
             }
         }
 
-        private void TextBox_ValidatedField_TextChanged(object sender, EventArgs e)
+        private void TextBox_GlobalCoordinate_TextChanged(object sender, EventArgs e)
         {
             // Enable or disable the OK button depending on if input fields are all valid
             button_BranchOK.Enabled = (GlobalCoordinatesAreValid() && ElevationsAreValid());
         }
-    }
+
+		private void TextBox_SimpleCoordinate_TextChanged(object sender, EventArgs e)
+		{
+			// Enable or disable the OK button depending on if input fields are all valid
+			button_BranchOK.Enabled = (SimpleCoordinatesAreValid() && ElevationsAreValid());
+		}
+
+		private void TextBox_BranchSimpleCoordinates_MouseClick(object sender, MouseEventArgs e)
+		{
+			EnableGlobalCoordinates(false);
+		}
+
+		private void TextBox_BranchGlobalCoordinates_MouseClick(object sender, MouseEventArgs e)
+		{
+			EnableGlobalCoordinates(true);
+		}
+	}
 }
