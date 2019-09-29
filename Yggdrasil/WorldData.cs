@@ -429,9 +429,25 @@ namespace Yggdrasil
         // This method assumes the branch list is sorted from lowest resolution to highest resolution
         private void DeprecateRedundantBranches(List<BranchInfo> branchList)
         {
-            // Each branch is converted to a BBox and then all subsequent branches are subtracted from it.
-            // Any bounding box that becomes empty indicates that its branch is redundant.
-            // The load state of any redundant branch will be updated.
+			// Each branch is converted to a BBox and then all subsequent branches are subtracted from it.
+			// Any bounding box that becomes empty indicates that its branch is redundant.
+			// The load state of any redundant branch will be updated.
+
+			// Algorithm : Interate backwards through the list
+			// Each entry is tested against the current combined entry.
+			// If the current entry is a subset of the combined entry, it is deprecated
+			// otherwise it is combined to the current entry
+
+			//BoundingBox combinedBranches;
+			BranchRedundancyTest branchTest = new BranchRedundancyTest();
+
+			foreach(BranchInfo branch in branchList.Reverse<BranchInfo>())
+			{
+				if(branchTest.Add(branch) == false)
+				{
+					branch.Deprecate();
+				}
+			}
         }
 
         // 19 66 19 68
