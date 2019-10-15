@@ -46,7 +46,7 @@ namespace Yggdrasil
             // Populate some attributes with data what was just set up
             return true;
 
-            return false;
+            //return false;
         }
 
         // Calling this clears any previously generated cache

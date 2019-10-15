@@ -93,6 +93,7 @@ namespace Yggdrasil
             return false;
         }
 
+        // Called when any of the 4 coordinate fields are modified
         private bool GlobalCoordinatesAreValid()
         {
             try
@@ -105,7 +106,10 @@ namespace Yggdrasil
 
 				UpdateGlobalApproximationsInDegrees(west, north, east, south);
 
-				UpdateSimpleCoordinatesFromGlobal(west, north, east, south);
+                if (m_UseGlobal == true)
+                {
+                    UpdateSimpleCoordinatesFromGlobal(west, north, east, south);
+                }
 
 				// Add some range boundary tests also?
 				return (south < north) & (west < east);
@@ -128,7 +132,11 @@ namespace Yggdrasil
 				float west = Convert.ToSingle(textBox_BranchSimpleCoordinatesW.Text);
 				float east = Convert.ToSingle(textBox_BranchSimpleCoordinatesE.Text);
 
-				UpdateGlobalApproximationsInKM(west, north, east, south);
+                if (m_UseGlobal == false)
+                {
+                    //UpdateGlobalApproximationsInKM(west, north, east, south);
+                    UpdateGlobalCoordinatesFromSimple(west, north, east, south);
+                }
 
 				// Add some range boundary tests also?
 				return (south < north) & (west < east);
@@ -150,30 +158,31 @@ namespace Yggdrasil
 
 			if ((south < north) && (west < east))
 			{
-				double heightInMeters = Utility.GlobalCoordinateToMeters(west, north, west, south);
-				double widthInMeters = Utility.GlobalCoordinateToMeters(west, north, east, north);
+                float widthInMeters;
+                float heightInMeters;
+                Utility.GlobalCoordinateToMeters(out heightInMeters, out widthInMeters, west, north, east, south);
 
 				double westBase = 0;
-				if (west < 0)
-				{
-					westBase = -Utility.GlobalCoordinateToMeters(west, north, 0, north);
-				}
-				else if (west > 0)
-				{
-					westBase = Utility.GlobalCoordinateToMeters(0, north, west, north);
-				}
+                if (west < 0)
+                {
+                    westBase = -Utility.GlobalCoordinateToMeters(west, north, 0, north);
+                }
+                else if (west > 0)
+                {
+                    westBase = Utility.GlobalCoordinateToMeters(0, north, west, north);
+                }
 
-				double southBase = 0;
-				if (south < 0)
-				{
-					southBase = -Utility.GlobalCoordinateToMeters(west, 0, west, south);
-				}
-				else if (south > 0)
-				{
-					southBase = Utility.GlobalCoordinateToMeters(west, south, west, 0);
-				}
+                double southBase = 0;
+                if (south < 0)
+                {
+                    southBase = -Utility.GlobalCoordinateToMeters(west, 0, west, south);
+                }
+                else if (south > 0)
+                {
+                    southBase = Utility.GlobalCoordinateToMeters(west, south, west, 0);
+                }
 
-				westText = (westBase / 1000.0).ToString("0.##");
+                westText = (westBase / 1000.0).ToString("0.##");
 				eastText = ((westBase + widthInMeters) / 1000.0).ToString("0.##");
 				southText = (southBase / 1000.0).ToString("0.##");
 				northText = ((southBase + heightInMeters) / 1000.0).ToString("0.##");
@@ -184,6 +193,35 @@ namespace Yggdrasil
 			textBox_BranchSimpleCoordinatesE.Text = eastText;
 			textBox_BranchSimpleCoordinatesS.Text = southText;
 		}
+
+        private void UpdateGlobalCoordinatesFromSimple(float west, float north, float east, float south)
+        {
+            string westText = "Invalid";
+            string northText = "Invalid";
+            string eastText = "Invalid";
+            string southText = "Invalid";
+
+            if ((south < north) && (west < east))
+            {
+                float lat1;
+                float lon1;
+                Utility.MetersToGlobalCoordinate(out lat1, out lon1, west * 1000, north * 1000);
+
+                float lat2;
+                float lon2;
+                Utility.MetersToGlobalCoordinate(out lat2, out lon2, east * 1000, south * 1000);
+
+                westText = lat1.ToString("0.######");
+                eastText = lat2.ToString("0.######");
+                southText = lon2.ToString("0.######");
+                northText = lon1.ToString("0.######");
+            }
+
+            textBox_BranchGlobalCoordinatesW.Text = westText;
+            textBox_BranchGlobalCoordinatesN.Text = northText;
+            textBox_BranchGlobalCoordinatesE.Text = eastText;
+            textBox_BranchGlobalCoordinatesS.Text = southText;
+        }
 
 		private void UpdateGlobalApproximationsInDegrees(float west, float north, float east, float south)
 		{
@@ -203,7 +241,7 @@ namespace Yggdrasil
 			}
 			else
 			{
-				textBox_ApproximateDimensionsHeight.Text = "Invalid";
+				textBox_ApproximateDimensionsWidth.Text = "Invalid";
 			}
 		}
 
@@ -223,7 +261,7 @@ namespace Yggdrasil
 			}
 			else
 			{
-				textBox_ApproximateDimensionsHeight.Text = "Invalid";
+				textBox_ApproximateDimensionsWidth.Text = "Invalid";
 			}
 		}
 
@@ -470,12 +508,12 @@ namespace Yggdrasil
 
 		private void TextBox_BranchSimpleCoordinates_MouseClick(object sender, MouseEventArgs e)
 		{
-			EnableGlobalCoordinates(false);
+			//EnableGlobalCoordinates(false);
 		}
 
 		private void TextBox_BranchGlobalCoordinates_MouseClick(object sender, MouseEventArgs e)
 		{
-			EnableGlobalCoordinates(true);
+			//EnableGlobalCoordinates(true);
 		}
 	}
 }

@@ -310,20 +310,13 @@ namespace Yggdrasil
             m_Remarks = reader.ReadString();
 
             // Determine the width of the map in meters
-            double metersWidth = Utility.GlobalCoordinateToMeters(m_GlobalCoordinateNorth,
-                                                                    m_GlobalCoordinateWest,
-                                                                    m_GlobalCoordinateNorth,
-                                                                    m_GlobalCoordinateEast);
-
-            // Determine the width of the map in meters
-            double metersHeight = Utility.GlobalCoordinateToMeters(m_GlobalCoordinateNorth,
-                                                                    m_GlobalCoordinateWest,
-                                                                    m_GlobalCoordinateSouth,
-                                                                    m_GlobalCoordinateWest);
+            float metersWidth;
+            float metersHeight;
+            Utility.GlobalCoordinateToMeters(out metersHeight, out metersWidth, m_GlobalCoordinateNorth, m_GlobalCoordinateWest, m_GlobalCoordinateSouth, m_GlobalCoordinateEast);
 
             // Calculate the resolution of the data.  For now I am assuming the target will be 1 meter resolution
-            m_ResolutionX = (float)metersWidth / (m_ImageWidth * Utility.MetersPerPixel);
-            m_ResolutionY = (float)metersHeight / (m_ImageHeight * Utility.MetersPerPixel);
+            m_ResolutionX = metersWidth / (m_ImageWidth * Utility.MetersPerPixel);
+            m_ResolutionY = metersHeight / (m_ImageHeight * Utility.MetersPerPixel);
         }
 
         public static int CompareBranchesByResolution(BranchInfo alpha, BranchInfo beta)

@@ -397,10 +397,11 @@ namespace Yggdrasil
                         // Examine attributes
 
                         //
-                        if(m_DataCache.GenerateCache(0, 0))
-                        {
-                            return true;
-                        }
+                        return m_DataCache.GenerateCache(0, 0);
+                    }
+                    else
+                    {
+                        return false;
                     }
 
                     // Some kind of data cache manager
@@ -423,7 +424,7 @@ namespace Yggdrasil
                 }
 			}
 
-			return false;
+			return true;
 		}
 
         // This method assumes the branch list is sorted from lowest resolution to highest resolution

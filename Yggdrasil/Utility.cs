@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Device.Location;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,26 +9,40 @@ namespace Yggdrasil
 {
 	class Utility
 	{
+        // Length in meters of 1° of latitude = always 111.32 km (north/south position)
+        // Length in meters of 1° of longitude = 40075 km* cos(latitude ) / 360
+
 		// Returns the distance in meters between two global coordinates
 		// Based https://en.wikipedia.org/wiki/Haversine_formula
-		public static double GlobalCoordinateToMeters(float lat1, float lon1, float lat2, float lon2)
+		public static double GlobalCoordinateToMeters(float lon1, float lat1, float lon2, float lat2)
 		{
-			// One degree in radians
-			const double oneDegree = Math.PI / 180;
+            GeoCoordinate coordinate01 = new GeoCoordinate(lat1, lon1);
+            GeoCoordinate coordinate02 = new GeoCoordinate(lat2, lon2);
 
-			// Distances between latitudes and longitudes in radians
-			double dLat = oneDegree * (lat2 - lat1);
-			double dLon = oneDegree * (lon2 - lon1);
+            return coordinate01.GetDistanceTo(coordinate02);
+        }
 
-			// Convert latitude values to radians 
-			double lat1Radians = oneDegree * (lat1);
-			double lat2Radians = oneDegree * (lat2);
+        public static void GlobalCoordinateToMeters(out float height, out float width, float lon1, float lat1, float lon2, float lat2)
+        {
+            GeoCoordinate latCoordinate01 = new GeoCoordinate(lat1, lon1);
+            GeoCoordinate latCoordinate02 = new GeoCoordinate(lat2, lon1);
 
-			// Apply formula
-			double a = Math.Pow(Math.Sin(dLat / 2), 2) + Math.Pow(Math.Sin(dLon / 2), 2) * Math.Cos(lat1Radians) * Math.Cos(lat2Radians);
+            GeoCoordinate lonCoordinate01 = new GeoCoordinate(lat1, lon1);
+            GeoCoordinate lonCoordinate02 = new GeoCoordinate(lat1, lon2);
 
-			return 12742000 * Math.Asin(Math.Sqrt(a));
-		}
+            width = Convert.ToSingle(lonCoordinate01.GetDistanceTo(lonCoordinate02));
+            height = Convert.ToSingle(latCoordinate01.GetDistanceTo(latCoordinate02));
+        }
+
+        public static void MetersToGlobalCoordinate(out float lat, out float lon, float horizontalMeters, float verticalMeters)
+        {
+            double latitudeDegrees = horizontalMeters / oneDegreeLatitude;
+            double oneDegreeLongitude = (40075000 * Math.Cos(oneDegree * latitudeDegrees)) / 360;
+            double longitudeDegrees = verticalMeters / oneDegreeLongitude;
+
+            lat = Convert.ToSingle(latitudeDegrees);
+            lon = Convert.ToSingle(longitudeDegrees);
+        }
 
         // For now we will work with the following max size limitation on map data
         // 50 km * 50 km = 2,500,000,000 meters squared
@@ -78,5 +93,12 @@ namespace Yggdrasil
 
         // There would be a loading system
         // When all branches are initially loaded
+
+        // One degree in radians
+        private const double oneDegree = Math.PI / 180;
+
+        // Length in meters of 1° of latitude = always 111.32 km
+        private const double oneDegreeLatitude = 111320;
+
     }
 }
