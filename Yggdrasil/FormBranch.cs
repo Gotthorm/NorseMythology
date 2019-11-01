@@ -16,7 +16,7 @@ namespace Yggdrasil
         {
             InitializeComponent();
 
-            // Populate the read only text boxes
+            // Populate the static text fields
             textBox_BranchImagePath.Text = branchData.SourcePath;
             textBox_BranchVersion.Text = branchData.Version.ToString();
             textBox_BranchImageDimensionsWidth.Text = branchData.ImageWidth.ToString();
@@ -25,13 +25,25 @@ namespace Yggdrasil
 
             m_BranchData = branchData;
 
-			GlobalCoordinatesAreValid();
+            // Initial update of text boxes from the initial branch data
+            textBox_BranchElevationMin.Text = m_BranchData.ElevationMin.ToString();
+            textBox_BranchElevationMax.Text = m_BranchData.ElevationMax.ToString();
+            textBox_BranchGlobalCoordinatesN.Text = ConvertGlobalCoordinateToString(m_BranchData.GlobalCoordinate.North);
+            textBox_BranchGlobalCoordinatesS.Text = ConvertGlobalCoordinateToString(m_BranchData.GlobalCoordinate.South);
+            textBox_BranchGlobalCoordinatesE.Text = ConvertGlobalCoordinateToString(m_BranchData.GlobalCoordinate.East);
+            textBox_BranchGlobalCoordinatesW.Text = ConvertGlobalCoordinateToString(m_BranchData.GlobalCoordinate.West);
+            textBox_BranchRemarks.Text = m_BranchData.Remarks;
 
+            // Since we start with global coordinates, update the simple coordinate values
+            GlobalCoordinatesAreValid();
 		}
 
+        // Temporary data used while editing a branch
         private bool m_UserModifiedElevation = false;
         private bool m_UserModifiedGlobalCoordinates = false;
-		private bool m_UseGlobal = true;
+        private Coordinate m_SimpleCoordinate = new Coordinate();
+
+        // Actual branch data that is serialized
         private Branch m_BranchData = null;
 
         private bool ElevationInputIsValid(char newChar, string currentText)
@@ -64,6 +76,8 @@ namespace Yggdrasil
 
         private bool ElevationsAreValid()
         {
+            bool results = false;
+
             try
             {
                 // Convert min and max to integers and ensure min is less than max
@@ -72,14 +86,20 @@ namespace Yggdrasil
 
                 // Add some range boundary tests also?
 
-                return min < max;
+                if (min <= max)
+                {
+                    m_BranchData.ElevationMin = min;
+                    m_BranchData.ElevationMax = max;
+
+                    results = true;
+                }
             }
             catch (Exception)
             {
                 // Catch everything
             }
 
-            return false;
+            return results;
         }
 
         private bool GlobalCoordinateIsValid(string coordinateText)
@@ -93,26 +113,23 @@ namespace Yggdrasil
             return false;
         }
 
-        // Called when any of the 4 coordinate fields are modified
+        // Called when any of the four global coordinate fields are modified
         private bool GlobalCoordinatesAreValid()
         {
             try
             {
-				// Convert global coordinates to floats and ensure they are valid
-				float north = Convert.ToSingle(textBox_BranchGlobalCoordinatesN.Text);
-				float south = Convert.ToSingle(textBox_BranchGlobalCoordinatesS.Text);
-				float west = Convert.ToSingle(textBox_BranchGlobalCoordinatesW.Text);
-				float east = Convert.ToSingle(textBox_BranchGlobalCoordinatesE.Text);
+                // Update the coordinates from the editable text fields
+				m_BranchData.GlobalCoordinate.North = Convert.ToDouble(textBox_BranchGlobalCoordinatesN.Text);
+				m_BranchData.GlobalCoordinate.South = Convert.ToDouble(textBox_BranchGlobalCoordinatesS.Text);
+				m_BranchData.GlobalCoordinate.West = Convert.ToDouble(textBox_BranchGlobalCoordinatesW.Text);
+				m_BranchData.GlobalCoordinate.East = Convert.ToDouble(textBox_BranchGlobalCoordinatesE.Text);
 
-				UpdateGlobalApproximationsInDegrees(west, north, east, south);
+                UpdateSimpleCoordinatesFromGlobal();
 
-                if (m_UseGlobal == true)
-                {
-                    UpdateSimpleCoordinatesFromGlobal(west, north, east, south);
-                }
+                UpdateDimensionTextFields();
 
-				// Add some range boundary tests also?
-				return (south < north) & (west < east);
+                // TODO: Add some range boundary tests also?
+                return m_BranchData.GlobalCoordinate.IsValid();
             }
             catch (Exception)
             {
@@ -122,146 +139,32 @@ namespace Yggdrasil
             return false;
         }
 
-		private bool SimpleCoordinatesAreValid()
-		{
-			try
-			{
-				// Convert simple coordinates to floats and ensure they are valid
-				float north = Convert.ToSingle(textBox_BranchSimpleCoordinatesN.Text);
-				float south = Convert.ToSingle(textBox_BranchSimpleCoordinatesS.Text);
-				float west = Convert.ToSingle(textBox_BranchSimpleCoordinatesW.Text);
-				float east = Convert.ToSingle(textBox_BranchSimpleCoordinatesE.Text);
-
-                if (m_UseGlobal == false)
-                {
-                    //UpdateGlobalApproximationsInKM(west, north, east, south);
-                    UpdateGlobalCoordinatesFromSimple(west, north, east, south);
-                }
-
-				// Add some range boundary tests also?
-				return (south < north) & (west < east);
-			}
-			catch (Exception)
-			{
-				// Catch everything
-			}
-
-			return false;
-		}
-
-		private void UpdateSimpleCoordinatesFromGlobal(float west, float north, float east, float south)
-		{
-			string westText = "Invalid";
-			string northText = "Invalid";
-			string eastText = "Invalid";
-			string southText = "Invalid";
-
-			if ((south < north) && (west < east))
-			{
-                float widthInMeters;
-                float heightInMeters;
-                Utility.GlobalCoordinateToMeters(out heightInMeters, out widthInMeters, west, north, east, south);
-
-				double westBase = 0;
-                if (west < 0)
-                {
-                    westBase = -Utility.GlobalCoordinateToMeters(west, north, 0, north);
-                }
-                else if (west > 0)
-                {
-                    westBase = Utility.GlobalCoordinateToMeters(0, north, west, north);
-                }
-
-                double southBase = 0;
-                if (south < 0)
-                {
-                    southBase = -Utility.GlobalCoordinateToMeters(west, 0, west, south);
-                }
-                else if (south > 0)
-                {
-                    southBase = Utility.GlobalCoordinateToMeters(west, south, west, 0);
-                }
-
-                westText = (westBase / 1000.0).ToString("0.##");
-				eastText = ((westBase + widthInMeters) / 1000.0).ToString("0.##");
-				southText = (southBase / 1000.0).ToString("0.##");
-				northText = ((southBase + heightInMeters) / 1000.0).ToString("0.##");
-			}
-
-			textBox_BranchSimpleCoordinatesW.Text = westText;
-			textBox_BranchSimpleCoordinatesN.Text = northText;
-			textBox_BranchSimpleCoordinatesE.Text = eastText;
-			textBox_BranchSimpleCoordinatesS.Text = southText;
-		}
-
-        private void UpdateGlobalCoordinatesFromSimple(float west, float north, float east, float south)
+        private void UpdateSimpleCoordinatesFromGlobal()
         {
-            string westText = "Invalid";
-            string northText = "Invalid";
-            string eastText = "Invalid";
-            string southText = "Invalid";
-
-            if ((south < north) && (west < east))
+            if(Utility.GlobalCoordinateToMeters(m_BranchData.GlobalCoordinate, ref m_SimpleCoordinate) == false)
             {
-                float lat1;
-                float lon1;
-                Utility.MetersToGlobalCoordinate(out lat1, out lon1, west * 1000, north * 1000);
-
-                float lat2;
-                float lon2;
-                Utility.MetersToGlobalCoordinate(out lat2, out lon2, east * 1000, south * 1000);
-
-                westText = lat1.ToString("0.######");
-                eastText = lat2.ToString("0.######");
-                southText = lon2.ToString("0.######");
-                northText = lon1.ToString("0.######");
+                m_SimpleCoordinate.Clear();
             }
 
-            textBox_BranchGlobalCoordinatesW.Text = westText;
-            textBox_BranchGlobalCoordinatesN.Text = northText;
-            textBox_BranchGlobalCoordinatesE.Text = eastText;
-            textBox_BranchGlobalCoordinatesS.Text = southText;
+            textBox_BranchSimpleCoordinatesN.Text = ConvertSimpleCoordinateToString(m_SimpleCoordinate.North);
+            textBox_BranchSimpleCoordinatesS.Text = ConvertSimpleCoordinateToString(m_SimpleCoordinate.South);
+            textBox_BranchSimpleCoordinatesE.Text = ConvertSimpleCoordinateToString(m_SimpleCoordinate.East);
+            textBox_BranchSimpleCoordinatesW.Text = ConvertSimpleCoordinateToString(m_SimpleCoordinate.West);
         }
 
-		private void UpdateGlobalApproximationsInDegrees(float west, float north, float east, float south)
+        private void UpdateDimensionTextFields()
 		{
-			if (south < north)
+			if (m_BranchData.GlobalCoordinate.IsValid())
 			{
-				double heightInMeters = Utility.GlobalCoordinateToMeters(west, north, west, south);
+                double heightInMeters = Math.Abs(m_SimpleCoordinate.North - m_SimpleCoordinate.South);
 				textBox_ApproximateDimensionsHeight.Text = (heightInMeters / 1000.0).ToString("0.##");
-			}
+                double widthInMeters = Math.Abs(m_SimpleCoordinate.East - m_SimpleCoordinate.West);
+                textBox_ApproximateDimensionsWidth.Text = (widthInMeters / 1000.0).ToString("0.##");
+            }
 			else
 			{
-				textBox_ApproximateDimensionsHeight.Text = "Invalid";
-			}
-			if (west < east)
-			{
-				double widthInMeters = Utility.GlobalCoordinateToMeters(west, north, east, north);
-				textBox_ApproximateDimensionsWidth.Text = (widthInMeters / 1000.0).ToString("0.##");
-			}
-			else
-			{
-				textBox_ApproximateDimensionsWidth.Text = "Invalid";
-			}
-		}
-
-		private void UpdateGlobalApproximationsInKM(float west, float north, float east, float south)
-		{
-			if (south < north)
-			{
-				textBox_ApproximateDimensionsHeight.Text = (north - south).ToString("0.##");
-			}
-			else
-			{
-				textBox_ApproximateDimensionsHeight.Text = "Invalid";
-			}
-			if (west < east)
-			{
-				textBox_ApproximateDimensionsWidth.Text = (east - west).ToString("0.##");
-			}
-			else
-			{
-				textBox_ApproximateDimensionsWidth.Text = "Invalid";
+                textBox_ApproximateDimensionsHeight.Text = "Invalid";
+                textBox_ApproximateDimensionsWidth.Text = "Invalid";
 			}
 		}
 
@@ -288,22 +191,17 @@ namespace Yggdrasil
             return true;
         }
 
-		private void EnableGlobalCoordinates(bool enable)
-		{
-			textBox_BranchSimpleCoordinatesW.ReadOnly = enable;
-			textBox_BranchSimpleCoordinatesN.ReadOnly = enable;
-			textBox_BranchSimpleCoordinatesE.ReadOnly = enable;
-			textBox_BranchSimpleCoordinatesS.ReadOnly = enable;
+        string ConvertGlobalCoordinateToString(double coordinate)
+        {
+            return double.IsNaN(coordinate) ? "Invalid" : coordinate.ToString("N6");
+        }
 
-			textBox_BranchGlobalCoordinatesW.ReadOnly = !enable;
-			textBox_BranchGlobalCoordinatesN.ReadOnly = !enable;
-			textBox_BranchGlobalCoordinatesE.ReadOnly = !enable;
-			textBox_BranchGlobalCoordinatesS.ReadOnly = !enable;
+        string ConvertSimpleCoordinateToString(double coordinate)
+        {
+            return double.IsNaN(coordinate) ? "Invalid" : (coordinate / 1000).ToString("N2");
+        }
 
-			m_UseGlobal = enable;
-		}
-
-		private void Button_BranchOK_Click(object sender, EventArgs e)
+        private void Button_BranchOK_Click(object sender, EventArgs e)
         {
             // Elevation range and global coordinates are mandatory to proceed.
             // so generate a warning if either of them have not been edited.
@@ -329,14 +227,7 @@ namespace Yggdrasil
             try
             {
                 // Update the data
-                m_BranchData.ElevationMin = Convert.ToInt32(textBox_BranchElevationMin.Text);
-                m_BranchData.ElevationMax = Convert.ToInt32(textBox_BranchElevationMax.Text);
-                m_BranchData.GlobalCoordinateEast = Convert.ToSingle(textBox_BranchGlobalCoordinatesE.Text);
-                m_BranchData.GlobalCoordinateWest = Convert.ToSingle(textBox_BranchGlobalCoordinatesW.Text);
-                m_BranchData.GlobalCoordinateNorth = Convert.ToSingle(textBox_BranchGlobalCoordinatesN.Text);
-                m_BranchData.GlobalCoordinateSouth = Convert.ToSingle(textBox_BranchGlobalCoordinatesS.Text);
-                m_BranchData.Remarks = textBox_BranchRemarks.Text;
-                m_BranchData.Type = Branch.LayerType.Elevation;
+                //UpdateTextFields();
             }
             catch (Exception)
             {
@@ -500,20 +391,14 @@ namespace Yggdrasil
             button_BranchOK.Enabled = (GlobalCoordinatesAreValid() && ElevationsAreValid());
         }
 
-		private void TextBox_SimpleCoordinate_TextChanged(object sender, EventArgs e)
-		{
-			// Enable or disable the OK button depending on if input fields are all valid
-			button_BranchOK.Enabled = (SimpleCoordinatesAreValid() && ElevationsAreValid());
-		}
+        private void textBox_BranchRemarks_TextChanged(object sender, EventArgs e)
+        {
+            m_BranchData.Remarks = textBox_BranchRemarks.Text;
+        }
 
-		private void TextBox_BranchSimpleCoordinates_MouseClick(object sender, MouseEventArgs e)
-		{
-			//EnableGlobalCoordinates(false);
-		}
-
-		private void TextBox_BranchGlobalCoordinates_MouseClick(object sender, MouseEventArgs e)
-		{
-			//EnableGlobalCoordinates(true);
-		}
-	}
+        private void textBox_Elevation_TextChanged(object sender, EventArgs e)
+        {
+            button_BranchOK.Enabled = ElevationsAreValid();
+        }
+    }
 }

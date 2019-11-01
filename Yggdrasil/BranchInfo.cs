@@ -115,57 +115,18 @@ namespace Yggdrasil
 			}
 		}
 
-		public float GlobalCoordinateWest
-		{
-			get
-			{
-				return m_GlobalCoordinateWest;
-			}
+        public Coordinate GlobalCoordinate
+        {
+            get
+            {
+                return m_GlobalCoordinate;
+            }
 
-			set
-			{
-				m_GlobalCoordinateWest = value;
-			}
-		}
-
-		public float GlobalCoordinateEast
-		{
-			get
-			{
-				return m_GlobalCoordinateEast;
-			}
-
-			set
-			{
-				m_GlobalCoordinateEast = value;
-			}
-		}
-
-		public float GlobalCoordinateNorth
-		{
-			get
-			{
-				return m_GlobalCoordinateNorth;
-			}
-
-			set
-			{
-				m_GlobalCoordinateNorth = value;
-			}
-		}
-
-		public float GlobalCoordinateSouth
-		{
-			get
-			{
-				return m_GlobalCoordinateSouth;
-			}
-
-			set
-			{
-				m_GlobalCoordinateSouth = value;
-			}
-		}
+            set
+            {
+                m_GlobalCoordinate = value;
+            }
+        }
 
 		public LayerType Type
 		{
@@ -301,18 +262,23 @@ namespace Yggdrasil
             m_ImageHeight = reader.ReadInt32();
             m_ImageBitDepth = reader.ReadInt32();
 
-            m_GlobalCoordinateWest = reader.ReadSingle();
-            m_GlobalCoordinateEast = reader.ReadSingle();
-            m_GlobalCoordinateNorth = reader.ReadSingle();
-            m_GlobalCoordinateSouth = reader.ReadSingle();
+            m_GlobalCoordinate.North = reader.ReadDouble();
+            m_GlobalCoordinate.South = reader.ReadDouble();
+            m_GlobalCoordinate.West = reader.ReadDouble();
+            m_GlobalCoordinate.East = reader.ReadDouble();
 
             m_OriginalPath = reader.ReadString();
             m_Remarks = reader.ReadString();
 
             // Determine the width of the map in meters
-            float metersWidth;
-            float metersHeight;
-            Utility.GlobalCoordinateToMeters(out metersHeight, out metersWidth, m_GlobalCoordinateNorth, m_GlobalCoordinateWest, m_GlobalCoordinateSouth, m_GlobalCoordinateEast);
+            float metersWidth = 0.0f;
+            float metersHeight = 0.0f;
+            Coordinate simple = new Coordinate();
+            if( Utility.GlobalCoordinateToMeters(m_GlobalCoordinate, ref simple) )
+            {
+                metersWidth = Convert.ToSingle(Math.Abs(simple.East - simple.West));
+                metersHeight = Convert.ToSingle(Math.Abs(simple.North - simple.South));
+            }
 
             // Calculate the resolution of the data.  For now I am assuming the target will be 1 meter resolution
             m_ResolutionX = metersWidth / (m_ImageWidth * Utility.MetersPerPixel);
@@ -385,18 +351,15 @@ namespace Yggdrasil
         protected Guid m_GUID;
         protected DateTime m_LastModified = new DateTime();
 
-        protected string m_Remarks = "";
-
-        protected int m_ElevationMinimum = 0;
-        protected int m_ElevationMaximum = 0;
         protected int m_ImageWidth = 0;
         protected int m_ImageHeight = 0;
         protected int m_ImageBitDepth = 0;
 
-        protected float m_GlobalCoordinateWest = 0.0f;
-        protected float m_GlobalCoordinateEast = 0.0f;
-        protected float m_GlobalCoordinateNorth = 0.0f;
-        protected float m_GlobalCoordinateSouth = 0.0f;
+        // We will use a default 60km area in the Mammoth Lakes, CA area
+        protected string m_Remarks = "60km area in the Mammoth Lakes area";
+        protected int m_ElevationMinimum = 1172;
+        protected int m_ElevationMaximum = 3998;
+        protected Coordinate m_GlobalCoordinate = new Coordinate(38.081909, 37.542925, -119.602474, -118.917722);
 
         protected LayerType m_Type = LayerType.Invalid;
 

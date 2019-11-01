@@ -66,10 +66,10 @@ namespace Yggdrasil
         {
             public BranchBounds(BranchInfo branch )
             {
-                left = branch.GlobalCoordinateWest;
-                right = branch.GlobalCoordinateEast;
-                top = branch.GlobalCoordinateNorth;
-                bottom = branch.GlobalCoordinateSouth;
+                left = branch.GlobalCoordinate.West;
+                right = branch.GlobalCoordinate.East;
+                top = branch.GlobalCoordinate.North;
+                bottom = branch.GlobalCoordinate.South;
             }
 
 			// Returns true if given list was merged to a set of zero entries
@@ -150,10 +150,10 @@ namespace Yggdrasil
 				}
 			}
 
-			public float left;
-            public float right;
-            public float top;
-            public float bottom;
+			public double left;
+            public double right;
+            public double top;
+            public double bottom;
         }
 
 		List<BranchBounds> m_MergedBranches = new List<BranchBounds>();

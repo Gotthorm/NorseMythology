@@ -1,47 +1,52 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Device.Location;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Yggdrasil
 {
-	class Utility
+    // Latitude is the north/south position from the equator (-90 to 90 degrees)
+    // Longitude is the west/east position from the prime meridian (-180 to 180 degrees)
+    // Length of 1° of latitude equals approximately 112.47 km at the equator
+    // Length of 1° of longitude equals 113.19 km at the equator
+
+    class Utility
 	{
-        // Length in meters of 1° of latitude = always 111.32 km (north/south position)
-        // Length in meters of 1° of longitude = 40075 km* cos(latitude ) / 360
+        public static bool GlobalCoordinateToMeters( Coordinate global, ref Coordinate simple )
+        {
+            if( global.IsValid() )
+            {
+                double height = Haversine(global.South, global.West, global.North, global.West);
+                double width = Haversine(global.South, global.West, global.South, global.East);
 
-		// Returns the distance in meters between two global coordinates
-		// Based https://en.wikipedia.org/wiki/Haversine_formula
-		public static double GlobalCoordinateToMeters(float lon1, float lat1, float lon2, float lat2)
-		{
-            GeoCoordinate coordinate01 = new GeoCoordinate(lat1, lon1);
-            GeoCoordinate coordinate02 = new GeoCoordinate(lat2, lon2);
+                simple.South = Haversine(0, global.West, global.South, global.West);
+                simple.West = Haversine(global.South, global.West, global.South, 0);
 
-            return coordinate01.GetDistanceTo(coordinate02);
+                simple.North = simple.South + height;
+                simple.East = simple.West + width;
+
+                return true;
+            }
+
+            return false;
         }
 
-        public static void GlobalCoordinateToMeters(out float height, out float width, float lon1, float lat1, float lon2, float lat2)
+        public static double DegToRad( double degrees )
         {
-            GeoCoordinate latCoordinate01 = new GeoCoordinate(lat1, lon1);
-            GeoCoordinate latCoordinate02 = new GeoCoordinate(lat2, lon1);
-
-            GeoCoordinate lonCoordinate01 = new GeoCoordinate(lat1, lon1);
-            GeoCoordinate lonCoordinate02 = new GeoCoordinate(lat1, lon2);
-
-            width = Convert.ToSingle(lonCoordinate01.GetDistanceTo(lonCoordinate02));
-            height = Convert.ToSingle(latCoordinate01.GetDistanceTo(latCoordinate02));
+            return degrees * (Math.PI / 180);
         }
 
-        public static void MetersToGlobalCoordinate(out float lat, out float lon, float horizontalMeters, float verticalMeters)
+        private static double Haversine(double lat1, double lon1, double lat2, double lon2)
         {
-            double latitudeDegrees = horizontalMeters / oneDegreeLatitude;
-            double oneDegreeLongitude = (40075000 * Math.Cos(oneDegree * latitudeDegrees)) / 360;
-            double longitudeDegrees = verticalMeters / oneDegreeLongitude;
+            double EarthRadiusMeters = 6372800;
 
-            lat = Convert.ToSingle(latitudeDegrees);
-            lon = Convert.ToSingle(longitudeDegrees);
+            double latDelta = DegToRad(lat2 - lat1);
+            double lonDelta = DegToRad(lon2 - lon1);
+
+            double computation = Math.Asin(Math.Sqrt(Math.Sin(latDelta / 2) * Math.Sin(latDelta / 2) + Math.Sin(lonDelta / 2) * Math.Sin(lonDelta / 2) * Math.Cos(DegToRad(lat1)) * Math.Cos(DegToRad(lat2))));
+            
+            return 2 * EarthRadiusMeters * computation;
         }
 
         // For now we will work with the following max size limitation on map data
@@ -93,12 +98,5 @@ namespace Yggdrasil
 
         // There would be a loading system
         // When all branches are initially loaded
-
-        // One degree in radians
-        private const double oneDegree = Math.PI / 180;
-
-        // Length in meters of 1° of latitude = always 111.32 km
-        private const double oneDegreeLatitude = 111320;
-
     }
 }

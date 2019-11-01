@@ -97,6 +97,7 @@
             this.textBox_BranchRemarks.Name = "textBox_BranchRemarks";
             this.textBox_BranchRemarks.Size = new System.Drawing.Size(465, 68);
             this.textBox_BranchRemarks.TabIndex = 2;
+            this.textBox_BranchRemarks.TextChanged += new System.EventHandler(this.textBox_BranchRemarks_TextChanged);
             // 
             // label_BranchElevationMinMax
             // 
@@ -113,8 +114,7 @@
             this.textBox_BranchElevationMin.Name = "textBox_BranchElevationMin";
             this.textBox_BranchElevationMin.Size = new System.Drawing.Size(100, 20);
             this.textBox_BranchElevationMin.TabIndex = 6;
-            this.textBox_BranchElevationMin.Text = "0";
-            this.textBox_BranchElevationMin.TextChanged += new System.EventHandler(this.TextBox_GlobalCoordinate_TextChanged);
+            this.textBox_BranchElevationMin.TextChanged += new System.EventHandler(this.textBox_Elevation_TextChanged);
             this.textBox_BranchElevationMin.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBox_BranchElevationMin_KeyPress);
             this.textBox_BranchElevationMin.Validating += new System.ComponentModel.CancelEventHandler(this.TextBox_BranchElevationMin_Validating);
             this.textBox_BranchElevationMin.Validated += new System.EventHandler(this.TextBox_BranchElevationMin_Validated);
@@ -125,8 +125,7 @@
             this.textBox_BranchElevationMax.Name = "textBox_BranchElevationMax";
             this.textBox_BranchElevationMax.Size = new System.Drawing.Size(100, 20);
             this.textBox_BranchElevationMax.TabIndex = 8;
-            this.textBox_BranchElevationMax.Text = "1000";
-            this.textBox_BranchElevationMax.TextChanged += new System.EventHandler(this.TextBox_GlobalCoordinate_TextChanged);
+            this.textBox_BranchElevationMax.TextChanged += new System.EventHandler(this.textBox_Elevation_TextChanged);
             this.textBox_BranchElevationMax.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBox_BranchElevationMax_KeyPress);
             this.textBox_BranchElevationMax.Validating += new System.ComponentModel.CancelEventHandler(this.TextBox_BranchElevationMax_Validating);
             this.textBox_BranchElevationMax.Validated += new System.EventHandler(this.TextBox_BranchElevationMax_Validated);
@@ -137,8 +136,6 @@
             this.textBox_BranchGlobalCoordinatesN.Name = "textBox_BranchGlobalCoordinatesN";
             this.textBox_BranchGlobalCoordinatesN.Size = new System.Drawing.Size(100, 20);
             this.textBox_BranchGlobalCoordinatesN.TabIndex = 11;
-            this.textBox_BranchGlobalCoordinatesN.Text = "88";
-            this.textBox_BranchGlobalCoordinatesN.MouseClick += new System.Windows.Forms.MouseEventHandler(this.TextBox_BranchGlobalCoordinates_MouseClick);
             this.textBox_BranchGlobalCoordinatesN.TextChanged += new System.EventHandler(this.TextBox_GlobalCoordinate_TextChanged);
             this.textBox_BranchGlobalCoordinatesN.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBox_BranchGlobalCoordinatesN_KeyPress);
             this.textBox_BranchGlobalCoordinatesN.Validating += new System.ComponentModel.CancelEventHandler(this.TextBox_BranchGlobalCoordinatesN_Validating);
@@ -159,8 +156,6 @@
             this.textBox_BranchGlobalCoordinatesW.Name = "textBox_BranchGlobalCoordinatesW";
             this.textBox_BranchGlobalCoordinatesW.Size = new System.Drawing.Size(100, 20);
             this.textBox_BranchGlobalCoordinatesW.TabIndex = 9;
-            this.textBox_BranchGlobalCoordinatesW.Text = "-100.0";
-            this.textBox_BranchGlobalCoordinatesW.MouseClick += new System.Windows.Forms.MouseEventHandler(this.TextBox_BranchGlobalCoordinates_MouseClick);
             this.textBox_BranchGlobalCoordinatesW.TextChanged += new System.EventHandler(this.TextBox_GlobalCoordinate_TextChanged);
             this.textBox_BranchGlobalCoordinatesW.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBox_BranchGlobalCoordinatesW_KeyPress);
             this.textBox_BranchGlobalCoordinatesW.Validating += new System.ComponentModel.CancelEventHandler(this.TextBox_BranchGlobalCoordinatesW_Validating);
@@ -172,8 +167,6 @@
             this.textBox_BranchGlobalCoordinatesS.Name = "textBox_BranchGlobalCoordinatesS";
             this.textBox_BranchGlobalCoordinatesS.Size = new System.Drawing.Size(100, 20);
             this.textBox_BranchGlobalCoordinatesS.TabIndex = 13;
-            this.textBox_BranchGlobalCoordinatesS.Text = "87";
-            this.textBox_BranchGlobalCoordinatesS.MouseClick += new System.Windows.Forms.MouseEventHandler(this.TextBox_BranchGlobalCoordinates_MouseClick);
             this.textBox_BranchGlobalCoordinatesS.TextChanged += new System.EventHandler(this.TextBox_GlobalCoordinate_TextChanged);
             this.textBox_BranchGlobalCoordinatesS.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBox_BranchGlobalCoordinatesS_KeyPress);
             this.textBox_BranchGlobalCoordinatesS.Validating += new System.ComponentModel.CancelEventHandler(this.TextBox_BranchGlobalCoordinatesS_Validating);
@@ -185,8 +178,6 @@
             this.textBox_BranchGlobalCoordinatesE.Name = "textBox_BranchGlobalCoordinatesE";
             this.textBox_BranchGlobalCoordinatesE.Size = new System.Drawing.Size(100, 20);
             this.textBox_BranchGlobalCoordinatesE.TabIndex = 12;
-            this.textBox_BranchGlobalCoordinatesE.Text = "-99.0";
-            this.textBox_BranchGlobalCoordinatesE.MouseClick += new System.Windows.Forms.MouseEventHandler(this.TextBox_BranchGlobalCoordinates_MouseClick);
             this.textBox_BranchGlobalCoordinatesE.TextChanged += new System.EventHandler(this.TextBox_GlobalCoordinate_TextChanged);
             this.textBox_BranchGlobalCoordinatesE.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBox_BranchGlobalCoordinatesE_KeyPress);
             this.textBox_BranchGlobalCoordinatesE.Validating += new System.ComponentModel.CancelEventHandler(this.TextBox_BranchGlobalCoordinatesE_Validating);
@@ -307,8 +298,6 @@
             this.textBox_BranchSimpleCoordinatesS.ReadOnly = true;
             this.textBox_BranchSimpleCoordinatesS.Size = new System.Drawing.Size(100, 20);
             this.textBox_BranchSimpleCoordinatesS.TabIndex = 30;
-            this.textBox_BranchSimpleCoordinatesS.MouseClick += new System.Windows.Forms.MouseEventHandler(this.TextBox_BranchSimpleCoordinates_MouseClick);
-            this.textBox_BranchSimpleCoordinatesS.TextChanged += new System.EventHandler(this.TextBox_SimpleCoordinate_TextChanged);
             // 
             // textBox_BranchSimpleCoordinatesE
             // 
@@ -317,8 +306,6 @@
             this.textBox_BranchSimpleCoordinatesE.ReadOnly = true;
             this.textBox_BranchSimpleCoordinatesE.Size = new System.Drawing.Size(100, 20);
             this.textBox_BranchSimpleCoordinatesE.TabIndex = 29;
-            this.textBox_BranchSimpleCoordinatesE.MouseClick += new System.Windows.Forms.MouseEventHandler(this.TextBox_BranchSimpleCoordinates_MouseClick);
-            this.textBox_BranchSimpleCoordinatesE.TextChanged += new System.EventHandler(this.TextBox_SimpleCoordinate_TextChanged);
             // 
             // textBox_BranchSimpleCoordinatesN
             // 
@@ -327,8 +314,6 @@
             this.textBox_BranchSimpleCoordinatesN.ReadOnly = true;
             this.textBox_BranchSimpleCoordinatesN.Size = new System.Drawing.Size(100, 20);
             this.textBox_BranchSimpleCoordinatesN.TabIndex = 28;
-            this.textBox_BranchSimpleCoordinatesN.MouseClick += new System.Windows.Forms.MouseEventHandler(this.TextBox_BranchSimpleCoordinates_MouseClick);
-            this.textBox_BranchSimpleCoordinatesN.TextChanged += new System.EventHandler(this.TextBox_SimpleCoordinate_TextChanged);
             // 
             // label_BranchSimpleCoordinates
             // 
@@ -346,8 +331,6 @@
             this.textBox_BranchSimpleCoordinatesW.ReadOnly = true;
             this.textBox_BranchSimpleCoordinatesW.Size = new System.Drawing.Size(100, 20);
             this.textBox_BranchSimpleCoordinatesW.TabIndex = 26;
-            this.textBox_BranchSimpleCoordinatesW.MouseClick += new System.Windows.Forms.MouseEventHandler(this.TextBox_BranchSimpleCoordinates_MouseClick);
-            this.textBox_BranchSimpleCoordinatesW.TextChanged += new System.EventHandler(this.TextBox_SimpleCoordinate_TextChanged);
             // 
             // FormBranch
             // 

@@ -108,10 +108,10 @@ namespace Yggdrasil
 						writer.Write(m_ImageWidth);
 						writer.Write(m_ImageHeight);
 						writer.Write(m_ImageBitDepth);
-						writer.Write(m_GlobalCoordinateWest);
-						writer.Write(m_GlobalCoordinateEast);
-						writer.Write(m_GlobalCoordinateNorth);
-						writer.Write(m_GlobalCoordinateSouth);
+                        writer.Write(m_GlobalCoordinate.North);
+                        writer.Write(m_GlobalCoordinate.South);
+                        writer.Write(m_GlobalCoordinate.West);
+						writer.Write(m_GlobalCoordinate.East);
 						writer.Write(m_OriginalPath);
 						writer.Write(m_Remarks);
 						writer.Write(m_ImageData.Length);

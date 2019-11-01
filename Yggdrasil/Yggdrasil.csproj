@@ -62,6 +62,7 @@
     <Compile Include="BranchDataCache.cs" />
     <Compile Include="BranchInfo.cs" />
     <Compile Include="BranchRedundancyTest.cs" />
+    <Compile Include="Coordinate.cs" />
     <Compile Include="FormBranch.cs">
       <SubType>Form</SubType>
     </Compile>

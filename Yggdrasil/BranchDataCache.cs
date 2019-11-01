@@ -16,29 +16,29 @@ namespace Yggdrasil
         public bool Initialize(List<BranchInfo> branchList)
         {
             // Generate the global extents of the combined branches
-            float west = float.MaxValue;
-            float east = float.MinValue;
-            float north = float.MinValue;
-            float south = float.MaxValue;
+            double west = double.MaxValue;
+            double east = double.MinValue;
+            double north = double.MinValue;
+            double south = double.MaxValue;
 
             foreach (BranchInfo branch in branchList)
             {
                 // Update the bounds
-                if (branch.GlobalCoordinateWest < west)
+                if (branch.GlobalCoordinate.West < west)
                 {
-                    west = branch.GlobalCoordinateWest;
+                    west = branch.GlobalCoordinate.West;
                 }
-                if (branch.GlobalCoordinateEast > east)
+                if (branch.GlobalCoordinate.East > east)
                 {
-                    east = branch.GlobalCoordinateEast;
+                    east = branch.GlobalCoordinate.East;
                 }
-                if (branch.GlobalCoordinateNorth > north)
+                if (branch.GlobalCoordinate.North > north)
                 {
-                    north = branch.GlobalCoordinateNorth;
+                    north = branch.GlobalCoordinate.North;
                 }
-                if (branch.GlobalCoordinateSouth < south)
+                if (branch.GlobalCoordinate.South < south)
                 {
-                    south = branch.GlobalCoordinateSouth;
+                    south = branch.GlobalCoordinate.South;
                 }
             }
 
